@@ -1,0 +1,2792 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace mucomDotNET.Compiler
+{
+    public class muc88
+    {
+        public msub msub = null;
+        public expand expand = null;
+
+        internal static readonly int MAXCH = 11;
+        private MUCInfo mucInfo;
+        private Func<enmFCOMPNextRtn>[] COMTBL;
+        private int errLin = 0;
+
+        public muc88(MUCInfo mucInfo)
+        {
+            this.mucInfo = mucInfo;
+            COMTBL = new Func<enmFCOMPNextRtn>[]
+            {
+              SETLIZ
+            , SETOCT
+            , SETDT
+            , SETVOL
+            , SETCOL
+            , SETOUP
+            , SETODW
+            , SETVUP
+            , SETVDW
+            , SETTIE
+            , SETREG
+            , SETMOD
+            , SETRST
+            , SETLPS
+            , SETLPE
+            , SETSE
+            , SETJMP
+            , SETQLG
+            , SETSEV
+            , SETMIX
+            , SETWAV
+            , TIMERB
+            , SETCLK
+            , COMOVR
+            //, SETKST
+            , SETKS2
+            , SETRJP
+            , TOTALV
+            , SETBEF
+            //, SETHE
+            , SETKST
+            //, SETHEP
+            , SETKON
+            , SETDCO
+            , SETLR
+            , SETHLF
+            , SETTMP
+            , SETTAG
+            , SETMEM
+            , SETRV
+            , SETMAC
+            , STRET  //RETで戻る!
+            , SETTI2 //ret code:fcomp13
+            , SETSYO
+            , ENDMAC
+            , SETPTM
+            , SETFLG
+            };
+        }
+
+        // *	ﾏｸﾛｾｯﾄ*
+
+        public enmFCOMPNextRtn SETMAC()
+        {
+            mucInfo.srcCPtr++;
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.REDATA(mucInfo.lin, ref ptr);
+            mucInfo.srcCPtr = ptr;
+
+            //戻り先を記憶
+            mucInfo.bufMacStack.Set(work.ADRSTC, mucInfo.srcCPtr);//col
+            mucInfo.bufMacStack.Set(work.ADRSTC + 1, mucInfo.srcLinPtr + 1);//line row
+            work.ADRSTC += 2;
+
+            //飛び先を取得
+            mucInfo.srcCPtr = mucInfo.bufMac.Get(n * 2 + 0);
+            mucInfo.srcLinPtr = mucInfo.bufMac.Get(n * 2 + 1);
+            if (mucInfo.srcLinPtr == 0)
+            {
+                throw new MucException("未定義のマクロを呼び出そうとしています。", mucInfo.row, mucInfo.col);
+            }
+            mucInfo.srcLinPtr--;
+            mucInfo.lin = mucInfo.basSrc[mucInfo.srcLinPtr];
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        private enmFCOMPNextRtn ENDMAC()
+        {
+            work.ADRSTC -= 2;
+            if (work.ADRSTC < 0)
+            {
+                throw new MucException(
+                    "マクロ行から復帰できませんでした。(アドレスオーバー)"
+                    , mucInfo.row, mucInfo.col);
+            }
+            mucInfo.srcCPtr = mucInfo.bufMacStack.Get(work.ADRSTC);
+            mucInfo.srcLinPtr = mucInfo.bufMacStack.Get(work.ADRSTC + 1);
+            mucInfo.bufMacStack.Set(work.ADRSTC, 0);//clear col
+            mucInfo.bufMacStack.Set(work.ADRSTC + 1, 0);//clear line row
+            if (mucInfo.srcLinPtr == 0)
+            {
+                throw new MucException(
+                    "マクロ行から復帰できませんでした。(アドレス未定義)"
+                    , mucInfo.row, mucInfo.col);
+            }
+            mucInfo.srcLinPtr--;
+            mucInfo.lin = mucInfo.basSrc[mucInfo.srcLinPtr];
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        private enmFCOMPNextRtn SETPTM()
+        {
+            msub.MWRIT2(0xf4);// PTMDAT;
+            msub.MWRIT2(0x00);
+            msub.MWRIT2(0x01);
+            msub.MWRIT2(0x01);
+            work.BEFMD = work.MDATA;//KUMA:DEPTHの書き込み位置を退避
+            work.MDATA += 2;
+            msub.MWRIT2(0xff);//KUMA:回数(255回)を書き込む
+
+            mucInfo.srcCPtr++;
+            char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ?
+                mucInfo.lin.Item2[mucInfo.srcCPtr]
+                : (char)0;//KUMA:音符(文字)を読み込み
+
+            byte note = msub.STTONE();//KUMA:オクターブ情報などを含めた音符情報に変換
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    "ポルタメント開始時の音符の指定が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            mucInfo.srcCPtr++;
+            FC162(note);//SET TONE&LIZ
+
+            msub.MWRIT2(0xf4);//KUMA:2個目のMコマンド作成開始
+            byte a = work.LFODAT[0];//KUMA:現在のLFOのスイッチを取得
+            a--;
+            if (a == 0)//KUMA:OFF(1)の場合はSTP1で2個めのMコマンドへOFF(1)を書き込む
+            {
+                msub.MWRIT2(0x01);
+            }
+            else
+            {
+                msub.MWRIT2(0x00);//KUMA:ON(0)の場合は2個めのMコマンドへON(0)を書き込む
+                msub.MWRIT2(work.LFODAT[1]);//KUMA:残りの現在のLFOの設定5byteをそのまま２個目のMコマンドへコピー
+                msub.MWRIT2(work.LFODAT[2]);
+                msub.MWRIT2(work.LFODAT[3]);
+                msub.MWRIT2(work.LFODAT[4]);
+                msub.MWRIT2(work.LFODAT[5]);
+            }
+
+            c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ?
+                mucInfo.lin.Item2[mucInfo.srcCPtr]
+                : (char)0;//KUMA:次のコマンドを取得
+
+            if (c == 0)
+            {
+                throw new MucException(
+                    "ポルタメント終了時の音符の指定が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+            if (c == '}')//0x7d
+            {
+                throw new MucException(
+                    "ポルタメント終了時の音符が未指定です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+            if (c == '>')//0x3e
+            {
+                SOU1();
+            }
+            if (c == '<')//0x3c
+            {
+                SOD1();
+            }
+
+            int depth = expand.CULPTM();//KUMA:DEPTHを計算
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    "ポルタメント範囲が広すぎです。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            mucInfo.bufDst.Set(work.BEFMD, (byte)depth);//KUMA:DE(DEPTH)を書き込む
+            mucInfo.bufDst.Set(work.BEFMD + 1, (byte)(depth >> 8));
+
+            mucInfo.srcCPtr++;
+            c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ?
+                mucInfo.lin.Item2[mucInfo.srcCPtr]
+                : (char)0;//KUMA:次のコマンドを取得
+
+            if (c != '}')//0x7d
+            {
+                throw new MucException(
+                    "ポルタメント終了時の'}'が未指定です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+            mucInfo.srcCPtr++;
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        // *	ﾘﾊﾞｰﾌﾞ*
+
+        private enmFCOMPNextRtn SETRV()
+        {
+            channelType tp = CHCHK();
+            if (tp != channelType.FM && tp != channelType.SSG)
+            {
+                throw new MucException(
+                    "'R'リバーブコマンドはFM/SSGパートのみ使用可能です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            mucInfo.srcCPtr++;
+            char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ?
+                mucInfo.lin.Item2[mucInfo.srcCPtr]
+                : (char)0;
+
+            byte dat = 0xf3;
+            if (c == 'm')//0x6d
+            {
+                dat = 0xf4;
+            }
+            else if (c == 'F')//0x46
+            {
+                dat = 0xf5;
+            }
+            else
+            {
+                mucInfo.srcCPtr--;
+            }
+
+            msub.MWRITE(0xff, dat);
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.ERRT(mucInfo.lin, ref ptr, "'R'リバーブコマンド");
+            mucInfo.srcCPtr = ptr;
+            msub.MWRIT2((byte)n);
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        private enmFCOMPNextRtn SETTMP()
+        {
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.ERRT(mucInfo.lin, ref ptr, "'T'テンポ設定コマンド"); // T
+            mucInfo.srcCPtr = ptr;
+            if ((byte)n == 0)
+            {
+                throw new MucException(
+                    "'T'テンポ設定コマンドに0は設定できません。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            int HL = (25600 - 346 * (byte)(60000 / (work.CLOCK / 4 * (byte)n) + 1)) / 100;
+            if (HL <= 0)
+            {
+                HL = 1;
+            }
+
+            return TIMEB2((byte)HL);
+        }
+
+
+        // *	FLAGDATA SET	*
+
+        private enmFCOMPNextRtn SETFLG()
+        {
+            mucInfo.srcCPtr++;
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.REDATA(mucInfo.lin, ref ptr);
+            mucInfo.srcCPtr = ptr;
+            if (mucInfo.Carry)
+            {
+                n = 0xFF;
+            }
+            msub.MWRITE(0xf9,(byte)n);
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        // *	ｼｮｳｾﾂﾏｰｸ*
+
+        private enmFCOMPNextRtn SETSYO()
+        {
+            mucInfo.srcCPtr++;
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        // *	ﾁｭｳﾔｸ*
+
+        private enmFCOMPNextRtn SETMEM()
+        {
+            mucInfo.srcCPtr = mucInfo.lin.Item2.Length;
+            return enmFCOMPNextRtn.fcomp1;//KUMA:NextLine
+        }
+
+
+        // *	SET TAG & JUMP TO TAG*
+
+        private enmFCOMPNextRtn SETTAG()
+        {
+            work.JCLOCK = work.tcnt[work.COMNOW];
+            work.JPLINE = work.LINE;
+
+            mucInfo.srcCPtr++;
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+
+        // *	HARD LFO	*
+
+        private enmFCOMPNextRtn SETHLF()
+        {
+            channelType tp = CHCHK();
+            if (tp != channelType.FM)
+            {
+                throw new MucException(
+                    "'H'ハードウェアLFOはFMパートのみ使用可能です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            msub.MWRIT2(0xfc);
+
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.ERRT(mucInfo.lin, ref ptr, "'H'ハードウェアLFO");
+            msub.MWRIT2((byte)n);
+
+            n = msub.ERRT(mucInfo.lin, ref ptr, "'H'ハードウェアLFO");
+            msub.MWRIT2((byte)n);
+
+            n = msub.ERRT(mucInfo.lin, ref ptr, "'H'ハードウェアLFO");
+            mucInfo.srcCPtr = ptr;
+            msub.MWRIT2((byte)n);
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        // *	STEREO PAN	*
+
+        private enmFCOMPNextRtn SETLR()
+        {
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.ERRT(mucInfo.lin, ref ptr, "'p'パンコマンド");
+            mucInfo.srcCPtr = ptr;
+
+            msub.MWRITE(0xf8,(byte)n);// COM OF 'p'
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+
+        // *	DIRECT COUNT	*
+
+        private enmFCOMPNextRtn SETDCO()
+        {
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.ERRT(mucInfo.lin, ref ptr,"'%'音長ダイレクト設定コマンド");
+            mucInfo.srcCPtr = ptr;
+            work.COUNT = (byte)n;
+
+            return enmFCOMPNextRtn.fcomp12;
+        }
+
+        // *	SET HARD ENVE TYPE/FLAG*
+
+        private enmFCOMPNextRtn SETHE()
+        {
+            mucInfo.srcCPtr++;
+            msub.MWRITE(0xff,0xf1);// 2nd COM
+
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.REDATA(mucInfo.lin, ref ptr);
+            mucInfo.srcCPtr = ptr;
+            msub.MWRIT2((byte)n);
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        private enmFCOMPNextRtn SETHEP()
+        {
+            mucInfo.srcCPtr++;
+            msub.MWRITE(0xff, 0xf2);
+
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.REDATA(mucInfo.lin, ref ptr);
+            mucInfo.srcCPtr = ptr;
+            msub.MWRITE((byte)n, (byte)(n >> 8));// 2ﾊﾞｲﾄﾃﾞｰﾀ ｶｸ
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        // *	BEFORE CODE	*
+
+        private enmFCOMPNextRtn SETBEF()
+        {
+            int ptr;
+            int n;
+
+            mucInfo.srcCPtr++;
+            char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ?
+                mucInfo.lin.Item2[mucInfo.srcCPtr]
+                : (char)0;
+            if (c != '=') //0x3d
+            {
+                msub.MWRITE(0xfb, (byte)-work.VDDAT);
+                msub.MWRIT2((byte)work.BEFCO);
+                TCLKSUB(work.BEFCO);
+
+                msub.MWRIT2(work.BEFTONE[work.BFDAT]);
+                msub.MWRITE(0xfb, work.VDDAT);
+
+                return enmFCOMPNextRtn.fcomp1;
+            }
+
+            ptr = mucInfo.srcCPtr;
+            n = (byte)msub.ERRT(mucInfo.lin, ref ptr, "'\\'エコー設定コマンド");
+            mucInfo.srcCPtr = ptr;
+
+            if (n >= 10)
+            {
+                throw new MucException(
+                    "'\\'エコー設定コマンドの値が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            if (n == 0)
+            {
+                n++;
+            }
+            n--;
+
+            work.BFDAT = (byte)n;
+
+            c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ?
+                mucInfo.lin.Item2[mucInfo.srcCPtr]
+                : (char)0;
+            if (c != ',')//0x2c
+            {
+                return enmFCOMPNextRtn.fcomp1;
+            }
+
+            ptr = mucInfo.srcCPtr;
+            n = (byte)msub.ERRT(mucInfo.lin, ref ptr, "'\\'エコー設定コマンド");
+            mucInfo.srcCPtr = ptr;
+
+            work.VDDAT = (byte)n;
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+
+        // *	TOTAL VOLUME	*
+
+        private enmFCOMPNextRtn TOTALV()
+        {
+            int ptr;
+            ptr = mucInfo.srcCPtr;
+            int n = (byte)msub.ERRT(mucInfo.lin, ref ptr, "'V'ボリューム相対設定コマンド");
+            mucInfo.srcCPtr = ptr;
+
+            work.TV_OFS = (byte)n;
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        // **	REPEAT JUMP	**
+
+        private enmFCOMPNextRtn SETRJP()
+        {
+            mucInfo.srcCPtr++;
+
+            msub.MWRIT2(0xfe);
+
+            int HL = work.POINTC + 4;
+            if ((mucInfo.bufLoopStack.Get(HL) | mucInfo.bufLoopStack.Get(HL + 1)) != 0)
+            {
+                throw new MucException(
+                    "対応するループ内に設定できる / はひとつだけです。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            mucInfo.bufLoopStack.Set(HL, (byte)work.MDATA);
+            mucInfo.bufLoopStack.Set(HL + 1, (byte)(work.MDATA >> 8));
+            HL += 4;
+            work.MDATA += 2;
+
+            mucInfo.bufLoopStack.Set(HL, (byte)work.tcnt[work.COMNOW]);
+            mucInfo.bufLoopStack.Set(HL + 1, (byte)(work.tcnt[work.COMNOW] >> 8));
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+
+        // *    KEY ON REVISE * added
+        public enmFCOMPNextRtn SETKON()
+        {
+            int ptr;
+            ptr = mucInfo.srcCPtr;
+            int n = (byte)msub.ERRT(mucInfo.lin, ref ptr,"'s'キーオンリバースコマンド");
+            mucInfo.srcCPtr = ptr;
+            work.KEYONR = (byte)n;
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+
+        // *	KEY SHIFT	*
+
+        private enmFCOMPNextRtn SETKST()
+        {
+            int ptr;
+            ptr = mucInfo.srcCPtr;
+            int n = (byte)msub.ERRT(mucInfo.lin, ref ptr,"'K'キーシフトコマンド");
+            mucInfo.srcCPtr = ptr;
+            work.SIFTDAT = (byte)n;
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+
+        // *	KEY SHIFT(k)	*
+
+        public enmFCOMPNextRtn SETKS2()
+        {
+            int ptr;
+            ptr = mucInfo.srcCPtr;
+            int n = (byte)msub.ERRT(mucInfo.lin, ref ptr,"'k'キーシフトコマンド");
+            mucInfo.srcCPtr = ptr;
+            work.SIFTDA2 = (byte)n;
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+
+        // *	!	*
+        private enmFCOMPNextRtn COMOVR()
+        {
+            return enmFCOMPNextRtn.comovr;
+        }
+
+        private enmFCOMPNextRtn STRET()
+        {
+            return enmFCOMPNextRtn.comovr;
+        }
+
+        // **	TEMPO(TIMER_B) SET**
+
+        private enmFCOMPNextRtn TIMERB()
+        {
+            int ptr;
+            ptr = mucInfo.srcCPtr;
+            int n = (byte)msub.ERRT(mucInfo.lin, ref ptr,"'t'タイマーB設定コマンド");
+            mucInfo.srcCPtr = ptr;
+
+            return TIMEB2((byte)n);
+        }
+
+        private enmFCOMPNextRtn TIMEB2(byte n)
+        {
+            mucInfo.bufDst.Set(work.DATTBL - 1, n);// TIMER_B ﾆ ｱﾜｾﾙ
+
+            if (work.COMNOW >= 3 && work.COMNOW < 6)
+            {
+                return enmFCOMPNextRtn.fcomp1;
+            }
+
+            msub.MWRITE(0xfa, 0x26);
+            msub.MWRIT2(n);
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        // **	NOIZE WAVE	**
+
+        private enmFCOMPNextRtn SETWAV()
+        {
+
+            channelType tp = CHCHK();
+            if (tp != channelType.SSG)
+            {
+                throw new MucException(
+                    "'w'ノイズ周波数設定コマンドはSSGパートのみ使用可能です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            int ptr;
+            ptr = mucInfo.srcCPtr;
+            int n = (byte)msub.ERRT(mucInfo.lin, ref ptr,"'w'ノイズ周波数設定コマンド");
+            mucInfo.srcCPtr = ptr;
+
+            msub.MWRITE(0xf8,(byte)n);// COM OF 'w'
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        // **	MIX PORT	**
+
+        private enmFCOMPNextRtn SETMIX()
+        {
+
+            channelType tp = CHCHK();
+            if (tp != channelType.SSG)
+            {
+                throw new MucException(
+                    "'P'ミキサモード設定コマンドはSSGパートのみ使用可能です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            int ptr;
+            ptr = mucInfo.srcCPtr;
+            int n = (byte)msub.ERRT(mucInfo.lin, ref ptr, "'P'ミキサモード設定コマンド");
+            mucInfo.srcCPtr = ptr;
+
+            if (n == 1)
+            {
+                n = 8;
+            }
+            else if (n == 2)
+            {
+                n = 1;
+            }
+            else if (n == 3)
+            {
+                n = 0;
+            }
+            else if (n == 0)
+            {
+                n = 9;
+            }
+            else
+            {
+                throw new MucException(
+                    "'P'ミキサモード設定コマンドの指定が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            msub.MWRITE(0xf7, (byte)n);// COM OF 'P'
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        // **	SOFT ENVELOPE	**
+
+        private enmFCOMPNextRtn SETSEV()
+        {
+
+            channelType tp = CHCHK();
+            if (tp != channelType.SSG)
+            {
+                throw new MucException(
+                    "'E'ソフトウェアエンベロープはSSGパートのみ使用可能です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            int ptr;
+            ptr = mucInfo.srcCPtr;
+            int n = msub.ERRT(mucInfo.lin, ref ptr, "'E'ソフトウェアエンベロープ");
+            mucInfo.srcCPtr = ptr;
+
+            msub.MWRITE(0xfa, (byte)n);// COM OF 'E'
+
+            return SETSE1(5);//ﾉｺﾘ 5 PARAMETER
+        }
+
+        // **	Q**
+
+        private enmFCOMPNextRtn SETQLG()
+        {
+            int ptr;
+            ptr = mucInfo.srcCPtr;
+            int n = msub.ERRT(mucInfo.lin, ref ptr,"'q'スタッカートコマンド");
+            mucInfo.srcCPtr = ptr;
+
+            msub.MWRITE(0xf3,(byte)n);// COM OF 'q'
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        // **	JUMP ADDRESS SET**
+
+        private enmFCOMPNextRtn SETJMP()
+        {
+            mucInfo.srcCPtr++;
+
+            int HL = work.MDATA;
+            int DE = HL - work.MU_TOP;
+            int c = work.COMNOW;
+            HL = work.DATTBL + c * 4 + 2;
+
+            mucInfo.bufDst.Set(HL, (byte)DE);
+            HL++;
+            mucInfo.bufDst.Set(HL, (byte)(DE >> 8));
+
+            work.lcnt[c] = work.tcnt[c] + 1;// +1('L'ﾌﾗｸﾞﾉ ｶﾜﾘ)
+
+            return  enmFCOMPNextRtn.fcomp1; 
+        }
+
+        // **	SE DETUNE ﾉ ｾｯﾃｲ	**
+
+        private enmFCOMPNextRtn SETSE()
+        {
+
+            if (work.COMNOW!=2)
+            {
+                // 3 Ch ｲｶﾞｲﾅﾗ ERROR
+                throw new MucException(
+                    "'S'スロットディチューン設定コマンドはFM Ch3(Cパート)のみ使用可能です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            int ptr;
+
+            ptr = mucInfo.srcCPtr;
+            int n = msub.ERRT(mucInfo.lin, ref ptr, "'S'スロットディチューン設定コマンド");
+            mucInfo.srcCPtr = ptr;
+
+            msub.MWRIT2(0xf7);// COM OF 'S'
+            msub.MWRIT2((byte)n);
+            return SETSE1(3);// ﾉｺﾘ 3 PARAMETER
+        }
+
+        private enmFCOMPNextRtn SETSE1(int b)
+        {
+            do
+            {
+                char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ?
+                    mucInfo.lin.Item2[mucInfo.srcCPtr]
+                    : (char)0;
+                if (c !=',')// 0x2c
+                {
+                    throw new MucException(
+                        "'S'スロットディチューン設定コマンドの書式が不正です。"
+                        , mucInfo.row, mucInfo.col);
+                }
+
+                mucInfo.srcCPtr++;
+                int ptr = mucInfo.srcCPtr;
+                int n = msub.REDATA(mucInfo.lin, ref ptr);
+                mucInfo.srcCPtr = ptr;
+
+                if (mucInfo.Carry)
+                {
+                    // NONDATA ﾅﾗERROR
+                    throw new MucException(
+                        "'S'スロットディチューン設定コマンドの書式が不正です。"
+                        , mucInfo.row, mucInfo.col);
+                }
+
+                if (mucInfo.ErrSign)
+                {
+                    throw new MucException(
+                        "'S'スロットディチューン設定コマンドの値が不正です。"
+                        , mucInfo.row, mucInfo.col);
+                }
+
+                msub.MWRIT2((byte)n);// SET DATA ONLY
+                b--;
+            } while (b != 0);
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        private enmFCOMPNextRtn SETLPE()
+        {
+            int ptr;
+
+            ptr = mucInfo.srcCPtr;
+            int rep = msub.ERRT(mucInfo.lin, ref ptr,"']'ループエンドコマンド");
+            mucInfo.srcCPtr = ptr;
+
+            msub.MWRIT2(0xf6);	// WRITE COM OF LOOP
+            msub.MWRIT2((byte)rep); // WRITE LOOP Co.
+            int adr = work.MDATA;
+            msub.MWRIT2((byte)rep); // WRITE LOOP Co. (SPEAR)
+
+            if (work.POINTC < work.LOOPSP)
+            {
+                throw new MucException("]の数が多く指定されています。", mucInfo.row, mucInfo.col);
+            }
+
+            int loopStackPtr = work.POINTC;
+            work.POINTC -= 10;
+
+            int n = mucInfo.bufLoopStack.Get(loopStackPtr)
+                + mucInfo.bufLoopStack.Get(loopStackPtr + 1) * 0x100;
+            adr -= n;
+
+            mucInfo.bufDst.Set(n, (byte)adr);// RSKIP JP ADR
+            mucInfo.bufDst.Set(n + 1, (byte)(adr >> 8));
+
+            int m = mucInfo.bufLoopStack.Get(loopStackPtr + 2)
+                + mucInfo.bufLoopStack.Get(loopStackPtr + 3) * 0x100;// HL ﾊ LOOP ｦ ｶｲｼｼﾀ ｱﾄﾞﾚｽ
+
+            int loopRetOfs = work.MDATA - m;//LOOP RET ADR OFFSET
+            mucInfo.bufDst.Set(work.MDATA, (byte)loopRetOfs);
+            mucInfo.bufDst.Set(work.MDATA + 1, (byte)(loopRetOfs >> 8));// WRITE RET ADR OFFSET
+            work.MDATA += 2;
+
+            m = mucInfo.bufLoopStack.Get(loopStackPtr + 4);
+            m = m + mucInfo.bufLoopStack.Get(loopStackPtr + 5) * 0x100;
+            if (m != 0)
+            {
+                int DE = work.MDATA - 4;
+                DE -= m;// loopStackPtr + 4;//DE as OFFSET
+                mucInfo.bufDst.Set(m, (byte)DE);// loopStackPtr + 4, (byte)DE);
+                mucInfo.bufDst.Set(m+1, (byte)(DE >> 8)); //loopStackPtr + 5, (byte)(DE >> 8));
+            }
+
+            work.REPCOUNT--;
+
+            int backupAdr = mucInfo.bufLoopStack.Get(loopStackPtr + 6)
+                + mucInfo.bufLoopStack.Get(loopStackPtr + 7) * 0x100;
+            backupAdr += work.tcnt[work.COMNOW] * (rep - 1);
+
+            int ofs = mucInfo.bufLoopStack.Get(loopStackPtr + 8)
+                + mucInfo.bufLoopStack.Get(loopStackPtr + 9) * 0x100;
+            if (ofs == 0)
+            {
+                // '/'ﾊ ｶｯｺﾅｲﾆ ﾂｶﾜﾚﾃﾅｲ
+                ofs = work.tcnt[work.COMNOW];
+            }
+
+            backupAdr += ofs;
+            work.tcnt[work.COMNOW] = backupAdr;
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        // **	LOOP START	**
+
+        private enmFCOMPNextRtn SETLPS()
+        {
+
+            mucInfo.srcCPtr++;
+
+            msub.MWRIT2(0xf5);// COM OF LOOPSTART
+            work.POINTC += 10;
+
+            mucInfo.bufLoopStack.Set(work.POINTC + 0, (byte)work.MDATA);// SAVE REWRITE ADR
+            mucInfo.bufLoopStack.Set(work.POINTC + 1, (byte)(work.MDATA >> 8));
+
+            work.MDATA += 2;
+
+            mucInfo.bufLoopStack.Set(work.POINTC + 2, (byte)work.MDATA);// SAVE LOOP START ADR
+            mucInfo.bufLoopStack.Set(work.POINTC + 3, (byte)(work.MDATA >> 8));
+            mucInfo.bufLoopStack.Set(work.POINTC + 4, 0);
+            mucInfo.bufLoopStack.Set(work.POINTC + 5, 0);
+            mucInfo.bufLoopStack.Set(work.POINTC + 6, (byte)work.tcnt[work.COMNOW]);
+            mucInfo.bufLoopStack.Set(work.POINTC + 7, (byte)(work.tcnt[work.COMNOW] >> 8));
+            mucInfo.bufLoopStack.Set(work.POINTC + 8, 0);
+            mucInfo.bufLoopStack.Set(work.POINTC + 9, 0);
+
+            work.tcnt[work.COMNOW] = 0;//ﾄｰﾀﾙ ｸﾛｯｸ ｸﾘｱ
+
+            work.REPCOUNT++;
+            if (work.REPCOUNT  > 16)
+            {
+                throw new MucException(
+                    "ループのネストの最大値16段を超えています。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        // **	REST**
+
+        private enmFCOMPNextRtn SETRST()
+        {
+            int ptr;
+            byte kotae;
+
+            mucInfo.srcCPtr++;
+            char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length 
+                ? mucInfo.lin.Item2[mucInfo.srcCPtr] 
+                : (char)0;
+
+            if (c == '%')// 0x25
+            {
+                mucInfo.srcCPtr++;
+                ptr = mucInfo.srcCPtr;
+                kotae = (byte)msub.REDATA(mucInfo.lin, ref ptr);
+                mucInfo.srcCPtr = ptr;
+                if (mucInfo.Carry)
+                {
+                    kotae = (byte)work.COUNT;
+                    mucInfo.srcCPtr--;
+                    c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                        ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                        : (char)0;
+                    if (c == '.')// 0x2e
+                    {
+                        //厳密には挙動が違いますが、この文法は使用できないことを再現させるため
+                        throw new MucException(
+                            "'r'休符の値が不正です。"
+                            , mucInfo.row, mucInfo.col);
+                        //mucInfo.srcCPtr++;
+                        //kotae += (byte)(kotae >> 1);// /2
+                    }
+                }
+                if (mucInfo.ErrSign)
+                {
+                    throw new MucException(
+                        "'r'休符の値が不正です。"
+                        , mucInfo.row, mucInfo.col);
+                }
+            }
+            else
+            {
+                ptr = mucInfo.srcCPtr;
+                kotae = (byte)msub.REDATA(mucInfo.lin, ref ptr);
+                if (kotae != 0) kotae = (byte)(work.CLOCK / kotae);
+                mucInfo.srcCPtr = ptr;
+                if (mucInfo.Carry)
+                {
+                    kotae = (byte)work.COUNT;
+                    mucInfo.srcCPtr--;
+                }
+                if (mucInfo.ErrSign)
+                {
+                    throw new MucException(
+                        "'r'休符の値が不正です。"
+                        , mucInfo.row, mucInfo.col);
+                }
+
+                c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                    ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                    : (char)0;
+                if (c == '.')// 0x2e
+                {
+                    mucInfo.srcCPtr++;
+                    kotae += (byte)(kotae >> 1);// /2
+                }
+            }
+
+            work.tcnt[work.COMNOW] += kotae;
+
+            if (work.BEFRST != 0)// ｾﾞﾝｶｲｶｳﾝﾀ ﾜｰｸ(ﾌﾗｸﾞ)
+            {
+                kotae += (byte)work.BEFRST;
+                work.MDATA--;
+            }
+            while (kotae > 0x6f)
+            {
+                kotae -= 0x6f;
+                msub.MWRIT2((byte)(0b1110_1111));
+            }
+            work.BEFRST = kotae;
+            msub.MWRIT2((byte)(kotae | 0b1000_0000));// SET REST FLAG
+
+            return enmFCOMPNextRtn.fcomp12;
+        }
+
+        private enmFCOMPNextRtn SETMOD()
+        {
+            int ix = 0;
+
+            mucInfo.srcCPtr++;
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.REDATA(mucInfo.lin, ref ptr);
+            mucInfo.srcCPtr = ptr;
+            if (mucInfo.Carry)
+            {
+                return SETMO2(n);// NONDATA ﾅﾗ 2nd COM PRC
+            }
+            if (mucInfo.ErrSign)
+            {
+                throw new MucException(
+                    "'M'ソフトウェアLFOの値が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            work.LFODAT[ix] = 0;
+            msub.MWRIT2(0xf4);// COM OF 'M'
+            msub.MWRIT2(0x00);// 2nd COM
+            work.LFODAT[ix + 1] = (byte)n;
+            msub.MWRIT2((byte)n);// SET DELAY
+
+            // --	ｶｳﾝﾀ ｾｯﾄ	--
+            //SETMO1:
+            char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                : (char)0;
+            if (c != ',')//0x2c
+            {
+                throw new MucException(
+                    "'M'ソフトウェアLFOの書式が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            mucInfo.srcCPtr++;
+            ptr = mucInfo.srcCPtr;
+            n = msub.REDATA(mucInfo.lin, ref ptr);
+            mucInfo.srcCPtr = ptr;
+
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    "'M'ソフトウェアLFOの書式が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+            if (mucInfo.ErrSign)
+            {
+                throw new MucException(
+                    "'M'ソフトウェアLFOの値が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            work.LFODAT[ix + 2] = (byte)n;
+            msub.MWRIT2((byte)n);// SET DATA ONLY
+                                 // --	SET VECTOR	--
+            c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                : (char)0;
+            if (c != ',')//0x2c
+            {
+                throw new MucException(
+                    "'M'ソフトウェアLFOの書式が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            mucInfo.srcCPtr++;
+            ptr = mucInfo.srcCPtr;
+            n = msub.REDATA(mucInfo.lin, ref ptr);
+            mucInfo.srcCPtr = ptr;
+
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    "'M'ソフトウェアLFOの書式が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+            if (mucInfo.ErrSign)
+            {
+                throw new MucException(
+                    "'M'ソフトウェアLFOの値が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            channelType tp = CHCHK();
+            if (tp == channelType.SSG)
+            {
+                n = -n;//ssgの場合はdeの符号を反転
+            }
+
+            msub.MWRIT2((byte)n);
+            work.LFODAT[ix + 3] = (byte)n;
+            msub.MWRIT2((byte)(n>>8));
+            work.LFODAT[ix + 4] = (byte)(n >> 8);
+
+            // --	SET DEPTH	--
+            c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                : (char)0;
+            if (c != ',')//0x2c
+            {
+                throw new MucException(
+                    "'M'ソフトウェアLFOの書式が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            ptr = mucInfo.srcCPtr;
+            n = msub.ERRT(mucInfo.lin, ref ptr,"'M'ソフトウェアLFO");
+            mucInfo.srcCPtr = ptr;
+            work.LFODAT[ix + 5] = (byte)n;
+            msub.MWRIT2((byte)n);// SET DATA ONLY
+
+            c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                : (char)0;
+            if (c != ',')//0x2c
+            {
+                return enmFCOMPNextRtn.fcomp1;
+            }
+
+            ptr = mucInfo.srcCPtr;
+            n = msub.ERRT(mucInfo.lin, ref ptr, "'M'ソフトウェアLFO");
+            mucInfo.srcCPtr = ptr;
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        private enmFCOMPNextRtn SETMO2(int n)
+        {
+            int iy;
+            int ptr;
+
+            //mucInfo.srcCPtr++;
+            // COM OF 'M'
+            msub.MWRIT2(0xf4);// COM ONLY
+            if (work.SECCOM == 'F')//0x46
+            {
+                ptr = mucInfo.srcCPtr;
+                n = msub.REDATA(mucInfo.lin, ref ptr);
+                mucInfo.srcCPtr = ptr;
+                if (mucInfo.Carry)
+                {
+                    throw new MucException(
+                        "ソフトウェアLFOのスイッチ'MF'の値が未指定です。"
+                        , mucInfo.row, mucInfo.col);
+                }
+                if (mucInfo.ErrSign)
+                {
+                    throw new MucException(
+                        "ソフトウェアLFOのスイッチ'MF'の値が不正です。"
+                        , mucInfo.row, mucInfo.col);
+                }
+
+                if (n != 0 && n != 1)
+                {
+                    throw new MucException(
+                        "ソフトウェアLFOのスイッチ'MF'の値が不正です。(0/1のみ)"
+                        , mucInfo.row, mucInfo.col);
+                }
+                n++;// SECOND COM
+                work.LFODAT[0] = (byte)n;
+                msub.MWRIT2((byte)n);// 'MF0' or 'MF1'
+                return enmFCOMPNextRtn.fcomp1;
+            }
+
+            //MO4:
+            iy = 1;
+            if (work.SECCOM == 0x57)//'W'
+            {
+                return MODP2(iy, 3, "ディレイ'MW'");// COM OF 'MW'
+            }
+
+            //M05:
+            iy++;
+            if (work.SECCOM == 0x43)//'C'
+            {
+                return MODP2(iy, 4, "クロック単位'MC'");// 'MC'
+            }
+
+            //M06:
+            iy++;
+            if (work.SECCOM == 0x4c)//'L'
+            {
+                // 'ML'
+                work.LFODAT[0] = 5;
+                msub.MWRIT2(0x5);
+
+                ptr = mucInfo.srcCPtr;
+                n = msub.REDATA(mucInfo.lin, ref ptr);
+                mucInfo.srcCPtr = ptr;
+                if (mucInfo.Carry)
+                {
+                    throw new MucException(
+                        "ソフトウェアLFOの振幅'ML'の値が未指定です。"
+                        , mucInfo.row, mucInfo.col);
+                }
+                if (mucInfo.ErrSign)
+                {
+                    throw new MucException(
+                        "ソフトウェアLFOの振幅'ML'の値が不正です。"
+                        , mucInfo.row, mucInfo.col);
+                }
+                work.LFODAT[iy] = (byte)n;
+                work.LFODAT[iy + 1] = (byte)(n >> 8);
+                work.LFODAT[iy + 2] = 0;
+                msub.MWRITE((byte)n, (byte)(n >> 8));
+
+                return enmFCOMPNextRtn.fcomp1;
+            }
+            //M07:
+            iy += 3;
+            if (work.SECCOM == 0x44)//'D'
+            {
+                return MODP2(iy, 6, "周波数'MD'");//'D'
+            }
+            //M08:
+            if (work.SECCOM != 0x54)//'T'
+            {
+                throw new MucException(
+                    "ソフトウェアLFOの指定が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            channelType tp = CHCHK();
+            if (tp == channelType.SSG)
+            {
+                throw new MucException(
+                    "ソフトウェアLFOのトータルレベル'MT'はSSGでは使用できません。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            ptr = mucInfo.srcCPtr;
+            n = msub.REDATA(mucInfo.lin, ref ptr);
+            mucInfo.srcCPtr = ptr;
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    "ソフトウェアLFOのトータルレベル'MT'の値1が未指定です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+            if (mucInfo.ErrSign)
+            {
+                throw new MucException(
+                    "ソフトウェアLFOのトータルレベル'MT'の値1が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            msub.MWRITE(7, (byte)n);
+            if ((byte)n == 0)
+            {
+                return enmFCOMPNextRtn.fcomp1;
+            }
+
+            //M083:
+            mucInfo.srcCPtr++;
+            ptr = mucInfo.srcCPtr;
+            n = msub.REDATA(mucInfo.lin, ref ptr);
+            mucInfo.srcCPtr = ptr;
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    "ソフトウェアLFOのトータルレベル'MT'の値2が未指定です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+            if (mucInfo.ErrSign)
+            {
+                throw new MucException(
+                    "ソフトウェアLFOのトータルレベル'MT'の値2が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            msub.MWRIT2((byte)n);
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        // **	PARAMETER SET	**
+
+        // IN: A<= COM No.
+
+        public enmFCOMPNextRtn MODP2(int iy, byte a,string typ)
+        {
+            work.LFODAT[0] = a;
+            msub.MWRIT2(a);
+
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.REDATA(mucInfo.lin, ref ptr);
+            mucInfo.srcCPtr = ptr;
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    string.Format("ソフトウェアLFOの{0}の値が未指定です。", typ)
+                    , mucInfo.row, mucInfo.col);
+            }
+            if (mucInfo.ErrSign)
+            {
+                throw new MucException(
+                    string.Format("ソフトウェアLFOの{0}の値が不正です。", typ)
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            work.LFODAT[iy] = (byte)n;
+            msub.MWRIT2((byte)n);
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        private enmFCOMPNextRtn SETREG()
+        {
+
+            mucInfo.srcCPtr++;
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.REDATA(mucInfo.lin, ref ptr);
+            mucInfo.srcCPtr = ptr;
+
+            if (mucInfo.Carry)
+            {
+                mucInfo.srcCPtr--;
+                return SETR2();
+            }
+            if (mucInfo.ErrSign)
+            {
+                throw new MucException(
+                    "'y'コマンドのアドレス値指定が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+            if (0xb2 < n)
+            {
+                throw new MucException(
+                    "'y'コマンドのアドレス値指定が範囲($00～$b2)を超えています。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            return SETR1(n);
+        }
+
+        private enmFCOMPNextRtn SETR1(int n)
+        {
+            msub.MWRITE(0xfa, (byte)n);// COM OF 'y'
+
+            char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+            if (c != ',')//0x2c
+            {
+                throw new MucException(
+                    "'y'コマンドの','が読み取れません。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            mucInfo.srcCPtr++;
+            int ptr = mucInfo.srcCPtr;
+            n = msub.REDATA(mucInfo.lin, ref ptr);
+            mucInfo.srcCPtr = ptr;
+
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    "'y'コマンドのデータ値指定が未指定です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+            if (mucInfo.ErrSign)
+            {
+                throw new MucException(
+                    "'y'コマンドのデータ値指定が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            msub.MWRIT2((byte)n);// SET DATA ONLY
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        private enmFCOMPNextRtn SETR2()
+        {
+            // --	yXX(ﾓｼﾞﾚﾂ),OpNo.,DATA	--
+
+            int i = 0;
+            int ptr;
+
+            do
+            {
+                ptr = mucInfo.srcCPtr;
+                mucInfo.Carry = msub.MCMP_DE(DMDAT[i], mucInfo.lin, ref ptr);
+                if (mucInfo.Carry)
+                {
+                    mucInfo.srcCPtr = ptr;
+                    break;
+                }
+                i++;
+            } while (i < 7);
+            if (i == 7)
+            {
+                throw new MucException(
+                    "'y'コマンドのFMパラメータ指定が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            byte SETR9_VAL = (byte)(i * 16);
+            char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+            if (c != ',')//0x2c
+            {
+                throw new MucException(
+                    "'y'コマンドの','が読み取れません。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            ptr = mucInfo.srcCPtr;
+            int n = msub.ERRT(mucInfo.lin, ref ptr, "'y'コマンド");// ｵﾍﾟﾚｰﾀｰ No.
+            mucInfo.srcCPtr = ptr;
+
+            if (n == 0 || n > 4)
+            {
+                throw new MucException(
+                    "'y'コマンドのオペレータ指定が範囲(1～4)を超えています。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            // op2<->op3
+            if (n == 3)
+            {
+                n = 2;
+            }
+            else if (n == 2)
+            {
+                n = 3;
+            }
+
+            n--;
+            n *= 4;
+
+            byte ch = (byte)work.COMNOW;
+            if (ch < 0 || (ch >= 3 && ch < 7) || ch >= 10)
+            {
+                throw new MucException(
+                    string.Format("{0}パートは、'y'コマンドのFMパラメータ指定ができません。", (char)('A' + ch))
+                    , mucInfo.row, mucInfo.col);
+            }
+            if (ch > 6) ch -= 7;
+
+            n += ch;// Op*4+CH No.
+            n += 0x30 + SETR9_VAL;
+            return SETR1(n);
+        }
+
+        public string[] DMDAT = new string[]
+        {
+            "DM\0"
+            ,"TL\0"
+            ,"KA\0"
+            ,"DR\0"
+            ,"SR\0"
+            ,"SL\0"
+            ,"SE\0"
+        };
+
+        private enmFCOMPNextRtn SETTIE()
+        {
+            SETTI1();
+            return enmFCOMPNextRtn.fcomp12;
+        }
+
+        public void SETTI1()
+        {
+            mucInfo.srcCPtr++;
+            work.TIEFG = 0xfd;
+            msub.MWRIT2(0xfd);
+        }
+
+        public enmFCOMPNextRtn SETTI2()
+        {
+            SETTI1();
+            byte a = work.BEFTONE[0];
+
+            return FCOMP13(a);
+        }
+
+
+        private enmFCOMPNextRtn SETVUP()
+        {
+            if (work.UDFLG != 0)
+            {
+                return SVD2();
+            }
+            return SVU2();
+        }
+
+        public enmFCOMPNextRtn SETVDW()
+        {
+            if (work.UDFLG != 0)
+            {
+                return SVU2();
+            }
+            return SVD2();
+        }
+
+        public enmFCOMPNextRtn SVU2()
+        {
+
+            mucInfo.srcCPtr++;
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.REDATA(mucInfo.lin, ref ptr);
+            if (mucInfo.ErrSign)
+            {
+                throw new MucException(
+                    "')'ボリューム相対指定コマンドの値が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            mucInfo.srcCPtr = ptr;
+
+            if (mucInfo.Carry)
+            {
+                mucInfo.srcCPtr--;
+                n = 1;// ﾍﾝｶ 1
+            }
+            work.VOLUME += n;
+            msub.MWRITE(0xfb, (byte)n);// COM OF ')'
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        private enmFCOMPNextRtn SETODW()
+        {
+            int row = mucInfo.lin.Item1;
+            int col = mucInfo.srcCPtr;
+            SOD1();
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    "'('ボリューム相対指定コマンドの指定が範囲を超えています。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        public enmFCOMPNextRtn SVD2()
+        {
+
+            mucInfo.srcCPtr++;
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.REDATA(mucInfo.lin, ref ptr);
+            if (mucInfo.ErrSign)
+            {
+                throw new MucException(
+                    "'('ボリューム相対指定コマンドの値が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+            mucInfo.srcCPtr = ptr;
+
+            if (mucInfo.Carry)
+            {
+                mucInfo.srcCPtr--;
+                n = 1;// ﾍﾝｶ 1
+            }
+            work.VOLUME -= n;
+            msub.MWRITE(0xfb, (byte)-n);// ')' ﾉ ﾊﾝﾀｲ ﾊ '('
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        private enmFCOMPNextRtn SETOUP()
+        {
+
+            SOU1();
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    "')'ボリューム相対指定コマンドの指定が範囲を超えています。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        public void SOU1()
+        {
+            mucInfo.srcCPtr++;
+
+            if (work.UDFLG != 0)
+            {
+                SOD2();
+                return;
+            }
+            SOU2();
+        }
+
+        public void SOU2()
+        {
+            if (work.OCTAVE == 7)
+            {
+                mucInfo.Carry = true;
+                return;
+            }
+
+            work.OCTAVE++;
+            mucInfo.Carry = false;
+        }
+
+        public void SOD1()
+        {
+            mucInfo.srcCPtr++;
+
+            if (work.UDFLG != 0)
+            {
+                SOU2();
+                return;
+            }
+            SOD2();
+        }
+
+        public void SOD2()
+        {
+            if (work.OCTAVE == 0)
+            {
+                mucInfo.Carry = true;
+                return;
+            }
+            work.OCTAVE--;
+            mucInfo.Carry = false;
+        }
+
+        private enmFCOMPNextRtn SETVOL()
+        {
+            if (work.COMNOW == 10)
+            {
+                return SETVOL_ADPCM();
+            }
+
+            mucInfo.srcCPtr++;
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.REDATA(mucInfo.lin, ref ptr);
+            if (mucInfo.ErrSign)
+            {
+                throw new MucException(
+                    "'v'ボリューム設定コマンドの値が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+            mucInfo.srcCPtr = ptr;
+
+            if (mucInfo.Carry)
+            {
+                n = work.VOLINT;
+            }
+
+            n = (byte)n;
+            work.VOLUME = n;
+            work.VOLINT = n;
+
+            if (work.COMNOW != 6)
+            {
+                n += work.TV_OFS;
+                if (work.COMNOW < 3 || work.COMNOW > 6)
+                {
+                    n += 4;
+                }
+
+                msub.MWRITE(0xf1, (byte)n);// COM OF 'v'
+                return enmFCOMPNextRtn.fcomp1;
+            }
+
+            return SETVOL_Rhythm(n);
+        }
+
+        private enmFCOMPNextRtn SETVOL_Rhythm(int n)
+        {
+            // -	DRAM V. -
+            n += work.TV_OFS;
+            msub.MWRITE(0xf1, (byte)n);
+
+            for (int i = 0; i < 6; i++)
+            {
+                char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+                if (c != ',')//','
+                {
+                    throw new MucException(
+                        "リズムパートの'v'ボリューム設定コマンドで必要な','が見つかりません。"
+                        , mucInfo.row, mucInfo.col);
+                }
+
+                int ptr = mucInfo.srcCPtr;
+                n = msub.ERRT(mucInfo.lin, ref ptr, "リズムパートの'v'ボリューム設定コマンド");
+                if (mucInfo.ErrSign)
+                    throw new MucException(
+                        "'v'ボリューム設定コマンドの値が不正です。(Rhythm)"
+                        , mucInfo.row, mucInfo.col);
+                mucInfo.srcCPtr = ptr;
+
+                msub.MWRIT2((byte)n);
+            }
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+    
+        private enmFCOMPNextRtn SETVOL_ADPCM()
+        {
+
+            // -	PCMVOL	-
+            mucInfo.srcCPtr++;
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.REDATA(mucInfo.lin, ref ptr);
+            if (mucInfo.ErrSign)
+                throw new MucException(
+                    "'v'ボリューム設定コマンドの値が不正です。(ADPCM)"
+                    , mucInfo.row, mucInfo.col);
+            mucInfo.srcCPtr = ptr;
+
+            if (!mucInfo.Carry)
+            {
+                if (mucInfo.ErrSign)
+                {
+                    throw new MucException(
+                        "'v'ボリューム設定コマンドの値が不正です。(ADPCM)"
+                        , mucInfo.row, mucInfo.col);
+                }
+
+                n = (byte)n;
+                work.VOLUME = n;
+                work.VOLINT = n;
+                n += work.TV_OFS + 4;
+                msub.MWRITE(0xf1, (byte)n);
+                return enmFCOMPNextRtn.fcomp1;
+            }
+
+            msub.MWRITE(0xff, 0xf0);
+            char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+            if (c != 'm')// vm command
+            {
+                throw new MucException(
+                    string.Format("未知のvで始まるコマンド(v{0}です。", c)
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            mucInfo.srcCPtr++;
+            ptr = mucInfo.srcCPtr;
+            n = msub.REDATA(mucInfo.lin, ref ptr);
+            if (mucInfo.ErrSign)
+                throw new MucException(
+                    "'vm'ボリューム補正設定コマンドの値が不正です。(ADPCM)"
+                    , mucInfo.row, mucInfo.col);
+            mucInfo.srcCPtr = ptr;
+
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    "'vm'ボリュームの補正設定コマンドの値が未指定です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            if (mucInfo.ErrSign)
+            {
+                throw new MucException(
+                    "'vm'ボリュームの補正設定コマンドの値が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            msub.MWRIT2((byte)n);// SET DATA ONLY
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        private enmFCOMPNextRtn SETDT()
+        {
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.ERRT(mucInfo.lin, ref ptr, "'D'ディチューン設定コマンド");
+            if (mucInfo.ErrSign)
+                throw new MucException(
+                    "'D'ディチューン設定コマンドの値が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            mucInfo.srcCPtr = ptr;
+            channelType tp = CHCHK();
+            if (tp == channelType.SSG)
+            {
+                n = -n;
+            }
+
+            msub.MWRITE(0xf2, (byte)n);// COM OF 'D'
+            msub.MWRIT2((byte)(n >> 8));
+
+            char c =
+                mucInfo.lin.Item2.Length > mucInfo.srcCPtr
+                ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                : (char)0;
+            mucInfo.srcCPtr++;
+            if (c != 0x2b)//'+'
+            {
+                c = (char)0;
+                mucInfo.srcCPtr--;
+            }
+            msub.MWRIT2((byte)c);
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        private enmFCOMPNextRtn SETLIZ()
+        {
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.ERRT(mucInfo.lin, ref ptr,"'l'音長設定コマンド");
+            if (mucInfo.ErrSign)
+                throw new MucException(
+                    "'l'音長設定コマンドの値が不正です。"
+                    );
+            mucInfo.srcCPtr = ptr;
+
+            if (work.CLOCK < n)
+            {
+                throw new MucException(
+                    string.Format("C値[{0}]よりも大きな値[{1}]が指定されています。", work.CLOCK, n)
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            work.COUNT = work.CLOCK / n;
+            int cnt = work.COUNT;
+            int bf = 0;
+
+            do
+            {
+                char c = 
+                    mucInfo.lin.Item2.Length > mucInfo.srcCPtr 
+                    ? mucInfo.lin.Item2[mucInfo.srcCPtr] 
+                    : (char)0;
+                if (c != 0x2e)//'.'
+                    break;
+
+                mucInfo.srcCPtr++;
+                cnt >>= 1;
+                bf += cnt;
+            } while (true);
+
+            work.COUNT += bf;
+
+            return enmFCOMPNextRtn.fcomp12;
+        }
+
+        private enmFCOMPNextRtn SETOCT()
+        {
+
+            mucInfo.srcCPtr++;
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.REDATA(mucInfo.lin, ref ptr);
+            if (mucInfo.ErrSign)
+                throw new MucException(
+                    "'o'オクターブ設定コマンドの値が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            mucInfo.srcCPtr = ptr;
+
+            if (mucInfo.Carry)
+            {
+                n = work.OCTINT;
+                n++;
+            }
+
+            n--;
+            if (n >= 8)
+            {
+                // OCTAVE > 8?
+                throw new MucException(
+                    "'o'オクターブ指定コマンドの範囲(1～8)を超えています。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            work.OCTAVE = n;
+            work.OCTINT = n;
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        private enmFCOMPNextRtn SETCOL()
+        {
+
+            mucInfo.srcCPtr++;
+            char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr 
+                ? mucInfo.lin.Item2[mucInfo.srcCPtr] 
+                : (char)0;
+            if (c == '\"')
+            {
+                SETVN();//文字列による指定
+                return enmFCOMPNextRtn.fcomp1;
+            }
+
+            mucInfo.srcCPtr++;
+            c = mucInfo.srcCPtr<mucInfo.lin.Item2.Length ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+            if (c == '=')
+            {
+                throw new MucException(
+                    "'@='音色番号の登録コマンドは未実装です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            mucInfo.srcCPtr -= 2;
+
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.ERRT(mucInfo.lin, ref ptr, "'@'音色設定コマンド");
+            if (mucInfo.ErrSign)
+                throw new MucException(
+                    "'@'音色設定コマンドの値が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            mucInfo.srcCPtr = ptr;
+
+            channelType tp = CHCHK();
+            if (tp == channelType.SSG)
+            {
+                return STCL5(n);//SSG
+            }
+            if (tp == channelType.FM)
+            {
+                STCL2(n);//FM
+                return enmFCOMPNextRtn.fcomp1;
+            }
+
+            return STCL72(n);//RHY&PCM
+        }
+
+        public void SETVN()
+        {
+            channelType tp = CHCHK();
+            if (tp != channelType.FM)
+            {
+                throw new MucException(
+                    "'@'音色指定コマンドの文字列による音色指定はFMパートのみです。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            mucInfo.srcCPtr++;
+            int voiBPtr = 0x20 + 26;// 0x6020 + 26;
+            int num = 1;
+            var unicodeByte = Encoding.Unicode.GetBytes(mucInfo.lin.Item2);
+            var sjis = Encoding.Convert(Encoding.Unicode, Encoding.GetEncoding("shift_jis"), unicodeByte);
+
+            do
+            {
+                int srcPtr = mucInfo.srcCPtr;
+                int voiPtr = voiBPtr;
+
+                int chcnt = 6;
+                do
+                {
+                    byte v = (mucInfo.voiceData != null && mucInfo.voiceData.Length > voiPtr) ? (byte)mucInfo.voiceData[voiPtr] : (byte)0;
+                    byte s = sjis[srcPtr];
+                    if (v != s)
+                    {
+                        //Common.WriteLine("{0:X06} v:{1} s:{2}", voiPtr, (char)mucInfo.voiceData[voiPtr], (char)mucInfo.lin.Item2[srcPtr]);
+                        break;
+                    }
+
+                    srcPtr++;
+                    voiPtr++;
+                    if (sjis[srcPtr] == 0x22)//'"'
+                    {
+                        if (chcnt != 1 && mucInfo.voiceData[voiPtr] != 0x20)
+                        {
+                            throw new MucException(
+                                "'@'音色指定コマンドに指定された音色名が見つかりません。"
+                                , mucInfo.row, mucInfo.col);
+                        }
+
+                        mucInfo.srcCPtr = srcPtr + 1;
+                        STCL2(num);
+                        return;
+                    }
+
+                    chcnt--;
+                    if (chcnt == 0)
+                    {
+                        throw new MucException(
+                            "'@'音色指定コマンドに指定された音色名が見つかりません。"
+                            , mucInfo.row, mucInfo.col);
+                    }
+                } while (chcnt != 0);
+
+                voiBPtr += 32;
+                num++;
+
+            } while (num != 256);
+
+            throw new MucException(
+                "'@'音色指定コマンドに指定された音色名が見つかりません。"
+                , mucInfo.row, mucInfo.col);
+        }
+
+        public void STCL2(int num)      // FM
+        {
+            num++;
+
+            int voiceIndex = CCVC(num, mucInfo.bufDefVoice);
+            if (voiceIndex != -1)
+            {
+                msub.MWRITE(0xf0, (byte)(voiceIndex - 1));
+                return;
+            }
+
+            voiceIndex = CWVC(num, mucInfo.bufDefVoice);
+            if (voiceIndex != -1)
+            {
+                msub.MWRITE(0xf0, (byte)(voiceIndex - 1));
+                return;
+            }
+
+            throw new MucException(
+                "'@'音色指定コマンド(FM)の値が音色定義、または外部音色定義ファイルから見つかりません。"
+                , mucInfo.row, mucInfo.col);
+        }
+
+        public enmFCOMPNextRtn STCL5(int num)
+        {
+
+            msub.MWRITE(0xf0, (byte)num);
+
+            if (work.PSGMD != 0)
+            {
+                return enmFCOMPNextRtn.fcomp1;
+            }
+
+            int HL = (byte)num * 16;
+            msub.MWRIT2(0xf7);
+            msub.MWRIT2(SSGLIB[HL]);
+            HL += 8;
+            if (SSGLIB[HL] == 1)
+            {
+                return enmFCOMPNextRtn.fcomp1;
+            }
+
+            int DE = work.MDATA;
+            mucInfo.bufDst.Set(DE, 0xf4);
+            DE++;
+            for(int b = 0; b < 6; b++)
+            {
+                mucInfo.bufDst.Set(DE++, SSGLIB[HL + b]);
+                work.LFODAT[b] = SSGLIB[HL + b];
+            }
+            work.MDATA = DE;
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        public enmFCOMPNextRtn STCL72(int num)
+        {
+            msub.MWRITE(0xf0,(byte)num);
+
+            channelType tp = CHCHK();
+            if (tp == channelType.ADPCM) work.pcmFlag = 1;
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        public byte[] SSGLIB = new byte[] {
+            8,0			// ﾉｰﾏﾙ
+            ,255,255,255,255,0,255 // E
+            ,1,0,0,0,0,0,0,0,
+
+            8,0			//ｺﾅﾐ(1)
+            ,255,255,255,200,0,10
+            ,1,0,0,0,0,0,0,0,
+
+            8,0			//ｺﾅﾐ(2)
+            ,255,255,255,200,1,10
+            ,1,0,0,0,0,0,0,0,
+
+            8,0			//ｺﾅﾐ+LFO(1)
+            ,255,255,255,190,0,10
+            ,0,16,1,25,0,4,0,0,
+
+            8,0			//ｺﾅﾐ+LFO(2)
+            ,255,255,255,190,1,10
+            ,0,16,1,25,0,4,0,0,
+
+            8,0			//ｺﾅﾐ(3)
+            ,255,255,255,170,0,10
+            ,1,0,0,0,0,0,0,0,
+
+            //5
+            8,0			//ｾｶﾞ ﾀｲﾌﾟ
+            ,40,70,14,190,0,15
+            ,0,16,1,24,0,5,0,0,
+
+            8,0			//ｽﾄﾘﾝｸﾞ ﾀｲﾌﾟ
+            ,120,030,255,255,0,10
+            ,0,16,1,25,0,4,0,0,
+
+            8,0			//ﾋﾟｱﾉ･ﾊｰﾌﾟ ﾀｲﾌﾟ
+            ,255,255,255,225,8,15
+            ,1,0,0,0,0,0,0,0,
+
+            1,0			//ｸﾛｰｽﾞ ﾊｲﾊｯﾄ
+            ,255,255,255,1,255,255
+            ,1,0,0,0,0,0,0,0,
+
+            1,0			//ｵｰﾌﾟﾝ ﾊｲﾊｯﾄ
+            ,255,255,255,200,8,255
+            ,1,0,0,0,0,0,0,0,
+
+            //10
+            8,0			//ｼﾝｾﾀﾑ･ｼﾝｾｷｯｸ
+            ,255,255,255,220,20,8
+            ,0,1,1,0x2C,1,0x0FF,0,0,
+
+            8,0			//UFO
+            ,255,255,255,255,0,10
+            ,0,1,1,0x70,0x0FE,4,0,0,
+
+            8,0			//FALLING
+            ,255,255,255,255,0,10
+            ,0,1,1,0x50,00,255,0,0,
+
+            8,0			//ﾎｲｯｽﾙ
+            ,120,80,255,255,0,255
+            ,0,1,1,06,0x0FF,1,0,0,
+
+            8,0			//BOM!
+            ,255,255,255,220,0,255
+            ,0,1,1,0xB8,0x0B,255,0,0
+
+        };
+
+        // --	VOICE ｶﾞ ﾄｳﾛｸｽﾞﾐｶ?	--
+
+        public int CCVC(int num, AutoExtendList<int> buf)
+        {
+            for (int b = 0; b < 32; b++)
+            {
+                if (num == buf.Get(b))
+                {
+                    return b + 1;// VOICE ﾊ ｽﾃﾞﾆ ﾄｳﾛｸｽﾞﾐ
+                }
+            }
+
+            return -1;
+        }
+
+        // --	WORK ﾆ ｱｷ ｶﾞ ｱﾙｶ?	--
+
+        public int CWVC(int num, AutoExtendList<int> buf)
+        {
+            for (int b = 0; b < 32; b++)
+            {
+                if (0 == buf.Get(b))
+                {
+                    // WORK ﾆ ｱｷ ｱﾘ
+                    buf.Set(b, num);
+                    return b + 1;
+                }
+            }
+
+            return -1;//空き無し
+        }
+
+        public channelType CHCHK()
+        {
+            if (work.COMNOW >= 3 && work.COMNOW < 6)
+            {
+                return channelType.SSG;
+            }
+
+            if (work.COMNOW == 6) return channelType.RHYTHM;
+
+            if (work.COMNOW < 10)
+            {
+                return channelType.FM;
+            }
+
+            return channelType.ADPCM;
+        }
+
+        public enum channelType
+        {
+            FM,SSG,RHYTHM,ADPCM
+        }
+
+        private enmFCOMPNextRtn SETCLK()
+        {
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.ERRT(mucInfo.lin, ref ptr, "'C'クロック設定コマンド");
+            if (mucInfo.ErrSign)
+                throw new MucException(
+                    "'C'クロック設定コマンドの値が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            mucInfo.srcCPtr = ptr;
+
+            work.CLOCK = n;
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        internal int GetErrorLine()
+        {
+            return errLin;
+        }
+
+        internal int COMPIL()
+        {
+            work.COMNOW = 0;
+            work.MAXCH = 11;
+            work.ADRSTC = 0;
+            work.VPCO = 0;
+            INIT();
+            if (work.LINCFG != 0)
+            {
+                return COMPI3();
+            }
+            for (int i = 0; i < work.MAXCH; i++)
+            {
+                work.tcnt[i] = 0;
+                work.lcnt[i] = 0;
+            }
+            work.pcmFlag = 0;
+            work.JCLOCK = 0;
+
+            return COMPI3();
+        }
+
+        public int COMPI3()
+        {
+            work.DATTBL = work.MU_TOP + 1;
+            work.MDATA = work.MU_TOP + 0x2f;// 11ch * 4byte + 3byte    (DATTBLの大きさ?)
+            work.REPCOUNT = 0;
+            work.title = work.titleFmt;
+
+            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 0, (byte)(work.MDATA - work.DATTBL + 1));
+            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 1, (byte)((work.MDATA - work.DATTBL + 1) >> 8));
+
+            work.POINTC = work.LOOPSP - 10;// LOOP ﾖｳ ｽﾀｯｸ
+
+            //Z80.HL = 1;// TEXT START ADR
+            CSTART();
+
+            return mucInfo.ErrSign ? -1 : 0;
+        }
+
+        public void CSTART()
+        {
+            Log.WriteLine(LogLevel.TRACE, "マクロの解析");
+            work.MACFG = 0xff;
+            COMPST();//KUMA:先ずマクロの解析
+
+            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 0, (byte)(work.MDATA - work.DATTBL + 1));
+            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 1, (byte)((work.MDATA - work.DATTBL + 1) >> 8));
+
+            mucInfo.srcCPtr = 0;
+            mucInfo.srcLinPtr = 0;
+
+            CSTART2();
+        }
+
+        public void CSTART2()
+        {
+            do
+            {
+
+                work.MACFG = 0x00;
+                COMPST();
+                if (mucInfo.ErrSign) return;
+
+                CMPEND();// ﾘﾝｸ ﾎﾟｲﾝﾀ = 0->BASIC END
+                if (mucInfo.ErrSign) return;
+
+            } while (work.COMNOW != work.MAXCH);
+        }
+
+        public void COMPST()
+        {
+            do
+            {
+                mucInfo.srcLinPtr++;
+                if (mucInfo.basSrc.Count == mucInfo.srcLinPtr) return;
+                mucInfo.lin = mucInfo.basSrc[mucInfo.srcLinPtr];
+                if (mucInfo.lin.Item2.Length < 1) continue;
+                mucInfo.srcCPtr = 0;
+
+                Log.WriteLine(LogLevel.TRACE, string.Format("{0}行目の解析", mucInfo.lin.Item1));
+                work.ERRLINE = mucInfo.lin.Item1;
+
+                if (work.MACFG == 0xff)
+                {
+                    MACPRC();//マクロの解析
+                    continue;
+                }
+
+                char c = (char)0;
+                c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                    ? mucInfo.lin.Item2[mucInfo.srcCPtr++]
+                    : (char)0;// A=Ch.NUMBER(A-F)
+
+                if (work.ADRSTC > 0)
+                {
+                    //        goto CST3;//ﾏｸﾛﾁｭｳﾅﾗ ﾍｯﾀﾞﾁｪｯｸﾊﾟｽ
+                }
+
+                if (c == 0)
+                {
+                    //goto RECOM
+                    continue;
+                }
+
+                if (c < 'A' || c > ('A' + work.MAXCH))
+                {
+                    //goto RECOM
+                    continue;
+                }
+
+                char ch = c;
+                c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                    ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                    : (char)0;
+                if (c == 0)
+                {
+                    //goto RECOM
+                    continue;
+                }
+
+                if ((ch - 'A') != work.COMNOW)
+                {
+                    // ｹﾞﾝｻﾞｲ ｺﾝﾊﾟｲﾙﾁｭｳ ﾉ ﾁｬﾝﾈﾙ
+                    // ﾃﾞﾅｹﾚ ﾊﾞ ﾂｷﾞﾉｷﾞｮｳ
+                    // goto RECOM;
+                    continue;
+                }
+
+                Log.WriteLine(LogLevel.TRACE, string.Format("Ch.{0}のFMCOMP開始", ch));
+
+                enmFMCOMPrtn ret = FMCOMP();// TO FM COMPILE
+                if (mucInfo.ErrSign) break;
+
+                if (ret == enmFMCOMPrtn.nextPart)
+                {
+                    break;
+                }
+
+                //RECOM:
+                // ﾘﾝｸﾎﾟｲﾝﾀ ｻｲｾｯﾄ
+                // ﾂｷﾞ ﾉ ｷﾞｮｳﾍ
+            } while (true);
+        }
+
+        public void MACPRC()
+        {
+            //Z80.C = 0x2a;// '*'
+            //Z80.DE = 0x0C000;//VRAMSTAC
+            work.TST2_VAL = 0x0c000;
+            MPC1();
+        }
+
+        public void MPC1()
+        {
+            mucInfo.Carry = false;
+
+            char ch = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr++] : (char)0;
+            if (ch != '#')//0x23
+            {
+                mucInfo.Carry = true;
+                return;
+            }
+
+            do
+            {
+                ch = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr++] : (char)0;
+            } while (ch == ' ');//0x20
+
+            if (ch == 0 || ch == ';' || ch == '{')//0x3b 0x7b 0x2a
+            {
+                mucInfo.Carry = true;
+                return;
+            }
+            if (ch != '*')
+            {
+                mucInfo.Carry = true;
+                return;
+            }
+
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.REDATA(mucInfo.lin, ref ptr);// MAC NO.
+            mucInfo.srcCPtr = ptr;
+
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    "マクロ定義番号が未定義です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            if (mucInfo.ErrSign)
+            {
+                throw new MucException(
+                    "マクロ定義番号が不正です。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            ch = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr++] : (char)0;
+            if (ch != '{')//0x7b
+            {
+                throw new MucException(
+                    "マクロ定義に必要な'{'が見つかりません。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            if (work.MACFG == 0xff)
+            {
+                TOSTAC(n);
+            }
+
+            mucInfo.Carry = false;
+        }
+
+        // *	MACRO STAC	*
+
+        public void TOSTAC(int n)
+        {
+            n &= 0xff;
+            n *= 2;
+            if (work.TST2_VAL == 0xc000)
+            {
+                mucInfo.bufMac.Set(n, mucInfo.srcCPtr);
+                mucInfo.bufMac.Set(n + 1, mucInfo.srcLinPtr + 1);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public void CMPEND()
+        {
+            mucInfo.ErrSign = false;
+
+            if (work.tcnt[work.COMNOW] != 0)
+            {
+                goto CMPE2;
+            }
+
+            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 2, 0);
+            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 3, 0);
+
+        CMPE2:
+            mucInfo.bufDst.Set(work.MDATA++, 0);   // SET END MARK = 0
+
+            work.COMNOW++;	// Ch.=Ch.+ 1
+
+            //↓TBLSET();相当
+            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 0, (byte)(work.MDATA - work.DATTBL + 1));
+            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 1, (byte)((work.MDATA - work.DATTBL + 1) >> 8));
+
+            if (work.COMNOW == work.MAXCH)
+            {
+                CMPEN1();
+                return;
+            }
+
+            // TEXT START ADR
+            mucInfo.srcCPtr = 0;
+            mucInfo.srcLinPtr = 0;
+
+            INIT();
+
+            if (work.REPCOUNT != 0)
+            {
+                throw new MucException(
+                    "'['']'ループ設定コマンドの組み合わせが合いません。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            work.REPCOUNT = 0;
+            work.TV_OFS = 0;
+            work.SIFTDAT = 0;
+            work.SIFTDA2 = 0;
+            work.KEYONR = 0;
+            work.BEFRST = 0;
+            work.TIEFG = 0;
+
+        }
+
+        public void INIT()
+        {
+            work.LFODAT[0] = 1;
+            work.OCTAVE = 5;
+            work.COUNT = 24;
+            work.CLOCK = 128;
+            work.VOLUME = 0;
+            work.OCTINT = 0;// 検証結果による値。おそらく実機では不定
+        }
+
+        public void CMPEN1()
+        {
+            if (work.REPCOUNT != 0)
+            {
+                throw new MucException(
+                    "'['']'ループ設定コマンドの組み合わせが合いません。"
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            work.ENDADR = work.MDATA;
+            work.OTODAT = work.MDATA - work.MU_NUM;
+
+            //START ADRは0固定なのでわざわざ表示を更新する必要なし
+            //string h = Convert.ToString(0, 16);//START ADRは0固定
+
+            VOICECONV1();
+        }
+
+        public void VOICECONV1()
+        {
+            // --   25 BYTE VOICE DATA ﾉ ｾｲｾｲ   --
+            mucInfo.useOtoAdr = work.ENDADR;
+            work.ENDADR++;
+            work.VICADR = work.ENDADR;
+
+            int dvPtr = 0;// work.DEFVOICE;
+            int B = 32;
+            int useOto = 0;
+
+            do
+            {
+                int vn = mucInfo.bufDefVoice.Get(dvPtr);   // GET VOICE NUMBER
+
+                //DEBUG
+                //vn = 1;
+
+                if (vn == 0)
+                {
+                    break;
+                }
+
+                vn += work.VPCO;
+                dvPtr++;
+                vn--;
+                expand.FVTEXT(vn); //KUMA:MML中で音色定義されているナンバーかどうか探す
+
+                byte[] bufVoi = mucInfo.voiceData;
+                int vAdr = 0;
+
+                if (mucInfo.Carry)
+                {
+                    //vAdr = GETADR(vn);
+                    vAdr = vn * 32 + work.FMLIB;
+                    vAdr++;// HL= VOICE INDEX
+                    //KUMA:見つからなかった
+                }
+                else
+                {
+                    vAdr = work.FMLIB + 1;
+                    bufVoi = mucInfo.mmlVoiceDataWork.GetByteArray();
+                }
+
+                //KUMA:最初の12byte分の音色データをコピー
+
+                int adr = work.ENDADR;
+
+                for (int i = 0; i < 12; i++)
+                {
+                    mucInfo.bufDst.Set(adr, bufVoi[vAdr]);
+                    adr++;
+                    vAdr++;
+                }
+
+                //KUMA:次の4byte分の音色データをbit7(AMON)を立ててコピー
+                for (int i = 0; i < 4; i++)
+                {
+                    mucInfo.bufDst.Set(adr, (byte)(bufVoi[vAdr] | 0b1000_0000));// SET AMON FLAG
+                    adr++;
+                    vAdr++;
+                }
+
+                for (int i = 0; i < 9; i++)
+                {
+                    mucInfo.bufDst.Set(adr, bufVoi[vAdr]);
+                    adr++;
+                    vAdr++;
+                }
+
+                work.ENDADR = adr;
+
+                useOto++;
+                B--;
+            } while (B != 0);
+
+            work.OTONUM = useOto;// ﾂｶﾜﾚﾃﾙ ｵﾝｼｮｸ ﾉ ｶｽﾞ
+            mucInfo.bufDst.Set(mucInfo.useOtoAdr, (byte)useOto);
+
+            work.SSGDAT = work.ENDADR - work.MU_NUM;
+
+            int n = work.ENDADR;
+            int pos = 36;
+            dispHex4(n, pos);
+
+            n = work.ENDADR - work.MU_NUM;
+            pos = 41;
+            dispHex4(n, pos);
+
+            work.ESCAPE = 1;
+        }
+
+        public void dispHex4(int n, int pos)
+        {
+            string h = "000" + Convert.ToString(n, 16);//PR END ADR
+            h = h.Substring(h.Length - 4, 4);
+            byte[] data = System.Text.Encoding.GetEncoding("shift_jis").GetBytes(h);
+            for (int i = 0; i < data.Length; i++) mucInfo.bufTitle.Set(pos + i, data[i]);
+        }
+
+        public enum enmFMCOMPrtn
+        {
+            normal,
+            error,
+            nextPart
+        }
+
+        public enmFMCOMPrtn FMCOMP()
+        {
+            char c;
+
+            //Channel表記の後は必ず空白1文字が必要。
+            // 以下のような表記はOK
+            // Akumajho cde
+            // A cde と同じ意
+            do
+            {
+                c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                    ? mucInfo.lin.Item2[mucInfo.srcCPtr++]
+                    : (char)0;
+                if (c == 0) return enmFMCOMPrtn.normal;
+            } while (c != ' ');//ONE SPACE?
+
+            mucInfo.ErrSign = false;
+            enmFCOMPNextRtn ret = enmFCOMPNextRtn.fcomp1;
+
+            do
+            {
+                switch (ret)
+                {
+                    case enmFCOMPNextRtn.comprc:
+                        ret = COMPRC();
+                        break;
+                    case enmFCOMPNextRtn.fcomp1:
+                        ret = FCOMP1();
+                        break;
+                    case enmFCOMPNextRtn.fcomp12:
+                        ret = FCOMP12();
+                        break;
+                    //case enmFCOMPNextRtn.fcomp13:
+                        //ret = FCOMP13();
+                        //break;
+                }
+
+                if (ret == enmFCOMPNextRtn.occuredERROR)
+                {
+                    mucInfo.ErrSign = true;
+                    return enmFMCOMPrtn.error;
+                }
+                if (ret == enmFCOMPNextRtn.comovr)
+                {
+                    return enmFMCOMPrtn.nextPart;
+                }
+
+            } while (ret != enmFCOMPNextRtn.NextLine);
+
+            return enmFMCOMPrtn.normal;
+        }
+
+        public enmFCOMPNextRtn FCOMP1()
+        {
+            work.BEFRST = 0;
+            work.TIEFG = 0;
+            return enmFCOMPNextRtn.fcomp12;
+        }
+
+        public enmFCOMPNextRtn FCOMP12()
+        {
+            char c;
+            do
+            {
+                c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                    ? mucInfo.lin.Item2[mucInfo.srcCPtr++]
+                    : (char)0;
+                if (c == 0)// DATA END?
+                    return enmFCOMPNextRtn.NextLine;// ﾂｷﾞ ﾉ ｷﾞｮｳﾍ
+            } while (c == ' ');//CHECK SPACE
+
+            mucInfo.srcCPtr--;
+            work.com = msub.FMCOMC(c);// COM CHECK
+
+            mucInfo.row = mucInfo.lin.Item1;
+            mucInfo.col = mucInfo.srcCPtr + 1;
+
+            if (work.com != 0)
+            {
+                return enmFCOMPNextRtn.comprc;
+            }
+
+            //音符の解析
+            byte note = msub.STTONE();
+            if (mucInfo.Carry)
+            {
+                return enmFCOMPNextRtn.occuredERROR;
+            }
+
+            //音符が直前と同じで、タイフラグがたっているか
+            if (note == work.BEFTONE[0] && work.TIEFG != 0)
+            {
+                mucInfo.srcCPtr++;
+                return FCOMP13(note);
+            }
+            else
+            {
+                //    Z80.DE = Mem.LD_16(MDATA);
+                //    Mem.LD_16(TONEADR, Z80.DE);
+                mucInfo.srcCPtr++;
+                FC162(note);
+            }
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        private void FC162(int note)
+        {
+            int ptr = mucInfo.srcCPtr;
+            int clk = msub.STLIZM(mucInfo.lin, ref ptr);// LIZM SET
+            mucInfo.srcCPtr = ptr;
+            clk = FCOMP1X(clk);
+            TCLKSUB(clk);// ﾄｰﾀﾙｸﾛｯｸ ｶｻﾝ
+            FCOMP17(note, clk);
+        }
+
+        private enmFCOMPNextRtn FCOMP13(int note)
+        {
+            work.MDATA -= 3;
+
+            int ptr = mucInfo.srcCPtr;
+            int clk = msub.STLIZM(mucInfo.lin, ref ptr);
+            mucInfo.srcCPtr = ptr;
+            clk = FCOMP1X(clk);
+            TCLKSUB(clk);
+            clk += work.BEFCO;
+            if (clk > 0xff)
+            {
+                clk -= 127;
+                msub.MWRIT2(127);
+                msub.MWRIT2((byte)note);
+                msub.MWRIT2(0xfd);
+            }
+
+            FCOMP17(note, clk);
+
+            return enmFCOMPNextRtn.fcomp1;
+        }
+
+        public int FCOMP1X(int clk)
+        {
+            clk += work.KEYONR;
+            work.KEYONR = (sbyte)-work.KEYONR;
+            return clk;
+        }
+
+
+        private void TCLKSUB(int clk)
+        {
+            work.tcnt[work.COMNOW] += clk;
+        }
+
+        public void FCOMP17(int note,int clk)
+        {
+            //Mem.LD_8(BEFCO + 1, Z80.A); //?
+
+            if (clk < 128)
+            {
+                FCOMP2(note, clk);
+                return;
+            }
+
+            // --	ｶｳﾝﾄ ｵｰﾊﾞｰ ｼｮﾘ	--
+            clk -= 127;
+            msub.MWRIT2(127);// FIRST COUNT
+            msub.MWRIT2((byte)note);// TONE DATA
+            msub.MWRIT2(0xfd);// COM OF COUNT OVER(SOUND)
+            work.BEFCO = clk;// RESTORE SECOND COUNT
+            msub.MWRIT2((byte)clk);
+
+            for(int i = 0; i < 8; i++)
+                work.BEFTONE[8 - i] = work.BEFTONE[7 - i];
+
+            work.BEFTONE[0] = (byte)note;
+            msub.MWRIT2((byte)note);
+        }
+
+        // --	ﾉｰﾏﾙ ｼｮﾘ	--
+        public void FCOMP2(int note,int clk)
+        {
+            mucInfo.bufDst.Set(work.MDATA++, (byte)clk);// SAVE LIZM
+            work.BEFCO = clk;
+
+            mucInfo.bufDst.Set(work.MDATA++, (byte)note);// SAVE TONE
+
+            for (int i = 0; i < 8; i++)
+                work.BEFTONE[8 - i] = work.BEFTONE[7 - i];
+            work.BEFTONE[0] = (byte)note;
+        }
+
+        public enmFCOMPNextRtn COMPRC()
+        {
+            Func<enmFCOMPNextRtn> act = COMTBL[work.com - 1];
+            if (act == null)
+            {
+                return enmFCOMPNextRtn.occuredERROR;
+            }
+
+            Log.WriteLine(LogLevel.TRACE, act.Method.ToString());
+
+            return act();
+        }
+
+    }
+
+    public enum enmFCOMPNextRtn
+    {
+        Unknown,
+        NextLine,
+        comprc,
+        occuredERROR,
+        fcomp1,
+        fcomp12,
+        fcomp13,
+        comovr
+    }
+
+}

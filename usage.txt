@@ -1,0 +1,7 @@
+[使い方]
+ 
+  mucomDotNETConsole.exe file.muc ...
+
+  mucomDotNETConsoleに.mucファイルをドロップするとコンパイルを実施し、エラーが無ければmubファイルを作成します。
+  複数ドロップすることも可能です。
+
