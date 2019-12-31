@@ -1,4 +1,5 @@
 ﻿using mucomDotNET.Compiler;
+using mucomDotNET.Common;
 using System;
 using System.IO;
 
@@ -8,7 +9,7 @@ namespace mucomDotNET.Console
     {
         static void Main(string[] args)
         {
-            Log.writeLine = writeLine;
+            Log.writeLine = WriteLine;
 #if DEBUG
             Log.level = LogLevel.TRACE;
 #else
@@ -17,7 +18,7 @@ namespace mucomDotNET.Console
 
             if (args == null || args.Length < 1)
             {
-                System.Console.WriteLine("引数(.mucファイル)欲しいよぉ");
+                WriteLine(LogLevel.ERROR, msg.get("E0500"));
                 return;
             }
 
@@ -25,12 +26,12 @@ namespace mucomDotNET.Console
             {
                 foreach (string arg in args)
                 {
-                    compiler compiler = new compiler();
+                    Compiler.Compiler compiler = new Compiler.Compiler();
                     compiler.Init();
                     byte[] dat = compiler.Start(arg);
                     if (dat != null)
                     {
-                        File.WriteAllBytes(compiler.outFileName, dat);
+                        File.WriteAllBytes(compiler.OutFileName, dat);
                     }
                 }
 
@@ -42,7 +43,7 @@ namespace mucomDotNET.Console
             }
         }
 
-        static void writeLine(LogLevel level, string msg)
+        static void WriteLine(LogLevel level, string msg)
         {
             System.Console.WriteLine("[{0,-7}] {1}", level, msg);
         }

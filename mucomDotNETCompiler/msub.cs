@@ -1,13 +1,14 @@
-﻿using System;
+﻿using mucomDotNET.Common;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace mucomDotNET.Compiler
 {
-    public class msub
+    public class Msub
     {
-        private MUCInfo mucInfo;
-        public muc88 muc88;
+        private readonly MUCInfo mucInfo;
+        public Muc88 muc88;
 
         public byte[] SCORE = {
             0,0,0,0,0,0
@@ -73,7 +74,7 @@ namespace mucomDotNET.Compiler
             ,0x62,11//   'b' ,11
         };
 
-        public msub(MUCInfo mucInfo)
+        public Msub(MUCInfo mucInfo)
         {
             this.mucInfo = mucInfo;
         }
@@ -88,7 +89,7 @@ namespace mucomDotNET.Compiler
             work.HEXFG = 0;
             work.MINUSF = 0;
 
-        READ0:			// FIRST CHECK
+        //READ0:			// FIRST CHECK
             char ch;
 
             do
@@ -143,7 +144,7 @@ namespace mucomDotNET.Compiler
                 {
                     ch -= (char)32;
                 }
-            READG:
+            //READG:
                 if (ch >= 'A' && ch <= 'F')
                 {
                     ch -= (char)7;
@@ -176,7 +177,7 @@ namespace mucomDotNET.Compiler
             {
                 goto READ1;//9ｲｶﾅﾗ ﾂｷﾞ
             }
-        READ8:
+        //READ8:
             mucInfo.Carry = false;
             mucInfo.ErrSign = true;// ERROR SIGN
             return 0;//RET	; 7ｹﾀｲｼﾞｮｳ ﾊ ｴﾗｰ
@@ -192,7 +193,7 @@ namespace mucomDotNET.Compiler
                 }
                 goto READA;
             }
-        READD:
+        //READD:
             for (int i = 0; i < 5; i++)
             {
                 a *= 10;
@@ -243,11 +244,11 @@ namespace mucomDotNET.Compiler
             if (work.MDATA > 0xffff)
             {
                 throw new MucException(
-                    "演奏データが作成可能最大容量(64k)を超えました。"
+                    msg.get("E0200")
                     , mucInfo.row, mucInfo.col);
             }
 
-            muc88.dispHex4(work.MDATA, 36);
+            muc88.DispHex4(work.MDATA, 36);
         }
 
         public void MWRITE(byte cmdNo, byte cmdDat)
@@ -260,11 +261,11 @@ namespace mucomDotNET.Compiler
             if (work.MDATA > 0xffff)
             {
                 throw new MucException(
-                    "演奏データが作成可能最大容量(64k)を超えました。"
+                    msg.get("E0200")
                     , mucInfo.row, mucInfo.col);
             }
 
-            muc88.dispHex4(work.MDATA, 36);
+            muc88.DispHex4(work.MDATA, 36);
         }
 
         public int ERRT(Tuple<int, string> lin, ref int ptr,string cmdMsg)
@@ -274,7 +275,7 @@ namespace mucomDotNET.Compiler
             if (mucInfo.Carry)//数値読み取れなかった
             {
                 throw new MucException(
-                    string.Format("{0}の値が未設定です。",cmdMsg)
+                    string.Format(msg.get("E0201"), cmdMsg)
                     , mucInfo.row, mucInfo.col);
             }
             else

@@ -3,29 +3,30 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Linq;
+using mucomDotNET.Common;
 
 namespace mucomDotNET.Compiler
 {
-    public class compiler
+    public class Compiler
     {
         private string srcFn = "";
         private byte[] srcBuf = null;
         private string workPath = "";
         private MUCInfo mucInfo = new MUCInfo();
-        private muc88 muc88 = null;
-        private msub msub = null;
+        private Muc88 muc88 = null;
+        private Msub msub = null;
         private expand expand = null;
         private smon smon = null;
         private string fnVoicedat = "";
         private string fnPcm = "";
         private byte[] voice;
         private byte[] pcmdata;
-        private List<Tuple<int, string>> basSrc = new List<Tuple<int, string>>();
+        private readonly List<Tuple<int, string>> basSrc = new List<Tuple<int, string>>();
 
         public void Init()
         {
-            muc88 = new muc88(mucInfo);
-            msub = new msub(mucInfo);
+            muc88 = new Muc88(mucInfo);
+            msub = new Msub(mucInfo);
             expand = new expand(mucInfo);
             smon = new smon(mucInfo);
             muc88.msub = msub;
@@ -43,7 +44,7 @@ namespace mucomDotNET.Compiler
                 srcFn = arg;
                 srcBuf = File.ReadAllBytes(srcFn);
                 workPath = Path.GetDirectoryName(srcFn);
-                mucInfo = getMUCInfo(srcBuf);
+                mucInfo = GetMUCInfo(srcBuf);
                 fnVoicedat = string.IsNullOrEmpty(mucInfo.voice) ? "voice.dat" : System.IO.Path.Combine(workPath, mucInfo.voice);
                 LoadFMVoice(fnVoicedat);
                 fnPcm = string.IsNullOrEmpty(mucInfo.pcm) ? "mucompcm.bin" : System.IO.Path.Combine(workPath, mucInfo.pcm);
@@ -66,7 +67,7 @@ namespace mucomDotNET.Compiler
                 if (ret != 0)
                 {
                     int errLine = muc88.GetErrorLine();
-                    Log.WriteLine(LogLevel.ERROR, string.Format("コンパイル時にエラーが発生したみたい(errLine:{0})", errLine));
+                    Log.WriteLine(LogLevel.ERROR, string.Format(msg.get("E0100"), errLine));
                     return null;
                 }
 
@@ -80,7 +81,7 @@ namespace mucomDotNET.Compiler
             catch (Exception e)
             {
                 Log.WriteLine(LogLevel.ERROR, string.Format(
-                    "Exception message:\r\n{0}\r\nException stacktrace:\r\n{1}\r\n"
+                    msg.get("E0000")
                     ,e.Message
                     ,e.StackTrace));
             }
@@ -88,9 +89,9 @@ namespace mucomDotNET.Compiler
             return null;
         }
 
-        public MUCInfo getMUCInfo(byte[] buf)
+        public MUCInfo GetMUCInfo(byte[] buf)
         {
-            if (CheckFileType(buf) != enmMUCOMFileType.MUC)
+            if (CheckFileType(buf) != EnmMUCOMFileType.MUC)
             {
                 throw new NotImplementedException();
             }
@@ -131,11 +132,11 @@ namespace mucomDotNET.Compiler
             return mucInfo;
         }
 
-        private enmMUCOMFileType CheckFileType(byte[] buf)
+        private EnmMUCOMFileType CheckFileType(byte[] buf)
         {
             if (buf == null || buf.Length < 4)
             {
-                return enmMUCOMFileType.unknown;
+                return EnmMUCOMFileType.unknown;
             }
 
             if (buf[0] == 0x4d
@@ -143,19 +144,19 @@ namespace mucomDotNET.Compiler
                 && buf[2] == 0x43
                 && buf[3] == 0x38)
             {
-                return enmMUCOMFileType.MUB;
+                return EnmMUCOMFileType.MUB;
             }
 
-            return enmMUCOMFileType.MUC;
+            return EnmMUCOMFileType.MUC;
         }
-        public enum enmMUCOMFileType
+        public enum EnmMUCOMFileType
         {
             unknown,
             MUB,
             MUC
         }
 
-        private List<Tuple<string, string>> tags=new List<Tuple<string, string>>();
+        private readonly List<Tuple<string, string>> tags=new List<Tuple<string, string>>();
 
         private List<Tuple<string, string>> GetTagsFromMUC(byte[] buf)
         {
@@ -265,7 +266,7 @@ namespace mucomDotNET.Compiler
                 int mubsize = 0;
                 string strTcount = "";
                 string strLcount = "";
-                for (int i = 0; i < muc88.MAXCH; i++)
+                for (int i = 0; i < Muc88.MAXCH; i++)
                 {
                     if (work.lcnt[i] != 0) { work.lcnt[i] = work.tcnt[i] - (work.lcnt[i] - 1); }
                     if (work.tcnt[i] > maxcount) maxcount = work.tcnt[i];
@@ -295,7 +296,7 @@ namespace mucomDotNET.Compiler
                 return SaveMusic(
                     Path.Combine(mucInfo.workPath
                     , mucInfo.fnDst)
-                    , (ushort)start
+                    //, (ushort)start
                     , (ushort)length
                     , pcmflag);
             }
@@ -305,11 +306,12 @@ namespace mucomDotNET.Compiler
             }
         }
 
-        private List<byte> dat = new List<byte>();
+        private readonly List<byte> dat = new List<byte>();
 
-        public string outFileName { get; set; }
+        public string OutFileName { get; set; }
 
-        private int SaveMusic(string fname, ushort start, ushort length, int option)
+        //private int SaveMusic(string fname, ushort start, ushort length, int option)
+        private int SaveMusic(string fname, ushort length, int option)
         {
             //		音楽データファイルを出力(コンパイルが必要)
             //		filename     = 出力される音楽データファイル
@@ -323,11 +325,10 @@ namespace mucomDotNET.Compiler
             int footsize;
             footsize = 1;//かならず1以上
 
-            int pcmptr = 0;
             int pcmsize = (pcmdata == null) ? 0 : pcmdata.Length;
             bool pcmuse = ((option & 2) == 0);
             pcmdata = (!pcmuse ? null : pcmdata);
-            pcmptr = (!pcmuse ? 0 : (32 + length + footsize));
+            int pcmptr = (!pcmuse ? 0 : (32 + length + footsize));
             pcmsize = (!pcmuse ? 0 : pcmsize);
             if (pcmuse)
             {
@@ -466,7 +467,7 @@ namespace mucomDotNET.Compiler
                 }
             }
 
-            outFileName = fname;
+            OutFileName = fname;
             Log.WriteLine(LogLevel.INFO, string.Format("#Saved [{0}].\r\n", fname));
 
             return 0;

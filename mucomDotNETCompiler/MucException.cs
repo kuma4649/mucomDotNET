@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mucomDotNET.Common;
+using System;
 using System.Runtime.Serialization;
 
 namespace mucomDotNET.Compiler
@@ -22,7 +23,7 @@ namespace mucomDotNET.Compiler
         {
         }
 
-        public MucException(string message, int row, int col) : base(string.Format("[row:{0},col:{1}]{2}", row, col, message))
+        public MucException(string message, int row, int col) : base(string.Format(msg.get("E0300"), row, col, message))
         {
         }
     }

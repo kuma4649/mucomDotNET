@@ -82,6 +82,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\mucomDotNETCommon\Common.csproj">
+      <Project>{34AAD812-CF44-4080-9BE9-1FDA164BAE55}</Project>
+      <Name>Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\mucomDotNETCompiler\Compiler.csproj">
       <Project>{8ffc1451-42cc-4d05-a59f-efd658f44b07}</Project>
       <Name>Compiler</Name>

@@ -7,9 +7,9 @@ namespace mucomDotNET.Compiler
     public class expand
     {
         private MUCInfo mucInfo;
-        public msub msub = null;
+        public Msub msub = null;
         public smon smon = null;
-        public muc88 muc88 = null;
+        public Muc88 muc88 = null;
         public ushort[] FNUMB = new ushort[] {
             0x26A,0x28F,0x2B6,0x2DF,0x30B,0x339,0x36A,0x39E,
             0x3D5,0x410,0x44E,0x48F
@@ -149,8 +149,8 @@ namespace mucomDotNET.Compiler
             //	Z ﾅﾗ ﾍﾝｶｾｽﾞ
 
             bool CULP2_Ptn = false;
-            muc88.channelType tp = muc88.CHCHK();
-            if (tp == muc88.channelType.SSG)
+            Muc88.ChannelType tp = muc88.CHCHK();
+            if (tp == Muc88.ChannelType.SSG)
             {
                 CULP2_Ptn = true;
             }

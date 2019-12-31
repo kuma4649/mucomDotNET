@@ -45,8 +45,6 @@
     <Compile Include="AutoExtendList.cs" />
     <Compile Include="compiler.cs" />
     <Compile Include="expand.cs" />
-    <Compile Include="Log.cs" />
-    <Compile Include="LogLevel.cs" />
     <Compile Include="msub.cs" />
     <Compile Include="muc88.cs" />
     <Compile Include="MucException.cs" />
@@ -54,6 +52,22 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="smon.cs" />
     <Compile Include="work.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\mucomDotNETCommon\Common.csproj">
+      <Project>{34aad812-cf44-4080-9be9-1fda164bae55}</Project>
+      <Name>Common</Name>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="lang\message.ja-JP.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lang\message.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
