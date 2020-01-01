@@ -1,123 +1,131 @@
-﻿;日本語メッセージ定義
+﻿;英語メッセージ定義
 ;I 通常のメッセージ
 ;E エラーメッセージ
+
+;English Message Definition Table
+;I Info
+;E Error
+
+;NOTE: PLEASE SOMEBODY PROOFREAD THIS. CAN YOU?
+;English Translation By Chromaryu(knight-ryu12)
+;Please improve this :|
 
 ;common
 E0000=Exception message:\r\n{0}\r\nException stacktrace:\r\n{1}\r\n
 
 ;compiler.cs 0100
-E0100=コンパイル時にエラーが発生したみたい(errLine:{0})
+E0100=Hmm, Error has been occured on compile. (Error on Line {0})
 
 ;msub.cs 0200
-E0200=演奏データが作成可能最大容量(64k)を超えました。
-E0201={0}の値が未設定です。
+E0200=Sound data exceeded maximum capacity(64k).
+E0201={0}'s value is missing/not set.
 
 ;MucException.cs 0300
-E0300=[行:{0} 桁:{1}]{2}
+E0300=[row:{0} column:{1}]{2}
 
 ;muc88.cs 0400
-I0400=マクロの解析
-I0401={0}行目の解析
-I0402=Ch.{0}のFMCOMP開始
-E0400=未定義のマクロを呼び出そうとしています。
-E0401=マクロ行から復帰できませんでした。(アドレスオーバー)
-E0402=マクロ行から復帰できませんでした。(アドレス未定義)
-E0403=ポルタメント開始時の音符の指定が不正です。
-E0404=ポルタメント終了時の音符の指定が不正です。
-E0405=ポルタメント終了時の音符が未指定です。
-E0406=ポルタメント範囲が広すぎです。
-E0407=ポルタメント終了時の'}'が未指定です。
-E0408='R'リバーブコマンドはFM/SSGパートのみ使用可能です。
-E0409='R'リバーブコマンド
-E0410='T'テンポ設定コマンド
-E0411='T'テンポ設定コマンドに0は設定できません。
-E0412='H'ハードウェアLFOはFMパートのみ使用可能です。
-E0413='H'ハードウェアLFO
-E0414='p'パンコマンド
-E0415='%'音長ダイレクト設定コマンド
-E0416='\'エコー設定コマンド
-E0417='\\'エコー設定コマンドの値が不正です。
-E0418='V'ボリューム相対設定コマンド
-E0419=対応するループ内に設定できる / はひとつだけです。
-E0420='s'キーオンリバースコマンド
-E0421='K'キーシフトコマンド
-E0422='k'キーシフトコマンド(否、Kコマンド)
-E0423='t'タイマーB設定コマンド
-E0424='w'ノイズ周波数設定コマンドはSSGパートのみ使用可能です。
-E0425='w'ノイズ周波数設定コマンド
-E0426='P'ミキサモード設定コマンドはSSGパートのみ使用可能です。
-E0427='P'ミキサモード設定コマンド
-E0428='P'ミキサモード設定コマンドの指定が不正です。
-E0429='E'ソフトウェアエンベロープはSSGパートのみ使用可能です。
-E0430='E'ソフトウェアエンベロープ
-E0431='q'スタッカートコマンド
-E0432='S'スロットディチューン設定コマンドはFM Ch3(Cパート)のみ使用可能です。
-E0433='S'スロットディチューン設定コマンド
-E0434='S'スロットディチューン設定コマンドの書式が不正です。
-E0435='S'スロットディチューン設定コマンドの値が不正です。
-E0436=']'ループエンドコマンド
-E0437=]の数が多く指定されています。
-E0438=ループのネストの最大値16段を超えています。
-E0439='r'休符の値が不正です。
-E0440='M'ソフトウェアLFOの値が不正です。
-E0441='M'ソフトウェアLFOの書式が不正です。
-E0442='M'ソフトウェアLFO
-E0443=ソフトウェアLFOのスイッチ'MF'の値が未指定です。
-E0444=ソフトウェアLFOのスイッチ'MF'の値が不正です。
-E0445=ソフトウェアLFOのスイッチ'MF'の値が不正です。(0/1のみ)
-E0446=ディレイ'MW'
-E0447=クロック単位'MC'
-E0448=ソフトウェアLFOの振幅'ML'の値が未指定です。
-E0449=ソフトウェアLFOの振幅'ML'の値が不正です。
-E0450=周波数'MD'
-E0451=ソフトウェアLFOの指定が不正です。
-E0452=ソフトウェアLFOのトータルレベル'MT'はSSGでは使用できません。
-E0453=ソフトウェアLFOのトータルレベル'MT'の値1が未指定です。
-E0454=ソフトウェアLFOのトータルレベル'MT'の値1が不正です。
-E0455=ソフトウェアLFOのトータルレベル'MT'の値2が未指定です。
-E0456=ソフトウェアLFOのトータルレベル'MT'の値2が不正です。
-E0457=ソフトウェアLFOの{0}の値が未指定です。
-E0458=ソフトウェアLFOの{0}の値が不正です。
-E0459='y'コマンドのアドレス値指定が不正です。
-E0460='y'コマンドのアドレス値指定が範囲($00～$b2)を超えています。
-E0461='y'コマンドの','が読み取れません。
-E0462='y'コマンドのデータ値指定が未指定です。
-E0463='y'コマンドのデータ値指定が不正です。
-E0464='y'コマンドのFMパラメータ指定が不正です。
-E0465='y'コマンド
-E0466='y'コマンドのオペレータ指定が範囲(1～4)を超えています。
-E0467={0}パートは、'y'コマンドのFMパラメータ指定ができません。
-E0468=')'ボリューム相対指定コマンドの値が不正です。
-E0469='('ボリューム相対指定コマンドの指定が範囲を超えています。
-E0470='('ボリューム相対指定コマンドの値が不正です。
-E0471=')'ボリューム相対指定コマンドの指定が範囲を超えています。
-E0472='v'ボリューム設定コマンドの値が不正です。
-E0473=リズムパートの'v'ボリューム設定コマンドで必要な','が見つかりません。
-E0474=リズムパートの'v'ボリューム設定コマンド
-E0475='v'ボリューム設定コマンドの値が不正です。(Rhythm)
-E0476='v'ボリューム設定コマンドの値が不正です。(ADPCM)
-E0477=未知のvで始まるコマンド(v{0}です。
-E0478='vm'ボリューム補正設定コマンドの値が不正です。(ADPCM)
-E0479='vm'ボリュームの補正設定コマンドの値が未指定です。
-E0480='D'ディチューン設定コマンド
-E0481='D'ディチューン設定コマンドの値が不正です。
-E0482='l'音長設定コマンド
-E0483='l'音長設定コマンドの値が不正です。
-E0484=C値[{0}]よりも大きな値[{1}]が指定されています。
-E0485='o'オクターブ設定コマンドの値が不正です。
-E0486='o'オクターブ指定コマンドの範囲(1～8)を超えています。
-E0487='@='音色番号の登録コマンドは未実装です。
-E0488='@'音色設定コマンド
-E0489='@'音色設定コマンドの値が不正です。
-E0490='@'音色指定コマンドの文字列による音色指定はFMパートのみです。
-E0491='@'音色指定コマンドに指定された音色名が見つかりません。
-E0492='@'音色指定コマンド(FM)の値が音色定義、または外部音色定義ファイルから見つかりません。
-E0493='C'クロック設定コマンド
-E0494='C'クロック設定コマンドの値が不正です。
-E0495=マクロ定義番号が未定義です。
-E0496=マクロ定義番号が不正です。
-E0497=マクロ定義に必要な'{'が見つかりません。
-E0498='['']'ループ設定コマンドの組み合わせが合いません。
+I0400=Parse Macro
+I0401=Parse Line{0}
+I0402=Begin FMCOMP on Ch.{0}
+E0400=Trying to call undefined macro!
+E0401=Unable to return from macro line.(Address Exceeded)
+E0402=Unable to return from macro line.(Address Undefined)
+E0403=Illegal note on portament beginning.
+E0404=Illegal note on portament ending.
+E0405=No note on portament ending.
+E0406=Portament range is too wide.
+E0407='}' not defined on portament end.
+E0408='R'Reverb command can only be used in FM or SSG part.
+E0409='R'Reverb command
+E0410='T'Tempo set command
+E0411='T'Can't set 0 on Tempo command
+E0412='H'Hardware LFO can only be used in FM part.
+E0413='H'Hardware LFO
+E0414='p'Pan command
+E0415='%'Direct note length command
+E0416='\'Echo configure command
+E0417='\\'Illegal value set on Echo configure command.
+E0418='V'Relative volume command
+E0419=can only use one / inside loop.
+E0420='s'Key-On reverse command
+E0421='K'Key-Shift command
+E0422='k'Key-Shift command(Not K Command)
+E0423='t'Timer B Set Command
+E0424='w'Noise frequency set command can only be used in SSG part.
+E0425='w'Noise frequency set command
+E0426='P'Mixer Mode set command can only be used in SSG part.
+E0427='P'Mixer Mode set command.
+E0428='P'Illegal value set on Mixer Mode set command.
+E0429='E'Software Envelope command can only be used in SSG part.
+E0430='E'Software Envelope command
+E0431='q'staccato command
+E0432='S'Slot detune command can only be used on FM Ch3(Part C).
+E0433='S'Slot detune command
+E0434='S'Illegal usage on Slot detune command.
+E0435='S'Illegal value on Slot detune command.
+E0436=']'Loop End command
+E0437=Mismatching ].
+E0438=Loop nest is too deep (>16).
+E0439='r'Illegal rest value
+E0440='M'Illegal value on Software LFO command.
+E0441='M'Illegal format on Software LFO command.
+E0442='M'Software LFO command
+E0443=Undefined value on Software LFO Switch'MF'. 
+E0444=Illegal value on Software LFO Switch'MF'.
+E0445=Illegal value on Software LFO Switch'MF'.(only 0/1)
+E0446=Delay'MW'.
+E0447=Clock unit'MC'
+E0448=Undefined value on Software LFO amplitude'ML'
+E0449=Illegal value on Software LFO amplitude'ML'
+E0450=Frequency'MD'
+E0451=Illegal definition on Software LFO.
+E0452=Software LFO Total Level'MT' can't be used in SSG port.
+E0453=Software LFO Total Level'MT' Value 1 is undefined.
+E0454=Software LFO Total Level'MT' Value 1 is illegal.
+E0455=Software LFO Total Level'MT' Value 2 is undefined.
+E0456=Software LFO Total Level'MT' Value 2 is illegal.
+E0457={0} value is undefined on Software LFO.
+E0458={0} value is illegal on Software LFO.
+E0459='y'Command address value is illegal.
+E0460='y'Command address value range is exceeding $00~$b2.
+E0461='y'Command can't read ','.
+E0462='y'Command data value undefined.
+E0463='y'Command data value illegal.
+E0464='y'Command FM Parameter setting is illegal.
+E0465='y'Command
+E0466='y'Command Operator set exceeding value(1~4).
+E0467={0} part can't use 'y' Command FM parametter setting!
+E0468=')'Relative volume set command value is illegal.
+E0469='('Relative volume set command value exceeded range.
+E0470='('Relative volume set command value is illegal.
+E0471=')'Relative volume set command value exceeded range.
+E0472='v'Volume set command value is illegal.
+E0473=Unable to found nesscery ',' in 'v'Volume set command in Rhythm part. 
+E0474='v'Volume set command in Rhythm part.
+E0475='v'Volume set command value is illegal(Rhythm).
+E0476='v'Volume set command value is illegal(ADPCM).
+E0477=Unknown command start with v(v{0}).
+E0478='vm'Volume correction command value is illegal(ADPCM)
+E0479='vm'Volume correction command value undefined.
+E0480='D'Detune setting command 
+E0481='D'Detune setting command value is illegal.
+E0482='l'Length set command
+E0483='l'Length set command value is illegal.
+E0484=Trying to set value[{1}] more than C-value[{0}].
+E0485='o'Octave command 
+E0486='o'Octave command value exceeding range(1～8).
+E0487='@='Command not implemented.
+E0488='@'Patch Set Command
+E0489='@'Patch Set Command value is illegal.
+E0490='@'Using Patch Set Command with string can only be used in FM part.
+E0491='@'Unable to find patch by specified name!
+E0492='@'Unable to find specified patch from patch definition or external patch definition file.
+E0493='C'Clock setting command
+E0494='C'Clock setting value is invalid.
+E0495=Macro definition number undefined.
+E0496=Macro definition number is invalid.
+E0497=Unable to find '{' for macro definition.
+E0498=Can't match '['']'Loop setting command 
 
 ;Program.cs 0500
-E0500=引数(.mucファイル)欲しいよぉ
+E0500=I want arguments(.muc File) please?
