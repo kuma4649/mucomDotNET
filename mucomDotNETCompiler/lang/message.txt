@@ -27,6 +27,7 @@ E0300=[row:{0} column:{1}]{2}
 I0400=Parse Macro
 I0401=Parse Line{0}
 I0402=Begin FMCOMP on Ch.{0}
+W0400=Macro number value range is exceeding $00~$ff.
 E0400=Trying to call undefined macro!
 E0401=Unable to return from macro line.(Address Exceeded)
 E0402=Unable to return from macro line.(Address Undefined)

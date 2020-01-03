@@ -77,6 +77,11 @@ namespace mucomDotNET.Compiler
             mucInfo.srcCPtr++;
             int ptr = mucInfo.srcCPtr;
             int n = msub.REDATA(mucInfo.lin, ref ptr);
+            if (n > 0xff || n < 0)
+            {
+                WriteWarning(msg.get("W0400"), mucInfo.row, mucInfo.col);
+            }
+            n &= 0xff;
             mucInfo.srcCPtr = ptr;
 
             //戻り先を記憶
@@ -2299,6 +2304,9 @@ namespace mucomDotNET.Compiler
 
         public void MACPRC()
         {
+            mucInfo.row = mucInfo.lin.Item1;
+            mucInfo.col = mucInfo.srcCPtr + 1;
+
             //Z80.C = 0x2a;// '*'
             //Z80.DE = 0x0C000;//VRAMSTAC
             work.TST2_VAL = 0x0c000;
@@ -2366,10 +2374,19 @@ namespace mucomDotNET.Compiler
             mucInfo.Carry = false;
         }
 
+        public void WriteWarning(string wmsg,int row,int col)
+        {
+            Log.WriteLine(LogLevel.WARNING, string.Format(msg.get("E0300"), row, col, wmsg));
+        }
+
         // *	MACRO STAC	*
 
         public void TOSTAC(int n)
         {
+            if (n > 0xff || n < 0)
+            {
+                WriteWarning(msg.get("W0400"), mucInfo.row, mucInfo.col);
+            }
             n &= 0xff;
             n *= 2;
             if (work.TST2_VAL == 0xc000)
