@@ -31,6 +31,8 @@ W0400=Macro number value range is exceeding $00~$ff.
 W0401=Can't set '^' or '&' command on rest length.
 W0402=Can only use one '.' on rest.
 W0403='r'Rest command value range is exceeding $01~$ff.(value:{0})
+W0404=The value range (1-255) was exceeded during shuffle calculation.(value:{0})
+W0405=Exceeded value range (1-255) during length analysis.
 E0400=Trying to call undefined macro!
 E0401=Unable to return from macro line.(Address Exceeded)
 E0402=Unable to return from macro line.(Address Undefined)
@@ -130,6 +132,11 @@ E0495=Macro definition number undefined.
 E0496=Macro definition number is invalid.
 E0497=Unable to find '{' for macro definition.
 E0498=Can't match '['']'Loop setting command 
+E0499=Analysis of the duration failed.Value is undefined on '%' command.
+E0500=Analysis of the duration failed.The value after '%' is invalid.
+E0501=Analysis of the duration failed.The value is invalid.
+E0502=Analysis of the duration failed.The read value exceeds the value specified by 'C'.(value:{0})
+E0503=Analysis of the duration failed.As a result of calculating the dot, the range was exceeded.(value:{0})
 
-;Program.cs 0500
-E0500=I want arguments(.muc File) please?
+;Program.cs 0600
+E0600=I want arguments(.muc File) please?

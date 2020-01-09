@@ -18,7 +18,7 @@ namespace mucomDotNET.Console
 
             if (args == null || args.Length < 1)
             {
-                WriteLine(LogLevel.ERROR, msg.get("E0500"));
+                WriteLine(LogLevel.ERROR, msg.get("E0600"));
                 return;
             }
 

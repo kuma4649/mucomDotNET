@@ -2713,8 +2713,6 @@ namespace mucomDotNET.Compiler
             }
             else
             {
-                //    Z80.DE = Mem.LD_16(MDATA);
-                //    Mem.LD_16(TONEADR, Z80.DE);
                 mucInfo.srcCPtr++;
                 FC162(note);
             }
@@ -2725,11 +2723,17 @@ namespace mucomDotNET.Compiler
         private void FC162(int note)
         {
             int ptr = mucInfo.srcCPtr;
-            int clk = msub.STLIZM(mucInfo.lin, ref ptr);// LIZM SET
+            byte clk;
+            int ret = msub.STLIZM(mucInfo.lin, ref ptr,out clk);// LIZM SET
+            if (ret < 0)
+            {
+                WriteWarning(msg.get("W0405"), mucInfo.row, mucInfo.col);
+            }
             mucInfo.srcCPtr = ptr;
             clk = FCOMP1X(clk);
             TCLKSUB(clk);// ﾄｰﾀﾙｸﾛｯｸ ｶｻﾝ
             FCOMP17(note, clk);
+
         }
 
         private EnmFCOMPNextRtn FCOMP13(int note)
@@ -2737,28 +2741,40 @@ namespace mucomDotNET.Compiler
             work.MDATA -= 3;
 
             int ptr = mucInfo.srcCPtr;
-            int clk = msub.STLIZM(mucInfo.lin, ref ptr);
+            byte clk;
+            int ret= msub.STLIZM(mucInfo.lin, ref ptr,out clk);
+            if (ret < 0)
+            {
+                WriteWarning(msg.get("W0405"), mucInfo.row, mucInfo.col);
+            }
             mucInfo.srcCPtr = ptr;
             clk = FCOMP1X(clk);
             TCLKSUB(clk);
-            clk += work.BEFCO;
-            if (clk > 0xff)
+            int n = clk;
+            n += work.BEFCO;
+            if (n > 0xff)
             {
-                clk -= 127;
+                n -= 127;
                 msub.MWRIT2(127);
                 msub.MWRIT2((byte)note);
                 msub.MWRIT2(0xfd);
             }
-
+            clk = (byte)n;
             FCOMP17(note, clk);
 
             return EnmFCOMPNextRtn.fcomp1;
         }
 
-        public int FCOMP1X(int clk)
+        public byte FCOMP1X(byte clk)
         {
-            clk += work.KEYONR;
+            int n = clk;
+            n += work.KEYONR;
             work.KEYONR = (sbyte)-work.KEYONR;
+            if (n < 0 || n > 255)
+            {
+                WriteWarning(string.Format(msg.get("W0404"), n), mucInfo.row, mucInfo.col);
+            }
+            clk = (byte)n;
             return clk;
         }
 

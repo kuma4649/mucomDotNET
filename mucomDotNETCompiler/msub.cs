@@ -390,13 +390,17 @@ namespace mucomDotNET.Compiler
         /// <summary>
         /// 音長のよみとり
         /// </summary>
-        /// <returns></returns>
-        public int STLIZM(Tuple<int,string> lin,ref int ptr)
+        /// <returns>
+        /// 0...normal
+        /// -1...WARNING
+        /// </returns>
+        public int STLIZM(Tuple<int,string> lin,ref int ptr,out byte clk)
         {
             char c = ptr < lin.Item2.Length
                 ? lin.Item2[ptr]
                 : (char)0;
             int n;
+            clk = 0;
 
             if (c == '%')
             {
@@ -405,19 +409,28 @@ namespace mucomDotNET.Compiler
                 if (mucInfo.Carry)//数値読み取れなかった
                 {
                     ptr--;
-                    //ERRORSN();
-                    return -1;
+                    throw new MucException(msg.get("E0499"), lin.Item1, ptr);//ERRORSN
                 }
                 if (mucInfo.ErrSign)
                 {
-                    //ERRORIF();
-                    return -1;
+                    throw new MucException(msg.get("E0500"), lin.Item1, ptr);//ERRORIF
                 }
 
-                return n;
+                clk = (byte)n;
+                if (n < 0 || n > 255)
+                {
+                    return -1;
+                }
+                return 0;
             }
 
+            int w = 0;
             n = REDATA(lin, ref ptr);
+            if (n < 0 || n > 255)
+            {
+                w = -1;
+            }
+            n = (byte)n;
 
             if (mucInfo.Carry)//数値読み取れなかった
             {
@@ -428,13 +441,12 @@ namespace mucomDotNET.Compiler
             {
                 if (mucInfo.ErrSign)
                 {
-                    //ERRORIF();
-                    return -1;
+                    throw new MucException(msg.get("E0501"), lin.Item1, ptr);//ERRORSN
                 }
                 if (work.CLOCK < n)//clock以上の細かい音符は指定できないようにしている
                 {
-                    //ERRORIF();
-                    return -1;//CLOCK<E ﾃﾞ ERROR
+                    throw new MucException(string.Format(msg.get("E0502"), n), lin.Item1, ptr);//ERRORIF
+                    //CLOCK<E ﾃﾞ ERROR
                 }
 
                 n = work.CLOCK / n;//clockに変換
@@ -454,11 +466,11 @@ namespace mucomDotNET.Compiler
 
             if (n > 255)
             {
-                //ERROROF();
-                return -1;
+                throw new MucException(string.Format(msg.get("E0503"), n), lin.Item1, ptr);//ERROROF
             }
 
-            return n;
+            clk = (byte)n;
+            return w;
         }
 
 
