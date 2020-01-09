@@ -888,7 +888,7 @@ namespace mucomDotNET.Compiler
         private EnmFCOMPNextRtn SETRST()
         {
             int ptr;
-            byte kotae;
+            int kotae;
 
             mucInfo.srcCPtr++;
             char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length 
@@ -899,7 +899,12 @@ namespace mucomDotNET.Compiler
             {
                 mucInfo.srcCPtr++;
                 ptr = mucInfo.srcCPtr;
-                kotae = (byte)msub.REDATA(mucInfo.lin, ref ptr);
+                kotae = msub.REDATA(mucInfo.lin, ref ptr);
+                if (kotae < 0 || kotae > 255)
+                {
+                    WriteWarning(string.Format(msg.get("W0403"), kotae), mucInfo.row, mucInfo.col);
+                }
+                kotae = (byte)kotae;
                 mucInfo.srcCPtr = ptr;
                 if (mucInfo.Carry)
                 {
@@ -928,11 +933,20 @@ namespace mucomDotNET.Compiler
             else
             {
                 ptr = mucInfo.srcCPtr;
-                kotae = (byte)msub.REDATA(mucInfo.lin, ref ptr);
+                kotae = msub.REDATA(mucInfo.lin, ref ptr);
+                if (kotae < 0 || kotae > 255)
+                {
+                    WriteWarning(string.Format(msg.get("W0403"), kotae), mucInfo.row, mucInfo.col);
+                }
+                kotae = (byte)kotae;
                 if (kotae != 0) kotae = (byte)(work.CLOCK / kotae);
                 mucInfo.srcCPtr = ptr;
                 if (mucInfo.Carry)
                 {
+                    if (c == '^' || c == '&')
+                    {
+                        WriteWarning(msg.get("W0401"), mucInfo.row, mucInfo.col);
+                    }
                     kotae = (byte)work.COUNT;
                     mucInfo.srcCPtr--;
                 }
@@ -949,7 +963,19 @@ namespace mucomDotNET.Compiler
                 if (c == '.')// 0x2e
                 {
                     mucInfo.srcCPtr++;
-                    kotae += (byte)(kotae >> 1);// /2
+                    kotae += (kotae >> 1);// /2
+                    if (kotae < 0 || kotae > 255)
+                    {
+                        WriteWarning(string.Format(msg.get("W0403"), kotae), mucInfo.row, mucInfo.col);
+                    }
+                    kotae = (byte)kotae;
+
+                    c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                        ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                        : (char)0;
+                    if (c == '.'){
+                        WriteWarning(msg.get("W0402"), mucInfo.row, mucInfo.col);
+                    }
                 }
             }
 
@@ -957,7 +983,12 @@ namespace mucomDotNET.Compiler
 
             if (work.BEFRST != 0)// ｾﾞﾝｶｲｶｳﾝﾀ ﾜｰｸ(ﾌﾗｸﾞ)
             {
-                kotae += (byte)work.BEFRST;
+                kotae += work.BEFRST;
+                if (kotae < 0 || kotae > 255)
+                {
+                    WriteWarning(string.Format(msg.get("W0403"), kotae), mucInfo.row, mucInfo.col);
+                }
+                kotae = (byte)kotae;
                 work.MDATA--;
             }
             while (kotae > 0x6f)

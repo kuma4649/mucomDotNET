@@ -48,6 +48,7 @@
     <Compile Include="OPNAData.cs" />
     <Compile Include="OPNATimer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SoundWork.cs" />
     <Compile Include="Work.cs" />
   </ItemGroup>
   <ItemGroup>
