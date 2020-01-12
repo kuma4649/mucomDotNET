@@ -32,6 +32,7 @@ https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ja
  本ツールは以下の方々にお世話になっております。また以下のソフトウェア、ウェブページを参考、使用しています。  
  本当にありがとうございます。  
  ・くろま さん  
+ ・mucom さん  
 
  ・mucom88/mucom88win  
  ・Music LALF  

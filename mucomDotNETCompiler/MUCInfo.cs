@@ -51,6 +51,7 @@ namespace mucomDotNET.Compiler
 
         public int row { get; set; }
         public int col { get; set; }
+        public int VM { get; internal set; }
 
         internal void Clear()
         {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mucomDotNET.Common;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -46,6 +47,10 @@ namespace mucomDotNET.Compiler
                 }
 
                 int n = msub.REDATA(mucInfo.basSrc[i], ref srcCPtr);
+                if (mucInfo.Carry || mucInfo.ErrSign)
+                {
+                    muc88.WriteWarning(msg.get("W0409"), i, srcCPtr);
+                }
                 if (n != vn) continue;
 
                 found = true;
@@ -61,6 +66,10 @@ namespace mucomDotNET.Compiler
                         for(int col = 0; col < 4; col++)
                         {
                             byte v = (byte)msub.REDATA(mucInfo.basSrc[i], ref srcCPtr);
+                            if(mucInfo.Carry || mucInfo.ErrSign)
+                            {
+                                muc88.WriteWarning(msg.get("W0409"), i, srcCPtr);
+                            }
                             srcCPtr++;// SKIP','
                             mucInfo.mmlVoiceDataWork.Set(
                                 fmlib1++
@@ -83,8 +92,16 @@ namespace mucomDotNET.Compiler
                     i++;
                     srcCPtr = 2;
                     int fb = msub.REDATA(mucInfo.basSrc[i], ref srcCPtr);
+                    if (mucInfo.Carry || mucInfo.ErrSign)
+                    {
+                        muc88.WriteWarning(msg.get("W0409"), i, srcCPtr);
+                    }
                     srcCPtr++;
                     int alg = msub.REDATA(mucInfo.basSrc[i], ref srcCPtr);
+                    if (mucInfo.Carry || mucInfo.ErrSign)
+                    {
+                        muc88.WriteWarning(msg.get("W0409"), i, srcCPtr);
+                    }
                     srcCPtr++;
 
                     for (int row = 0; row < 4; row++)
@@ -94,6 +111,10 @@ namespace mucomDotNET.Compiler
                         for (int col = 0; col < 9; col++)
                         {
                             byte v = (byte)msub.REDATA(mucInfo.basSrc[i], ref srcCPtr);
+                            if (mucInfo.Carry || mucInfo.ErrSign)
+                            {
+                                muc88.WriteWarning(msg.get("W0409"), i, srcCPtr);
+                            }
                             srcCPtr++;// SKIP','
                             mucInfo.mmlVoiceDataWork.Set(
                                 fmlib1++

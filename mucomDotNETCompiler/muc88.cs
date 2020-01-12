@@ -148,7 +148,7 @@ namespace mucomDotNET.Compiler
             }
 
             mucInfo.srcCPtr++;
-            FC162(note);//SET TONE&LIZ
+            FC162p(note);//SET TONE&LIZ
 
             msub.MWRIT2(0xf4);//KUMA:2個目のMコマンド作成開始
             byte a = work.LFODAT[0];//KUMA:現在のLFOのスイッチを取得
@@ -361,6 +361,12 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETLR()
         {
+            ChannelType tp = CHCHK();
+            if (tp == ChannelType.SSG)
+            {
+                WriteWarning(msg.get("W0407"), mucInfo.row, mucInfo.col);
+            }
+
             int ptr = mucInfo.srcCPtr;
             int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0414"));
             mucInfo.srcCPtr = ptr;
@@ -582,7 +588,12 @@ namespace mucomDotNET.Compiler
 
             if (work.COMNOW >= 3 && work.COMNOW < 6)
             {
+                WriteWarning(msg.get("W0412"), mucInfo.row, mucInfo.col);
                 return EnmFCOMPNextRtn.fcomp1;
+            }
+            if (n >= 253 && n <= 255)
+            {
+                WriteWarning(msg.get("W0413"), mucInfo.row, mucInfo.col);
             }
 
             msub.MWRITE(0xfa, 0x26);
@@ -1314,6 +1325,11 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETREG()
         {
+            ChannelType tp = CHCHK();
+            if (tp == ChannelType.SSG)
+            {
+                WriteWarning(msg.get("W0406"), mucInfo.row, mucInfo.col);
+            }
 
             mucInfo.srcCPtr++;
             int ptr = mucInfo.srcCPtr;
@@ -1722,6 +1738,10 @@ namespace mucomDotNET.Compiler
                 work.VOLUME = n;
                 work.VOLINT = n;
                 n += work.TV_OFS + 4;
+                if ((byte)n >= 246 && (byte)n <= 251 && mucInfo.VM==0)
+                {
+                    WriteWarning(msg.get("W0411"), mucInfo.row, mucInfo.col);
+                }
                 msub.MWRITE(0xf1, (byte)n);
                 return EnmFCOMPNextRtn.fcomp1;
             }
@@ -1758,6 +1778,7 @@ namespace mucomDotNET.Compiler
                     , mucInfo.row, mucInfo.col);
             }
 
+            mucInfo.VM = n;
             msub.MWRIT2((byte)n);// SET DATA ONLY
 
             return EnmFCOMPNextRtn.fcomp1;
@@ -1908,6 +1929,12 @@ namespace mucomDotNET.Compiler
             }
             if (tp == ChannelType.FM)
             {
+                //音色番号チェック
+                if (n == 0 || n == 1)
+                {
+                    WriteWarning(msg.get("W0410"), mucInfo.row, mucInfo.col);
+                }
+
                 STCL2(n);//FM
                 return EnmFCOMPNextRtn.fcomp1;
             }
@@ -2405,9 +2432,14 @@ namespace mucomDotNET.Compiler
             mucInfo.Carry = false;
         }
 
-        public void WriteWarning(string wmsg,int row,int col)
+        public void WriteWarning(string wmsg, int row, int col)
         {
             Log.WriteLine(LogLevel.WARNING, string.Format(msg.get("E0300"), row, col, wmsg));
+        }
+
+        public void WriteWarning(string wmsg)
+        {
+            Log.WriteLine(LogLevel.WARNING, string.Format(msg.get("E0300"), "-", "-", wmsg));
         }
 
         // *	MACRO STAC	*
@@ -2551,6 +2583,34 @@ namespace mucomDotNET.Compiler
                 {
                     vAdr = work.FMLIB + 1;
                     bufVoi = mucInfo.mmlVoiceDataWork.GetByteArray();
+                }
+
+                ////
+                //TLチェック処理
+                ////
+
+                //24:FB/CON
+                // 7:CON bit0-2
+                int wAlg = bufVoi[vAdr + 12 + 4 + 8] & 7;
+                // 4-7:TL ope1-4
+                int[] wTL = new int[]{
+                bufVoi[vAdr + 4] & 0x7f//op1
+                ,bufVoi[vAdr + 6] & 0x7f//op2 6がop2
+                ,bufVoi[vAdr + 5] & 0x7f//op3
+                ,bufVoi[vAdr + 7] & 0x7f//op4
+                };
+                int[] wCar = new int[]
+                {
+                    8 , 8 , 8 , 8 , 10 , 7 , 7 , 15
+                };
+                for(int i = 0; i < 4; i++)
+                {
+                    if ((wCar[wAlg] & (1 << i)) == 0) continue;
+                    if (wTL[i] != 0)
+                    {
+                        WriteWarning(string.Format(msg.get("W0408"), vn, i + 1,wAlg, wTL[0], wTL[1], wTL[2], wTL[3]));
+                        break;
+                    }
                 }
 
                 //KUMA:最初の12byte分の音色データをコピー
@@ -2724,10 +2784,30 @@ namespace mucomDotNET.Compiler
         {
             int ptr = mucInfo.srcCPtr;
             byte clk;
-            int ret = msub.STLIZM(mucInfo.lin, ref ptr,out clk);// LIZM SET
+            int ret = msub.STLIZM(mucInfo.lin, ref ptr, out clk);// LIZM SET
             if (ret < 0)
             {
                 WriteWarning(msg.get("W0405"), mucInfo.row, mucInfo.col);
+            }
+            mucInfo.srcCPtr = ptr;
+            clk = FCOMP1X(clk);
+            TCLKSUB(clk);// ﾄｰﾀﾙｸﾛｯｸ ｶｻﾝ
+            FCOMP17(note, clk);
+
+        }
+
+        private void FC162p(int note)
+        {
+            int ptr = mucInfo.srcCPtr;
+            byte clk;
+            int ret = msub.STLIZM(mucInfo.lin, ref ptr, out clk);// LIZM SET
+            if (ret < 0)
+            {
+                WriteWarning(msg.get("W0405"), mucInfo.row, mucInfo.col);
+            }
+            if (clk > 128)
+            {
+                WriteWarning(string.Format(msg.get("W0414"), clk), mucInfo.row, mucInfo.col);
             }
             mucInfo.srcCPtr = ptr;
             clk = FCOMP1X(clk);
