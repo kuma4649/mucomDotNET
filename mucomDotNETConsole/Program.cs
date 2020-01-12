@@ -11,7 +11,7 @@ namespace mucomDotNET.Console
         {
             Log.writeLine = WriteLine;
 #if DEBUG
-            Log.level = LogLevel.TRACE;
+            Log.level = LogLevel.INFO;
 #else
             Log.level = LogLevel.INFO;
 #endif
