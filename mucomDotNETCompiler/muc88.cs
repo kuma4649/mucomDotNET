@@ -2601,7 +2601,7 @@ namespace mucomDotNET.Compiler
                 };
                 int[] wCar = new int[]
                 {
-                    8 , 8 , 8 , 8 , 10 , 7 , 7 , 15
+                    8 , 8 , 8 , 8 , 10 , 14 , 14 , 15
                 };
                 for(int i = 0; i < 4; i++)
                 {
