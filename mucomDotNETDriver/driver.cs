@@ -34,13 +34,13 @@ namespace mucomDotNET.Driver
             , RETurnWork
         }
 
-        public void Init(string fileName, Action<OPNAData> opnaWrite)
+        public void Init(string fileName, Action<OPNAData> opnaWrite,bool notSoundBoard2)
         {
             pathWork = Path.GetDirectoryName(fileName);
             fnMUB = fileName;
             byte[] srcBuf = File.ReadAllBytes(fnMUB);
             header = new MUBHeader(srcBuf);
-            work.data = GetDATA();
+            work.mData = GetDATA();
             tags = GetTags();
             GetFileNameFromTag();
             work.fmVoice = GetFMVoiceFromFile();
@@ -57,6 +57,7 @@ namespace mucomDotNET.Driver
             }
 
             music2 = new Music2(work, WriteRegister);
+            music2.notSoundBoard2 = notSoundBoard2;
         }
 
 

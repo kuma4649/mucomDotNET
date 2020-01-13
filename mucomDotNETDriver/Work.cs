@@ -15,12 +15,27 @@ namespace mucomDotNET.Driver
             get { lock (lockObj) { return _SystemInterrupt; } }
             set { lock (lockObj) { _SystemInterrupt = value; } }
         }
+
+        private int _status = 0;
+        public int Status
+        {
+            get { lock (lockObj) { return _status; } }
+            set { lock (lockObj) { _status = value; } }
+        }
+
+        public uint mDataAdr { get; internal set; }
+
         public OPNATimer timer = null;
         public ulong timeCounter = 0L;
         public byte[] fmVoice = null;
         public Tuple<string, ushort[]>[] pcmTables = null;
-        public byte[] data = null;
+        public byte[] mData = null;
         public SoundWork soundWork = null;
+
+        public Work()
+        {
+            Init();
+        }
 
         internal void Init()
         {

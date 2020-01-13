@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using mucomDotNET.Common;
 
 namespace mucomDotNET.Compiler
 {
@@ -28,7 +29,7 @@ namespace mucomDotNET.Compiler
         public string fnSrc { get; internal set; }
         public string workPath { get; internal set; }
         public string fnDst { get; internal set; }
-        public AutoExtendList<byte> bufDst { get; internal set; }
+        public AutoExtendList<MubDat> bufDst { get; internal set; }
         public int srcLinPtr { get; internal set; }
         public int srcCPtr { get; internal set; }
         public Tuple<int, string> lin { get; internal set; }
@@ -70,7 +71,7 @@ namespace mucomDotNET.Compiler
             fnSrc = "";
             workPath = "";
             fnDst = "";
-            bufDst = new AutoExtendList<byte>();
+            bufDst = new AutoExtendList<MubDat>();
             srcLinPtr = 0;
             srcCPtr = 0;
             bufMac = new AutoExtendList<int>();

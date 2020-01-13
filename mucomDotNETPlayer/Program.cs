@@ -71,7 +71,7 @@ namespace mucomDotNET.Player
 
 
             drv = new Driver.Driver();
-            drv.Init(args[0], OPNAWrite);
+            drv.Init(args[0], OPNAWrite, false);
 
             List<Tuple<string, string>> tags = drv.GetTags();
             foreach (Tuple<string, string> tag in tags)
@@ -111,7 +111,6 @@ namespace mucomDotNET.Player
 
                 frames[i * 2 + 0] = emuRenderBuf[0];
                 frames[i * 2 + 1] = emuRenderBuf[1];
-                //Console.Write("Adr[{0:x8}] : Wait[{1:d8}] : [{2:d8}]/[{3:d8}]\r\n", vgmAdr, vgmWait, buf[0], buf[1]);
             }
 
             Marshal.Copy(frames, 0, stream, len / 2);

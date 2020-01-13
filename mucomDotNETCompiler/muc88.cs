@@ -129,13 +129,13 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETPTM()
         {
-            msub.MWRIT2(0xf4);// PTMDAT;
-            msub.MWRIT2(0x00);
-            msub.MWRIT2(0x01);
-            msub.MWRIT2(0x01);
+            msub.MWRIT2(new MubDat(0xf4));// PTMDAT;
+            msub.MWRIT2(new MubDat(0x00));
+            msub.MWRIT2(new MubDat(0x01));
+            msub.MWRIT2(new MubDat(0x01));
             work.BEFMD = work.MDATA;//KUMA:DEPTHの書き込み位置を退避
             work.MDATA += 2;
-            msub.MWRIT2(0xff);//KUMA:回数(255回)を書き込む
+            msub.MWRIT2(new MubDat(0xff));//KUMA:回数(255回)を書き込む
 
             mucInfo.srcCPtr++;
 
@@ -150,21 +150,21 @@ namespace mucomDotNET.Compiler
             mucInfo.srcCPtr++;
             FC162p(note);//SET TONE&LIZ
 
-            msub.MWRIT2(0xf4);//KUMA:2個目のMコマンド作成開始
+            msub.MWRIT2(new MubDat(0xf4));//KUMA:2個目のMコマンド作成開始
             byte a = work.LFODAT[0];//KUMA:現在のLFOのスイッチを取得
             a--;
             if (a == 0)//KUMA:OFF(1)の場合はSTP1で2個めのMコマンドへOFF(1)を書き込む
             {
-                msub.MWRIT2(0x01);
+                msub.MWRIT2(new MubDat(0x01));
             }
             else
             {
-                msub.MWRIT2(0x00);//KUMA:ON(0)の場合は2個めのMコマンドへON(0)を書き込む
-                msub.MWRIT2(work.LFODAT[1]);//KUMA:残りの現在のLFOの設定5byteをそのまま２個目のMコマンドへコピー
-                msub.MWRIT2(work.LFODAT[2]);
-                msub.MWRIT2(work.LFODAT[3]);
-                msub.MWRIT2(work.LFODAT[4]);
-                msub.MWRIT2(work.LFODAT[5]);
+                msub.MWRIT2(new MubDat(0x00));//KUMA:ON(0)の場合は2個めのMコマンドへON(0)を書き込む
+                msub.MWRIT2(new MubDat(work.LFODAT[1]));//KUMA:残りの現在のLFOの設定5byteをそのまま２個目のMコマンドへコピー
+                msub.MWRIT2(new MubDat(work.LFODAT[2]));
+                msub.MWRIT2(new MubDat(work.LFODAT[3]));
+                msub.MWRIT2(new MubDat(work.LFODAT[4]));
+                msub.MWRIT2(new MubDat(work.LFODAT[5]));
             }
 
             char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ?
@@ -200,8 +200,8 @@ namespace mucomDotNET.Compiler
                     , mucInfo.row, mucInfo.col);
             }
 
-            mucInfo.bufDst.Set(work.BEFMD, (byte)depth);//KUMA:DE(DEPTH)を書き込む
-            mucInfo.bufDst.Set(work.BEFMD + 1, (byte)(depth >> 8));
+            mucInfo.bufDst.Set(work.BEFMD, new MubDat((byte)depth));//KUMA:DE(DEPTH)を書き込む
+            mucInfo.bufDst.Set(work.BEFMD + 1, new MubDat((byte)(depth >> 8)));
 
             mucInfo.srcCPtr++;
             c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ?
@@ -250,11 +250,11 @@ namespace mucomDotNET.Compiler
                 mucInfo.srcCPtr--;
             }
 
-            msub.MWRITE(0xff, dat);
+            msub.MWRITE(new MubDat(0xff), new MubDat(dat));
             int ptr = mucInfo.srcCPtr;
             int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0409"));
             mucInfo.srcCPtr = ptr;
-            msub.MWRIT2((byte)n);
+            msub.MWRIT2(new MubDat((byte)n));
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -293,7 +293,7 @@ namespace mucomDotNET.Compiler
             {
                 n = 0xFF;
             }
-            msub.MWRITE(0xf9,(byte)n);
+            msub.MWRITE(new MubDat(0xf9), new MubDat((byte)n));
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -341,18 +341,18 @@ namespace mucomDotNET.Compiler
                     , mucInfo.row, mucInfo.col);
             }
 
-            msub.MWRIT2(0xfc);
+            msub.MWRIT2(new MubDat(0xfc));
 
             int ptr = mucInfo.srcCPtr;
             int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0413"));
-            msub.MWRIT2((byte)n);
+            msub.MWRIT2(new MubDat((byte)n));
 
             n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0413"));
-            msub.MWRIT2((byte)n);
+            msub.MWRIT2(new MubDat((byte)n));
 
             n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0413"));
             mucInfo.srcCPtr = ptr;
-            msub.MWRIT2((byte)n);
+            msub.MWRIT2(new MubDat((byte)n));
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -371,7 +371,7 @@ namespace mucomDotNET.Compiler
             int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0414"));
             mucInfo.srcCPtr = ptr;
 
-            msub.MWRITE(0xf8,(byte)n);// COM OF 'p'
+            msub.MWRITE(new MubDat(0xf8), new MubDat((byte)n));// COM OF 'p'
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -382,7 +382,7 @@ namespace mucomDotNET.Compiler
         private EnmFCOMPNextRtn SETDCO()
         {
             int ptr = mucInfo.srcCPtr;
-            int n = msub.ERRT(mucInfo.lin, ref ptr,msg.get("E0415"));
+            int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0415"));
             mucInfo.srcCPtr = ptr;
             work.COUNT = (byte)n;
 
@@ -394,12 +394,12 @@ namespace mucomDotNET.Compiler
         //private enmFCOMPNextRtn SETHE()
         //{
         //    mucInfo.srcCPtr++;
-        //    msub.MWRITE(0xff,0xf1);// 2nd COM
+        //    msub.MWRITE(new MubDat(0xff,0xf1);// 2nd COM
 
         //    int ptr = mucInfo.srcCPtr;
         //    int n = msub.REDATA(mucInfo.lin, ref ptr);
         //    mucInfo.srcCPtr = ptr;
-        //    msub.MWRIT2((byte)n);
+        //    msub.MWRIT2(new MubDat((byte)n);
 
         //    return enmFCOMPNextRtn.fcomp1;
         //}
@@ -407,12 +407,12 @@ namespace mucomDotNET.Compiler
         //private enmFCOMPNextRtn SETHEP()
         //{
         //    mucInfo.srcCPtr++;
-        //    msub.MWRITE(0xff, 0xf2);
+        //    msub.MWRITE(new MubDat(0xff, 0xf2);
 
         //    int ptr = mucInfo.srcCPtr;
         //    int n = msub.REDATA(mucInfo.lin, ref ptr);
         //    mucInfo.srcCPtr = ptr;
-        //    msub.MWRITE((byte)n, (byte)(n >> 8));// 2ﾊﾞｲﾄﾃﾞｰﾀ ｶｸ
+        //    msub.MWRITE(new MubDat((byte)n, (byte)(n >> 8));// 2ﾊﾞｲﾄﾃﾞｰﾀ ｶｸ
 
         //    return enmFCOMPNextRtn.fcomp1;
         //}
@@ -430,12 +430,12 @@ namespace mucomDotNET.Compiler
                 : (char)0;
             if (c != '=') //0x3d
             {
-                msub.MWRITE(0xfb, (byte)-work.VDDAT);
-                msub.MWRIT2((byte)work.BEFCO);
+                msub.MWRITE(new MubDat(0xfb), new MubDat((byte)-work.VDDAT));
+                msub.MWRIT2(new MubDat((byte)work.BEFCO));
                 TCLKSUB(work.BEFCO);
 
-                msub.MWRIT2(work.BEFTONE[work.BFDAT]);
-                msub.MWRITE(0xfb, work.VDDAT);
+                msub.MWRIT2(new MubDat(work.BEFTONE[work.BFDAT]));
+                msub.MWRITE(new MubDat(0xfb), new MubDat(work.VDDAT));
 
                 return EnmFCOMPNextRtn.fcomp1;
             }
@@ -496,7 +496,7 @@ namespace mucomDotNET.Compiler
         {
             mucInfo.srcCPtr++;
 
-            msub.MWRIT2(0xfe);
+            msub.MWRIT2(new MubDat(0xfe));
 
             int HL = work.POINTC + 4;
             if ((mucInfo.bufLoopStack.Get(HL) | mucInfo.bufLoopStack.Get(HL + 1)) != 0)
@@ -584,7 +584,7 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn TIMEB2(byte n)
         {
-            mucInfo.bufDst.Set(work.DATTBL - 1, n);// TIMER_B ﾆ ｱﾜｾﾙ
+            mucInfo.bufDst.Set(work.DATTBL - 1, new MubDat(n));// TIMER_B ﾆ ｱﾜｾﾙ
 
             if (work.COMNOW >= 3 && work.COMNOW < 6)
             {
@@ -596,8 +596,8 @@ namespace mucomDotNET.Compiler
                 WriteWarning(msg.get("W0413"), mucInfo.row, mucInfo.col);
             }
 
-            msub.MWRITE(0xfa, 0x26);
-            msub.MWRIT2(n);
+            msub.MWRITE(new MubDat(0xfa), new MubDat(0x26));
+            msub.MWRIT2(new MubDat(n));
             return EnmFCOMPNextRtn.fcomp1;
         }
 
@@ -616,10 +616,10 @@ namespace mucomDotNET.Compiler
 
             int ptr;
             ptr = mucInfo.srcCPtr;
-            int n = (byte)msub.ERRT(mucInfo.lin, ref ptr,msg.get("E0425"));
+            int n = (byte)msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0425"));
             mucInfo.srcCPtr = ptr;
 
-            msub.MWRITE(0xf8,(byte)n);// COM OF 'w'
+            msub.MWRITE(new MubDat(0xf8), new MubDat((byte)n));// COM OF 'w'
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -665,7 +665,7 @@ namespace mucomDotNET.Compiler
                     , mucInfo.row, mucInfo.col);
             }
 
-            msub.MWRITE(0xf7, (byte)n);// COM OF 'P'
+            msub.MWRITE(new MubDat(0xf7), new MubDat((byte)n));// COM OF 'P'
             return EnmFCOMPNextRtn.fcomp1;
         }
 
@@ -687,7 +687,7 @@ namespace mucomDotNET.Compiler
             int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0430"));
             mucInfo.srcCPtr = ptr;
 
-            msub.MWRITE(0xfa, (byte)n);// COM OF 'E'
+            msub.MWRITE(new MubDat(0xfa), new MubDat((byte)n));// COM OF 'E'
 
             return SETSE1(5);//ﾉｺﾘ 5 PARAMETER
         }
@@ -701,7 +701,7 @@ namespace mucomDotNET.Compiler
             int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0431"));
             mucInfo.srcCPtr = ptr;
 
-            msub.MWRITE(0xf3,(byte)n);// COM OF 'q'
+            msub.MWRITE(new MubDat(0xf3), new MubDat((byte)n));// COM OF 'q'
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -717,13 +717,13 @@ namespace mucomDotNET.Compiler
             int c = work.COMNOW;
             HL = work.DATTBL + c * 4 + 2;
 
-            mucInfo.bufDst.Set(HL, (byte)DE);
+            mucInfo.bufDst.Set(HL, new MubDat((byte)DE));
             HL++;
-            mucInfo.bufDst.Set(HL, (byte)(DE >> 8));
+            mucInfo.bufDst.Set(HL, new MubDat((byte)(DE >> 8)));
 
             work.lcnt[c] = work.tcnt[c] + 1;// +1('L'ﾌﾗｸﾞﾉ ｶﾜﾘ)
 
-            return  EnmFCOMPNextRtn.fcomp1; 
+            return EnmFCOMPNextRtn.fcomp1;
         }
 
         // **	SE DETUNE ﾉ ｾｯﾃｲ	**
@@ -731,7 +731,7 @@ namespace mucomDotNET.Compiler
         private EnmFCOMPNextRtn SETSE()
         {
 
-            if (work.COMNOW!=2)
+            if (work.COMNOW != 2)
             {
                 // 3 Ch ｲｶﾞｲﾅﾗ ERROR
                 throw new MucException(
@@ -745,8 +745,8 @@ namespace mucomDotNET.Compiler
             int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0433"));
             mucInfo.srcCPtr = ptr;
 
-            msub.MWRIT2(0xf7);// COM OF 'S'
-            msub.MWRIT2((byte)n);
+            msub.MWRIT2(new MubDat(0xf7));// COM OF 'S'
+            msub.MWRIT2(new MubDat((byte)n));
             return SETSE1(3);// ﾉｺﾘ 3 PARAMETER
         }
 
@@ -757,7 +757,7 @@ namespace mucomDotNET.Compiler
                 char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ?
                     mucInfo.lin.Item2[mucInfo.srcCPtr]
                     : (char)0;
-                if (c !=',')// 0x2c
+                if (c != ',')// 0x2c
                 {
                     throw new MucException(
                         msg.get("E0434")
@@ -784,7 +784,7 @@ namespace mucomDotNET.Compiler
                         , mucInfo.row, mucInfo.col);
                 }
 
-                msub.MWRIT2((byte)n);// SET DATA ONLY
+                msub.MWRIT2(new MubDat((byte)n));// SET DATA ONLY
                 b--;
             } while (b != 0);
 
@@ -799,10 +799,10 @@ namespace mucomDotNET.Compiler
             int rep = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0436"));
             mucInfo.srcCPtr = ptr;
 
-            msub.MWRIT2(0xf6);	// WRITE COM OF LOOP
-            msub.MWRIT2((byte)rep); // WRITE LOOP Co.
+            msub.MWRIT2(new MubDat(0xf6));	// WRITE COM OF LOOP
+            msub.MWRIT2(new MubDat((byte)rep)); // WRITE LOOP Co.
             int adr = work.MDATA;
-            msub.MWRIT2((byte)rep); // WRITE LOOP Co. (SPEAR)
+            msub.MWRIT2(new MubDat((byte)rep)); // WRITE LOOP Co. (SPEAR)
 
             if (work.POINTC < work.LOOPSP)
             {
@@ -816,15 +816,15 @@ namespace mucomDotNET.Compiler
                 + mucInfo.bufLoopStack.Get(loopStackPtr + 1) * 0x100;
             adr -= n;
 
-            mucInfo.bufDst.Set(n, (byte)adr);// RSKIP JP ADR
-            mucInfo.bufDst.Set(n + 1, (byte)(adr >> 8));
+            mucInfo.bufDst.Set(n, new MubDat((byte)adr));// RSKIP JP ADR
+            mucInfo.bufDst.Set(n + 1, new MubDat((byte)(adr >> 8)));
 
             int m = mucInfo.bufLoopStack.Get(loopStackPtr + 2)
                 + mucInfo.bufLoopStack.Get(loopStackPtr + 3) * 0x100;// HL ﾊ LOOP ｦ ｶｲｼｼﾀ ｱﾄﾞﾚｽ
 
             int loopRetOfs = work.MDATA - m;//LOOP RET ADR OFFSET
-            mucInfo.bufDst.Set(work.MDATA, (byte)loopRetOfs);
-            mucInfo.bufDst.Set(work.MDATA + 1, (byte)(loopRetOfs >> 8));// WRITE RET ADR OFFSET
+            mucInfo.bufDst.Set(work.MDATA, new MubDat((byte)loopRetOfs));
+            mucInfo.bufDst.Set(work.MDATA + 1, new MubDat((byte)(loopRetOfs >> 8)));// WRITE RET ADR OFFSET
             work.MDATA += 2;
 
             m = mucInfo.bufLoopStack.Get(loopStackPtr + 4);
@@ -833,8 +833,8 @@ namespace mucomDotNET.Compiler
             {
                 int DE = work.MDATA - 4;
                 DE -= m;// loopStackPtr + 4;//DE as OFFSET
-                mucInfo.bufDst.Set(m, (byte)DE);// loopStackPtr + 4, (byte)DE);
-                mucInfo.bufDst.Set(m+1, (byte)(DE >> 8)); //loopStackPtr + 5, (byte)(DE >> 8));
+                mucInfo.bufDst.Set(m, new MubDat((byte)DE));// loopStackPtr + 4, (byte)DE);
+                mucInfo.bufDst.Set(m + 1, new MubDat((byte)(DE >> 8))); //loopStackPtr + 5, (byte)(DE >> 8));
             }
 
             work.REPCOUNT--;
@@ -864,7 +864,7 @@ namespace mucomDotNET.Compiler
 
             mucInfo.srcCPtr++;
 
-            msub.MWRIT2(0xf5);// COM OF LOOPSTART
+            msub.MWRIT2(new MubDat(0xf5));// COM OF LOOPSTART
             work.POINTC += 10;
 
             mucInfo.bufLoopStack.Set(work.POINTC + 0, (byte)work.MDATA);// SAVE REWRITE ADR
@@ -884,7 +884,7 @@ namespace mucomDotNET.Compiler
             work.tcnt[work.COMNOW] = 0;//ﾄｰﾀﾙ ｸﾛｯｸ ｸﾘｱ
 
             work.REPCOUNT++;
-            if (work.REPCOUNT  > 16)
+            if (work.REPCOUNT > 16)
             {
                 throw new MucException(
                     msg.get("E0438")
@@ -902,8 +902,8 @@ namespace mucomDotNET.Compiler
             int kotae;
 
             mucInfo.srcCPtr++;
-            char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length 
-                ? mucInfo.lin.Item2[mucInfo.srcCPtr] 
+            char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                ? mucInfo.lin.Item2[mucInfo.srcCPtr]
                 : (char)0;
 
             if (c == '%')// 0x25
@@ -984,7 +984,8 @@ namespace mucomDotNET.Compiler
                     c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
                         ? mucInfo.lin.Item2[mucInfo.srcCPtr]
                         : (char)0;
-                    if (c == '.'){
+                    if (c == '.')
+                    {
                         WriteWarning(msg.get("W0402"), mucInfo.row, mucInfo.col);
                     }
                 }
@@ -1005,10 +1006,10 @@ namespace mucomDotNET.Compiler
             while (kotae > 0x6f)
             {
                 kotae -= 0x6f;
-                msub.MWRIT2((byte)(0b1110_1111));
+                msub.MWRIT2(new MubDat((byte)(0b1110_1111), mucInfo.row, mucInfo.col, mucInfo.srcCPtr - mucInfo.col + 1, work.COMNOW));
             }
             work.BEFRST = kotae;
-            msub.MWRIT2((byte)(kotae | 0b1000_0000));// SET REST FLAG
+            msub.MWRIT2(new MubDat((byte)(kotae | 0b1000_0000), mucInfo.row, mucInfo.col, mucInfo.srcCPtr - mucInfo.col + 1, work.COMNOW));// SET REST FLAG
 
             return EnmFCOMPNextRtn.fcomp12;
         }
@@ -1033,10 +1034,10 @@ namespace mucomDotNET.Compiler
             }
 
             work.LFODAT[ix] = 0;
-            msub.MWRIT2(0xf4);// COM OF 'M'
-            msub.MWRIT2(0x00);// 2nd COM
+            msub.MWRIT2(new MubDat(0xf4));// COM OF 'M'
+            msub.MWRIT2(new MubDat(0x00));// 2nd COM
             work.LFODAT[ix + 1] = (byte)n;
-            msub.MWRIT2((byte)n);// SET DELAY
+            msub.MWRIT2(new MubDat((byte)n));// SET DELAY
 
             // --	ｶｳﾝﾀ ｾｯﾄ	--
             //SETMO1:
@@ -1069,8 +1070,8 @@ namespace mucomDotNET.Compiler
             }
 
             work.LFODAT[ix + 2] = (byte)n;
-            msub.MWRIT2((byte)n);// SET DATA ONLY
-                                 // --	SET VECTOR	--
+            msub.MWRIT2(new MubDat((byte)n));// SET DATA ONLY
+                                             // --	SET VECTOR	--
             c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
                 ? mucInfo.lin.Item2[mucInfo.srcCPtr]
                 : (char)0;
@@ -1105,9 +1106,9 @@ namespace mucomDotNET.Compiler
                 n = -n;//ssgの場合はdeの符号を反転
             }
 
-            msub.MWRIT2((byte)n);
+            msub.MWRIT2(new MubDat((byte)n));
             work.LFODAT[ix + 3] = (byte)n;
-            msub.MWRIT2((byte)(n>>8));
+            msub.MWRIT2(new MubDat((byte)(n >> 8)));
             work.LFODAT[ix + 4] = (byte)(n >> 8);
 
             // --	SET DEPTH	--
@@ -1125,7 +1126,7 @@ namespace mucomDotNET.Compiler
             n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0442"));
             mucInfo.srcCPtr = ptr;
             work.LFODAT[ix + 5] = (byte)n;
-            msub.MWRIT2((byte)n);// SET DATA ONLY
+            msub.MWRIT2(new MubDat((byte)n));// SET DATA ONLY
 
             c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
                 ? mucInfo.lin.Item2[mucInfo.srcCPtr]
@@ -1150,7 +1151,7 @@ namespace mucomDotNET.Compiler
 
             //mucInfo.srcCPtr++;
             // COM OF 'M'
-            msub.MWRIT2(0xf4);// COM ONLY
+            msub.MWRIT2(new MubDat(0xf4));// COM ONLY
             if (work.SECCOM == 'F')//0x46
             {
                 ptr = mucInfo.srcCPtr;
@@ -1177,7 +1178,7 @@ namespace mucomDotNET.Compiler
                 }
                 n++;// SECOND COM
                 work.LFODAT[0] = (byte)n;
-                msub.MWRIT2((byte)n);// 'MF0' or 'MF1'
+                msub.MWRIT2(new MubDat((byte)n));// 'MF0' or 'MF1'
                 return EnmFCOMPNextRtn.fcomp1;
             }
 
@@ -1201,7 +1202,7 @@ namespace mucomDotNET.Compiler
             {
                 // 'ML'
                 work.LFODAT[0] = 5;
-                msub.MWRIT2(0x5);
+                msub.MWRIT2(new MubDat(0x5));
 
                 ptr = mucInfo.srcCPtr;
                 n = msub.REDATA(mucInfo.lin, ref ptr);
@@ -1221,7 +1222,7 @@ namespace mucomDotNET.Compiler
                 work.LFODAT[iy] = (byte)n;
                 work.LFODAT[iy + 1] = (byte)(n >> 8);
                 work.LFODAT[iy + 2] = 0;
-                msub.MWRITE((byte)n, (byte)(n >> 8));
+                msub.MWRITE(new MubDat((byte)n), new MubDat((byte)(n >> 8)));
 
                 return EnmFCOMPNextRtn.fcomp1;
             }
@@ -1263,7 +1264,7 @@ namespace mucomDotNET.Compiler
                     , mucInfo.row, mucInfo.col);
             }
 
-            msub.MWRITE(7, (byte)n);
+            msub.MWRITE(new MubDat(7), new MubDat((byte)n));
             if ((byte)n == 0)
             {
                 return EnmFCOMPNextRtn.fcomp1;
@@ -1287,7 +1288,7 @@ namespace mucomDotNET.Compiler
                     , mucInfo.row, mucInfo.col);
             }
 
-            msub.MWRIT2((byte)n);
+            msub.MWRIT2(new MubDat((byte)n));
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -1296,10 +1297,10 @@ namespace mucomDotNET.Compiler
 
         // IN: A<= COM No.
 
-        public EnmFCOMPNextRtn MODP2(int iy, byte a,string typ)
+        public EnmFCOMPNextRtn MODP2(int iy, byte a, string typ)
         {
             work.LFODAT[0] = a;
-            msub.MWRIT2(a);
+            msub.MWRIT2(new MubDat(a));
 
             int ptr = mucInfo.srcCPtr;
             int n = msub.REDATA(mucInfo.lin, ref ptr);
@@ -1318,7 +1319,7 @@ namespace mucomDotNET.Compiler
             }
 
             work.LFODAT[iy] = (byte)n;
-            msub.MWRIT2((byte)n);
+            msub.MWRIT2(new MubDat((byte)n));
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -1359,7 +1360,7 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETR1(int n)
         {
-            msub.MWRITE(0xfa, (byte)n);// COM OF 'y'
+            msub.MWRITE(new MubDat(0xfa), new MubDat((byte)n));// COM OF 'y'
 
             char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
             if (c != ',')//0x2c
@@ -1387,7 +1388,7 @@ namespace mucomDotNET.Compiler
                     , mucInfo.row, mucInfo.col);
             }
 
-            msub.MWRIT2((byte)n);// SET DATA ONLY
+            msub.MWRIT2(new MubDat((byte)n));// SET DATA ONLY
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -1485,7 +1486,7 @@ namespace mucomDotNET.Compiler
         {
             mucInfo.srcCPtr++;
             work.TIEFG = 0xfd;
-            msub.MWRIT2(0xfd);
+            msub.MWRIT2(new MubDat(0xfd));
         }
 
         public EnmFCOMPNextRtn SETTI2()
@@ -1536,7 +1537,7 @@ namespace mucomDotNET.Compiler
                 n = 1;// ﾍﾝｶ 1
             }
             work.VOLUME += n;
-            msub.MWRITE(0xfb, (byte)n);// COM OF ')'
+            msub.MWRITE(new MubDat(0xfb), new MubDat((byte)n));// COM OF ')'
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -1574,7 +1575,7 @@ namespace mucomDotNET.Compiler
                 n = 1;// ﾍﾝｶ 1
             }
             work.VOLUME -= n;
-            msub.MWRITE(0xfb, (byte)-n);// ')' ﾉ ﾊﾝﾀｲ ﾊ '('
+            msub.MWRITE(new MubDat(0xfb), new MubDat((byte)-n));// ')' ﾉ ﾊﾝﾀｲ ﾊ '('
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -1675,7 +1676,7 @@ namespace mucomDotNET.Compiler
                     n += 4;
                 }
 
-                msub.MWRITE(0xf1, (byte)n);// COM OF 'v'
+                msub.MWRITE(new MubDat(0xf1), new MubDat((byte)n));// COM OF 'v'
                 return EnmFCOMPNextRtn.fcomp1;
             }
 
@@ -1686,7 +1687,7 @@ namespace mucomDotNET.Compiler
         {
             // -	DRAM V. -
             n += work.TV_OFS;
-            msub.MWRITE(0xf1, (byte)n);
+            msub.MWRITE(new MubDat(0xf1), new MubDat((byte)n));
 
             for (int i = 0; i < 6; i++)
             {
@@ -1706,12 +1707,12 @@ namespace mucomDotNET.Compiler
                         , mucInfo.row, mucInfo.col);
                 mucInfo.srcCPtr = ptr;
 
-                msub.MWRIT2((byte)n);
+                msub.MWRIT2(new MubDat((byte)n));
             }
 
             return EnmFCOMPNextRtn.fcomp1;
         }
-    
+
         private EnmFCOMPNextRtn SETVOL_ADPCM()
         {
 
@@ -1738,15 +1739,15 @@ namespace mucomDotNET.Compiler
                 work.VOLUME = n;
                 work.VOLINT = n;
                 n += work.TV_OFS + 4;
-                if ((byte)n >= 246 && (byte)n <= 251 && mucInfo.VM==0)
+                if ((byte)n >= 246 && (byte)n <= 251 && mucInfo.VM == 0)
                 {
                     WriteWarning(msg.get("W0411"), mucInfo.row, mucInfo.col);
                 }
-                msub.MWRITE(0xf1, (byte)n);
+                msub.MWRITE(new MubDat(0xf1), new MubDat((byte)n));
                 return EnmFCOMPNextRtn.fcomp1;
             }
 
-            msub.MWRITE(0xff, 0xf0);
+            msub.MWRITE(new MubDat(0xff), new MubDat(0xf0));
             char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
             if (c != 'm')// vm command
             {
@@ -1779,7 +1780,7 @@ namespace mucomDotNET.Compiler
             }
 
             mucInfo.VM = n;
-            msub.MWRIT2((byte)n);// SET DATA ONLY
+            msub.MWRIT2(new MubDat((byte)n));// SET DATA ONLY
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -1799,8 +1800,8 @@ namespace mucomDotNET.Compiler
                 n = -n;
             }
 
-            msub.MWRITE(0xf2, (byte)n);// COM OF 'D'
-            msub.MWRIT2((byte)(n >> 8));
+            msub.MWRITE(new MubDat(0xf2), new MubDat((byte)n));// COM OF 'D'
+            msub.MWRIT2(new MubDat((byte)(n >> 8)));
 
             char c =
                 mucInfo.lin.Item2.Length > mucInfo.srcCPtr
@@ -1812,7 +1813,7 @@ namespace mucomDotNET.Compiler
                 c = (char)0;
                 mucInfo.srcCPtr--;
             }
-            msub.MWRIT2((byte)c);
+            msub.MWRIT2(new MubDat((byte)c));
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -1840,9 +1841,9 @@ namespace mucomDotNET.Compiler
 
             do
             {
-                char c = 
-                    mucInfo.lin.Item2.Length > mucInfo.srcCPtr 
-                    ? mucInfo.lin.Item2[mucInfo.srcCPtr] 
+                char c =
+                    mucInfo.lin.Item2.Length > mucInfo.srcCPtr
+                    ? mucInfo.lin.Item2[mucInfo.srcCPtr]
                     : (char)0;
                 if (c != 0x2e)//'.'
                     break;
@@ -1894,8 +1895,8 @@ namespace mucomDotNET.Compiler
         {
 
             mucInfo.srcCPtr++;
-            char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr 
-                ? mucInfo.lin.Item2[mucInfo.srcCPtr] 
+            char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr
+                ? mucInfo.lin.Item2[mucInfo.srcCPtr]
                 : (char)0;
             if (c == '\"')
             {
@@ -1904,7 +1905,7 @@ namespace mucomDotNET.Compiler
             }
 
             mucInfo.srcCPtr++;
-            c = mucInfo.srcCPtr<mucInfo.lin.Item2.Length ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+            c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
             if (c == '=')
             {
                 throw new MucException(
@@ -2016,14 +2017,14 @@ namespace mucomDotNET.Compiler
             int voiceIndex = CCVC(num, mucInfo.bufDefVoice);
             if (voiceIndex != -1)
             {
-                msub.MWRITE(0xf0, (byte)(voiceIndex - 1));
+                msub.MWRITE(new MubDat(0xf0), new MubDat((byte)(voiceIndex - 1)));
                 return;
             }
 
             voiceIndex = CWVC(num, mucInfo.bufDefVoice);
             if (voiceIndex != -1)
             {
-                msub.MWRITE(0xf0, (byte)(voiceIndex - 1));
+                msub.MWRITE(new MubDat(0xf0), new MubDat((byte)(voiceIndex - 1)));
                 return;
             }
 
@@ -2035,7 +2036,7 @@ namespace mucomDotNET.Compiler
         public EnmFCOMPNextRtn STCL5(int num)
         {
 
-            msub.MWRITE(0xf0, (byte)num);
+            msub.MWRITE(new MubDat(0xf0), new MubDat((byte)num));
 
             if (work.PSGMD != 0)
             {
@@ -2043,8 +2044,8 @@ namespace mucomDotNET.Compiler
             }
 
             int HL = (byte)num * 16;
-            msub.MWRIT2(0xf7);
-            msub.MWRIT2(SSGLIB[HL]);
+            msub.MWRIT2(new MubDat(0xf7));
+            msub.MWRIT2(new MubDat(SSGLIB[HL]));
             HL += 8;
             if (SSGLIB[HL] == 1)
             {
@@ -2052,11 +2053,11 @@ namespace mucomDotNET.Compiler
             }
 
             int DE = work.MDATA;
-            mucInfo.bufDst.Set(DE, 0xf4);
+            mucInfo.bufDst.Set(DE, new MubDat(0xf4));
             DE++;
-            for(int b = 0; b < 6; b++)
+            for (int b = 0; b < 6; b++)
             {
-                mucInfo.bufDst.Set(DE++, SSGLIB[HL + b]);
+                mucInfo.bufDst.Set(DE++, new MubDat(SSGLIB[HL + b]));
                 work.LFODAT[b] = SSGLIB[HL + b];
             }
             work.MDATA = DE;
@@ -2066,7 +2067,7 @@ namespace mucomDotNET.Compiler
 
         public EnmFCOMPNextRtn STCL72(int num)
         {
-            msub.MWRITE(0xf0,(byte)num);
+            msub.MWRITE(new MubDat(0xf0), new MubDat((byte)num));
 
             ChannelType tp = CHCHK();
             if (tp == ChannelType.ADPCM) work.pcmFlag = 1;
@@ -2194,7 +2195,7 @@ namespace mucomDotNET.Compiler
 
         public enum ChannelType
         {
-            FM,SSG,RHYTHM,ADPCM
+            FM, SSG, RHYTHM, ADPCM
         }
 
         private EnmFCOMPNextRtn SETCLK()
@@ -2245,8 +2246,8 @@ namespace mucomDotNET.Compiler
             work.REPCOUNT = 0;
             work.title = work.titleFmt;
 
-            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 0, (byte)(work.MDATA - work.DATTBL + 1));
-            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 1, (byte)((work.MDATA - work.DATTBL + 1) >> 8));
+            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 0, new MubDat((byte)(work.MDATA - work.DATTBL + 1)));
+            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 1, new MubDat((byte)((work.MDATA - work.DATTBL + 1) >> 8)));
 
             work.POINTC = work.LOOPSP - 10;// LOOP ﾖｳ ｽﾀｯｸ
 
@@ -2262,8 +2263,8 @@ namespace mucomDotNET.Compiler
             work.MACFG = 0xff;
             COMPST();//KUMA:先ずマクロの解析
 
-            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 0, (byte)(work.MDATA - work.DATTBL + 1));
-            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 1, (byte)((work.MDATA - work.DATTBL + 1) >> 8));
+            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 0, new MubDat((byte)(work.MDATA - work.DATTBL + 1)));
+            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 1, new MubDat((byte)((work.MDATA - work.DATTBL + 1) >> 8)));
 
             mucInfo.srcCPtr = 0;
             mucInfo.srcLinPtr = 0;
@@ -2472,17 +2473,17 @@ namespace mucomDotNET.Compiler
                 goto CMPE2;
             }
 
-            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 2, 0);
-            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 3, 0);
+            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 2, new MubDat(0));
+            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 3, new MubDat(0));
 
         CMPE2:
-            mucInfo.bufDst.Set(work.MDATA++, 0);   // SET END MARK = 0
+            mucInfo.bufDst.Set(work.MDATA++, new MubDat(0));   // SET END MARK = 0
 
             work.COMNOW++;	// Ch.=Ch.+ 1
 
             //↓TBLSET();相当
-            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 0, (byte)(work.MDATA - work.DATTBL + 1));
-            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 1, (byte)((work.MDATA - work.DATTBL + 1) >> 8));
+            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 0, new MubDat((byte)(work.MDATA - work.DATTBL + 1)));
+            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 1, new MubDat((byte)((work.MDATA - work.DATTBL + 1) >> 8)));
 
             if (work.COMNOW == work.MAXCH)
             {
@@ -2603,12 +2604,12 @@ namespace mucomDotNET.Compiler
                 {
                     8 , 8 , 8 , 8 , 10 , 14 , 14 , 15
                 };
-                for(int i = 0; i < 4; i++)
+                for (int i = 0; i < 4; i++)
                 {
                     if ((wCar[wAlg] & (1 << i)) == 0) continue;
                     if (wTL[i] != 0)
                     {
-                        WriteWarning(string.Format(msg.get("W0408"), vn, i + 1,wAlg, wTL[0], wTL[1], wTL[2], wTL[3]));
+                        WriteWarning(string.Format(msg.get("W0408"), vn, i + 1, wAlg, wTL[0], wTL[1], wTL[2], wTL[3]));
                         break;
                     }
                 }
@@ -2619,7 +2620,7 @@ namespace mucomDotNET.Compiler
 
                 for (int i = 0; i < 12; i++)
                 {
-                    mucInfo.bufDst.Set(adr, bufVoi[vAdr]);
+                    mucInfo.bufDst.Set(adr, new MubDat(bufVoi[vAdr]));
                     adr++;
                     vAdr++;
                 }
@@ -2627,14 +2628,14 @@ namespace mucomDotNET.Compiler
                 //KUMA:次の4byte分の音色データをbit7(AMON)を立ててコピー
                 for (int i = 0; i < 4; i++)
                 {
-                    mucInfo.bufDst.Set(adr, (byte)(bufVoi[vAdr] | 0b1000_0000));// SET AMON FLAG
+                    mucInfo.bufDst.Set(adr, new MubDat((byte)(bufVoi[vAdr] | 0b1000_0000)));// SET AMON FLAG
                     adr++;
                     vAdr++;
                 }
 
                 for (int i = 0; i < 9; i++)
                 {
-                    mucInfo.bufDst.Set(adr, bufVoi[vAdr]);
+                    mucInfo.bufDst.Set(adr, new MubDat(bufVoi[vAdr]));
                     adr++;
                     vAdr++;
                 }
@@ -2646,7 +2647,7 @@ namespace mucomDotNET.Compiler
             } while (B != 0);
 
             work.OTONUM = useOto;// ﾂｶﾜﾚﾃﾙ ｵﾝｼｮｸ ﾉ ｶｽﾞ
-            mucInfo.bufDst.Set(mucInfo.useOtoAdr, (byte)useOto);
+            mucInfo.bufDst.Set(mucInfo.useOtoAdr, new MubDat((byte)useOto));
 
             work.SSGDAT = work.ENDADR - work.MU_NUM;
 
@@ -2708,7 +2709,7 @@ namespace mucomDotNET.Compiler
                     case EnmFCOMPNextRtn.fcomp12:
                         ret = FCOMP12();
                         break;
-                    //case enmFCOMPNextRtn.fcomp13:
+                        //case enmFCOMPNextRtn.fcomp13:
                         //ret = FCOMP13();
                         //break;
                 }
@@ -2822,7 +2823,7 @@ namespace mucomDotNET.Compiler
 
             int ptr = mucInfo.srcCPtr;
             byte clk;
-            int ret= msub.STLIZM(mucInfo.lin, ref ptr,out clk);
+            int ret = msub.STLIZM(mucInfo.lin, ref ptr, out clk);
             if (ret < 0)
             {
                 WriteWarning(msg.get("W0405"), mucInfo.row, mucInfo.col);
@@ -2835,9 +2836,9 @@ namespace mucomDotNET.Compiler
             if (n > 0xff)
             {
                 n -= 127;
-                msub.MWRIT2(127);
-                msub.MWRIT2((byte)note);
-                msub.MWRIT2(0xfd);
+                msub.MWRIT2(new MubDat(127));
+                msub.MWRIT2(new MubDat((byte)note));
+                msub.MWRIT2(new MubDat(0xfd));
             }
             clk = (byte)n;
             FCOMP17(note, clk);
@@ -2864,7 +2865,7 @@ namespace mucomDotNET.Compiler
             work.tcnt[work.COMNOW] += clk;
         }
 
-        public void FCOMP17(int note,int clk)
+        public void FCOMP17(int note, int clk)
         {
             //Mem.LD_8(BEFCO + 1, Z80.A); //?
 
@@ -2876,26 +2877,26 @@ namespace mucomDotNET.Compiler
 
             // --	ｶｳﾝﾄ ｵｰﾊﾞｰ ｼｮﾘ	--
             clk -= 127;
-            msub.MWRIT2(127);// FIRST COUNT
-            msub.MWRIT2((byte)note);// TONE DATA
-            msub.MWRIT2(0xfd);// COM OF COUNT OVER(SOUND)
+            msub.MWRIT2(new MubDat(127, mucInfo.row, mucInfo.col, mucInfo.srcCPtr - mucInfo.col + 1, work.COMNOW));// FIRST COUNT
+            msub.MWRIT2(new MubDat((byte)note, mucInfo.row, mucInfo.col, mucInfo.srcCPtr - mucInfo.col + 1, work.COMNOW));// TONE DATA
+            msub.MWRIT2(new MubDat(0xfd, mucInfo.row, mucInfo.col, mucInfo.srcCPtr - mucInfo.col + 1, work.COMNOW));// COM OF COUNT OVER(SOUND)
             work.BEFCO = clk;// RESTORE SECOND COUNT
-            msub.MWRIT2((byte)clk);
+            msub.MWRIT2(new MubDat((byte)clk, mucInfo.row, mucInfo.col, mucInfo.srcCPtr - mucInfo.col + 1, work.COMNOW));
 
-            for(int i = 0; i < 8; i++)
+            for (int i = 0; i < 8; i++)
                 work.BEFTONE[8 - i] = work.BEFTONE[7 - i];
 
             work.BEFTONE[0] = (byte)note;
-            msub.MWRIT2((byte)note);
+            msub.MWRIT2(new MubDat((byte)note, mucInfo.row, mucInfo.col, mucInfo.srcCPtr - mucInfo.col + 1, work.COMNOW));
         }
 
         // --	ﾉｰﾏﾙ ｼｮﾘ	--
-        public void FCOMP2(int note,int clk)
+        public void FCOMP2(int note, int clk)
         {
-            mucInfo.bufDst.Set(work.MDATA++, (byte)clk);// SAVE LIZM
+            mucInfo.bufDst.Set(work.MDATA++, new MubDat((byte)clk, mucInfo.row, mucInfo.col, mucInfo.srcCPtr - mucInfo.col + 1, work.COMNOW));// SAVE LIZM
             work.BEFCO = clk;
 
-            mucInfo.bufDst.Set(work.MDATA++, (byte)note);// SAVE TONE
+            mucInfo.bufDst.Set(work.MDATA++, new MubDat((byte)note, mucInfo.row, mucInfo.col, mucInfo.srcCPtr - mucInfo.col + 1, work.COMNOW));// SAVE TONE
 
             for (int i = 0; i < 8; i++)
                 work.BEFTONE[8 - i] = work.BEFTONE[7 - i];

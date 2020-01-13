@@ -236,7 +236,7 @@ namespace mucomDotNET.Compiler
             return false;
         }
 
-        public void MWRIT2(byte dat)
+        public void MWRIT2(MubDat dat)
         {
             //Common.WriteLine("{0:x2}", dat);
             mucInfo.bufDst.Set(work.MDATA++, dat);
@@ -251,7 +251,7 @@ namespace mucomDotNET.Compiler
             muc88.DispHex4(work.MDATA, 36);
         }
 
-        public void MWRITE(byte cmdNo, byte cmdDat)
+        public void MWRITE(MubDat cmdNo, MubDat cmdDat)
         {
             //Common.WriteLine("{0:x2}", cmdNo);
             mucInfo.bufDst.Set(work.MDATA++, cmdNo);

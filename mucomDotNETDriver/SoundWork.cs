@@ -27,8 +27,8 @@ namespace mucomDotNET.Driver
             ,new CHDAT()//ADPCM Ch
         };
 
-        public ushort[] PREGBF = null;
-        public ushort[] INITPM = null;
+        public byte[] PREGBF = null;
+        public byte[] INITPM = null;
         public ushort[] DETDAT = null;
         public byte[] DRMVOL = null;
         public byte[] OP_SEL = null;
@@ -40,6 +40,33 @@ namespace mucomDotNET.Driver
         public ushort[] PCMNMB = null;
         public byte[] SSGDAT = null;
 
+        public int MUSNUM { get; internal set; }
+        public int C2NUM { get; internal set; }
+        public int CHNUM { get; internal set; }
+        public int PVMODE { get; internal set; }
+        public uint MU_TOP { get; internal set; }
+        public byte TIMER_B { get; internal set; }
+        public uint TB_TOP { get; internal set; }
+        public int NOTSB2 { get; internal set; }
+        public byte PLSET1_VAL { get; internal set; }
+        public byte PLSET2_VAL { get; internal set; }
+        public int PCMLR { get; internal set; }
+        public int FMPORT { get; internal set; }
+        public int SSGF1 { get; internal set; }
+        public int DRMF1 { get; internal set; }
+        public int PCMFLG { get; internal set; }
+        public int READY { get; internal set; }
+
+        // **	PMS/AMS/LR DATA	**
+        public byte[] PALDAT = new byte[] {
+            0x0C0,
+            0x0C0,
+            0x0C0,
+            0x0,// DUMMY
+            0x0C0,
+            0x0C0,
+            0x0C0
+        };
 
         internal void Init()
         {
@@ -99,8 +126,8 @@ namespace mucomDotNET.Driver
             CHDAT[10].volume = 10;
             CHDAT[10].channelNumber = 2;
 
-            PREGBF = new ushort[9];
-            INITPM = new ushort[] { 0, 0, 0, 0, 0, 56, 0, 0, 0 };
+            PREGBF = new byte[9];
+            INITPM = new byte[] { 0, 0, 0, 0, 0, 56, 0, 0, 0 };
             DETDAT = new ushort[4] { 0, 0, 0, 0 };
             DRMVOL = new byte[6] { 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0 };
             OP_SEL = new byte[4] { 0xa6, 0xac, 0xad, 0xae };
@@ -148,8 +175,8 @@ namespace mucomDotNET.Driver
     {
         public int lengthCounter = 1;//DB	1	        ; LENGTH ｶｳﾝﾀｰ      IX+ 0
         public int instrumentNumber = 24;//DB	24	        ; ｵﾝｼｮｸ ﾅﾝﾊﾞｰ		1
-        public int dataAddressWork = 0;//DW	0	        ; DATA ADDRES WORK	2,3
-        public int dataTopAddress = 0;//DW	0	        ; DATA TOP ADDRES	4,5
+        public uint dataAddressWork = 0;//DW	0	        ; DATA ADDRES WORK	2,3
+        public uint dataTopAddress = 0;//DW	0	        ; DATA TOP ADDRES	4,5
         public int volume = 10;//DB	10	        ; VOLUME DATA		6
         public int softEnvelopeFlag = 0;
         //			        ; bit 4 = attack flag
