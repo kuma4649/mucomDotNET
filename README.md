@@ -1,8 +1,8 @@
 # mucom.NET
-  mucom88の.NET版です。コンパイラのみ。  
+  mucom88の.NET版です。  
   
 [概要]  
-　mucom88を.NET版に移植したものです。コンパイラのみ。  
+　mucom88を.NET版に移植したものです。  
   
 [機能、特徴]  
  ・恐らく生データの限界である64Kbyteフルに使用したmubが作成できます。未確認。  
@@ -10,7 +10,6 @@
 [必要な環境]  
  ・Windows7以降のOSがインストールされたPC  
  ・テキストエディタ  
- ・.mubを演奏できるプレイヤアプリ  
  ・気合と根性  
   
 [著作権・免責]  
@@ -33,6 +32,7 @@ https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ja
  本当にありがとうございます。  
  ・くろま さん  
  ・mucom さん  
+ ・ぼうきち さん  
 
  ・mucom88/mucom88win  
  ・Music LALF  
@@ -41,4 +41,7 @@ https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ja
  ・Visual Studio Community 2019  
  ・さくらエディター  
   
-  
+ ・mucomさんとこのwiki  
+   https://github.com/MUCOM88/mucom88/wiki  
+ ・ぼうきちさんとこのwiki  
+   https://github.com/BouKiCHi/mucom88/wiki  

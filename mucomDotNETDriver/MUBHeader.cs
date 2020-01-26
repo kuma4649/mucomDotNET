@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using mucomDotNET.Common;
 
 namespace mucomDotNET.Driver
 {
@@ -25,46 +26,46 @@ namespace mucomDotNET.Driver
         public uint ext_player = 0;
         public uint pad1 = 0;
         public byte[] ext_fmvoice = new byte[32];
-        private byte[] srcBuf = null;
+        private MubDat[] srcBuf = null;
 
 
-        public MUBHeader(byte[] buf)
+        public MUBHeader(MubDat[] buf)
         {
-            magic = Common.getLE32(buf, 0x0000);
-            dataoffset = Common.getLE32(buf, 0x0004);
-            datasize = Common.getLE32(buf, 0x0008);
-            tagdata = Common.getLE32(buf, 0x000c);
-            tagsize = Common.getLE32(buf, 0x0010);
-            pcmdata = Common.getLE32(buf, 0x0014);
-            pcmsize = Common.getLE32(buf, 0x0018);
-            jumpcount = Common.getLE16(buf, 0x001c);
-            jumpline = Common.getLE16(buf, 0x001e);
+            magic = Cmn.getLE32(buf, 0x0000);
+            dataoffset = Cmn.getLE32(buf, 0x0004);
+            datasize = Cmn.getLE32(buf, 0x0008);
+            tagdata = Cmn.getLE32(buf, 0x000c);
+            tagsize = Cmn.getLE32(buf, 0x0010);
+            pcmdata = Cmn.getLE32(buf, 0x0014);
+            pcmsize = Cmn.getLE32(buf, 0x0018);
+            jumpcount = Cmn.getLE16(buf, 0x001c);
+            jumpline = Cmn.getLE16(buf, 0x001e);
 
             if (magic == 0x3842554d) //'MUB8'
             {
-                ext_flags = Common.getLE16(buf, 0x0020);
-                ext_system = buf[0x0022];
-                ext_target = buf[0x0023];
-                ext_channel_num = Common.getLE16(buf, 0x0024);
-                ext_fmvoice_num = Common.getLE16(buf, 0x0026);
-                ext_player = Common.getLE32(buf, 0x0028);
-                pad1 = Common.getLE32(buf, 0x002c);
+                ext_flags = Cmn.getLE16(buf, 0x0020);
+                ext_system = buf[0x0022].dat;
+                ext_target = buf[0x0023].dat;
+                ext_channel_num = Cmn.getLE16(buf, 0x0024);
+                ext_fmvoice_num = Cmn.getLE16(buf, 0x0026);
+                ext_player = Cmn.getLE32(buf, 0x0028);
+                pad1 = Cmn.getLE32(buf, 0x002c);
                 for (int i = 0; i < 32; i++)
                 {
-                    ext_fmvoice[i] = buf[0x0030 + i];
+                    ext_fmvoice[i] = buf[0x0030 + i].dat;
                 }
             }
             srcBuf = buf;
         }
 
-        public byte[] GetDATA()
+        public MubDat[] GetDATA()
         {
             try
             {
                 if (dataoffset == 0) return null;
                 if (srcBuf == null) return null;
 
-                List<byte> lb = new List<byte>();
+                List<MubDat> lb = new List<MubDat>();
                 for (int i = 0; i < datasize; i++)
                 {
                     lb.Add(srcBuf[dataoffset + i]);
@@ -88,7 +89,7 @@ namespace mucomDotNET.Driver
                 List<byte> lb = new List<byte>();
                 for (int i = 0; i < tagsize; i++)
                 {
-                    lb.Add(srcBuf[tagdata + i]);
+                    lb.Add(srcBuf[tagdata + i].dat);
                 }
 
                 return GetTagsByteArray(lb.ToArray());
@@ -109,7 +110,7 @@ namespace mucomDotNET.Driver
                 List<byte> lb = new List<byte>();
                 for (int i = 0; i < pcmsize; i++)
                 {
-                    lb.Add(srcBuf[pcmdata + i]);
+                    lb.Add(srcBuf[pcmdata + i].dat);
                 }
 
                 return lb.ToArray();

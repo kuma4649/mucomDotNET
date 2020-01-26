@@ -1,7 +1,24 @@
+How to mucom.NET !
+
+[手順]
+  1.mucファイルをテキストエディタで作る
+    作り方はオリジナルのmucom88winと同じです。
+  2.コンパイラでmubファイルを作る
+    エラーが出たら1に戻って修正
+  3.プレイヤーでmubファイルを演奏する
+    悦に入ります。気に食わなければ1に戻って修正
+  4.完成。Let's 8801 Programing!
+
 [使い方]
- 
+＊コンパイラ
   mucomDotNETConsole.exe file.muc ...
 
   mucomDotNETConsoleに.mucファイルをドロップするとコンパイルを実施し、エラーが無ければmubファイルを作成します。
   複数ドロップすることも可能です。
+
+
+＊プレイヤー
+  mucomDotNETPlayer.exe file.mub
+
+  mucomDotNETPlayerに.mubファイルをドロップすると演奏を開始します。
 

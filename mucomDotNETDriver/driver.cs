@@ -36,9 +36,21 @@ namespace mucomDotNET.Driver
 
         public void Init(string fileName, Action<OPNAData> opnaWrite,bool notSoundBoard2)
         {
+            byte[] srcBuf = File.ReadAllBytes(fileName);
+            Init(fileName, opnaWrite, notSoundBoard2, srcBuf);
+        }
+
+        public void Init(string fileName, Action<OPNAData> opnaWrite, bool notSoundBoard2, byte[] srcBuf)
+        {
+            List<MubDat> bl = new List<MubDat>();
+            foreach (byte b in srcBuf) bl.Add(new MubDat(b));
+            Init(fileName, opnaWrite, notSoundBoard2, bl.ToArray());
+        }
+
+        public void Init(string fileName, Action<OPNAData> opnaWrite, bool notSoundBoard2, MubDat[] srcBuf)
+        {
             pathWork = Path.GetDirectoryName(fileName);
             fnMUB = fileName;
-            byte[] srcBuf = File.ReadAllBytes(fnMUB);
             header = new MUBHeader(srcBuf);
             work.mData = GetDATA();
             tags = GetTags();
@@ -61,12 +73,11 @@ namespace mucomDotNET.Driver
         }
 
 
-
         //-------
         //data Information
         //-------
 
-        public byte[] GetDATA()
+        public MubDat[] GetDATA()
         {
             return header.GetDATA();
         }
@@ -163,31 +174,41 @@ namespace mucomDotNET.Driver
 
         public void StartRendering(int renderingFreq = 44100, int opnaMasterClock = 7987200)
         {
-            while (work.SystemInterrupt) ;
-            work.SystemInterrupt = true;
+            lock (work.SystemInterrupt)
+            {
 
-            work.timeCounter = 0L;
-            this.renderingFreq = renderingFreq <= 0 ? 44100 : renderingFreq;
-            this.opnaMasterClock = opnaMasterClock <= 0 ? 7987200 : opnaMasterClock;
-            work.timer = new OPNATimer(renderingFreq, opnaMasterClock);
-            Log.WriteLine(LogLevel.TRACE, "Start rendering.");
+                work.timeCounter = 0L;
+                this.renderingFreq = renderingFreq <= 0 ? 44100 : renderingFreq;
+                this.opnaMasterClock = opnaMasterClock <= 0 ? 7987200 : opnaMasterClock;
+                work.timer = new OPNATimer(renderingFreq, opnaMasterClock);
+                Log.WriteLine(LogLevel.TRACE, "Start rendering.");
 
-            work.SystemInterrupt = false;
+            }
         }
 
         public void StopRendering()
         {
-            while (work.SystemInterrupt) ;
-            work.SystemInterrupt = true;
+            lock (work.SystemInterrupt)
+            {
+                if (work.Status > 0) work.Status = 0;
+                Log.WriteLine(LogLevel.TRACE, "Stop rendering.");
 
-            Log.WriteLine(LogLevel.TRACE, "Stop rendering.");
-
-            work.SystemInterrupt = false;
+            }
         }
 
         public void Rendering()
         {
-            music2.Rendering();
+            if (work.Status < 0) return;
+
+            try
+            {
+                music2.Rendering();
+            }
+            catch
+            {
+                work.Status = -1;
+                throw;
+            }
         }
 
         public void WriteRegister(OPNAData reg)
@@ -234,6 +255,10 @@ namespace mucomDotNET.Driver
             music2.EFC();
         }
 
+        public int Status()
+        {
+            return work.Status;
+        }
 
 
 
