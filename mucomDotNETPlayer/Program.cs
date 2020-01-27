@@ -15,7 +15,7 @@ namespace mucomDotNET.Player
         public delegate int naudioCallBack(short[] buffer, int offset, int sampleCount);
         private static naudioCallBack callBack = null;
 
-        private static readonly uint SamplingRate = 44100;
+        private static readonly uint SamplingRate = 55467;//44100;
         private static readonly uint samplingBuffer = 1024;
         private static short[] frames = new short[samplingBuffer * 4];
         private static MDSound.MDSound mds = null;
@@ -51,7 +51,7 @@ namespace mucomDotNET.Player
                 waveProvider = new SineWaveProvider16();
                 waveProvider.SetWaveFormat((int)SamplingRate, 2);
                 callBack = EmuCallback;
-                output = new DirectSoundOut();
+                output = new DirectSoundOut(1000);
                 output.Init(waveProvider);
 
                 MDSound.ym2608 ym2608 = new MDSound.ym2608();
@@ -128,7 +128,7 @@ namespace mucomDotNET.Player
         private static void WriteLineF(LogLevel level, string msg)
         {
             traceLine++;
-            if (traceLine < 48434) return;
+            //if (traceLine < 48434) return;
             File.AppendAllText(@"C:\Users\kuma\Desktop\new.log", string.Format("[{0,-7}] {1}" + Environment.NewLine, level, msg));
         }
 

@@ -1794,7 +1794,7 @@ namespace mucomDotNET.Driver
             work.cd = work.soundWork.CHDAT[work.idx];
             work.hl = work.cd.dataAddressWork;
 
-            work.cd.lengthCounter--;
+            work.cd.lengthCounter = (byte)(work.cd.lengthCounter - 1);
             if (work.cd.lengthCounter == 0)
             {
                 SSSUB7();
@@ -2130,11 +2130,11 @@ namespace mucomDotNET.Driver
             {
                 return;
             }
-            if (work.cd.reverbFlg)
+            if (!work.cd.reverbFlg)
             {
                 return;
             }
-            a += (byte)work.cd.softEnvelopeParam[5];
+            a += (byte)work.cd.reverbVol;//.softEnvelopeParam[5];
             
             work.carry= ((a & 0x01) != 0);
             a >>= 1;
