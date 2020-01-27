@@ -136,7 +136,8 @@ namespace mucomDotNET.Driver
                 ,REPSTF// 0xF5 - REPEAT START SET  '['
                 ,REPENF// 0xF6 - REPEAT END SET    ']'
                 ,MDSET // 0xF7 - FMｵﾝｹﾞﾝ ﾓｰﾄﾞｾｯﾄ
-                ,STEREO// 0xF8 - STEREO MODE
+                // ,STEREO// 0xF8 - STEREO MODE
+                ,STEREO_AMD98 // 0xF8 - STEREO MODE
                 ,FLGSET// 0xF9 - FLAG SET
                 ,W_REG // 0xFA - COMMAND OF   'y'
                 ,VOLUPF// 0xFB - VOLUME UP    ')'
@@ -484,11 +485,15 @@ namespace mucomDotNET.Driver
 
         public void FMENT(int ix)
         {
+            work.idx = ix;
+            work.cd = work.soundWork.CHDAT[work.idx];
+
+            PANNING();//AMD98
+
             if (work.soundWork.CHDAT[ix].muteFlg) //KUMA: 0x08(bit3)=MUTE FLAG
             {
                 work.soundWork.READY = 0x00;
             }
-            work.idx = ix;
             FMSUB();
             PLLFO();
             if (work.soundWork.CHDAT[ix].muteFlg)//KUMA: 0x08(bit3)=MUTE FLAG
@@ -517,8 +522,6 @@ namespace mucomDotNET.Driver
 
         public void FMSUB()
         {
-            work.cd = work.soundWork.CHDAT[work.idx];
-
             //work.carry = false;
             work.cd.lengthCounter--;
             work.cd.lengthCounter = (byte)work.cd.lengthCounter;
@@ -1334,6 +1337,125 @@ namespace mucomDotNET.Driver
             a = (byte)(((c << 2) & 0b1100_0000) | (a & 0b0001_1111));
             work.soundWork.DRMVOL[dat] = a;
             PSGOUT((byte)(dat + 0x18), a);
+        }
+
+        public void STEREO_AMD98()
+        {
+            byte a,c,d;
+            if (work.soundWork.DRMF1 != 0)
+            {
+                goto STE020;
+            }
+
+            if (work.soundWork.PCMFLG != 0)
+            {
+                work.soundWork.PCMLR = work.mData[work.hl++].dat;
+                return;
+            }
+
+            a = work.mData[work.hl++].dat;
+            if (a >= 4)
+            {
+                goto STE012;
+            }
+
+            //既存処理
+            c = (byte)(((a >> 2) & 0x3f) | (a << 6));//右ローテート2回(左6回のほうがC#的にはシンプル)
+            d = work.soundWork.PALDAT[work.soundWork.FMPORT + work.cd.channelNumber];
+            d = (byte)((d & 0b0011_1111) | c);
+            work.soundWork.PALDAT[work.soundWork.FMPORT + work.cd.channelNumber] = d;
+            a = (byte)(0x0B4 + work.cd.channelNumber);
+            PSGOUT(a, d);
+            work.cd.panEnable = 0;//パーン禁止
+            return;
+
+        STE012:
+            work.cd.panEnable |= 1;//パーン許可
+            work.cd.panMode = a;
+            work.cd.panCounter1 = work.mData[work.hl].dat;
+            work.cd.panCounter2 = work.mData[work.hl].dat;
+            work.hl++;
+            if (a == 4)
+            {
+                work.cd.panValue = 2;
+            }
+            else if (a == 5)
+            {
+                work.cd.panValue = 1;
+            }
+            else
+            {
+                work.cd.panValue = 3;
+            }
+            c = (byte)(((a >> 2) & 0x3f) | (a << 6));//右ローテート2回(左6回のほうがC#的にはシンプル)
+            d = work.soundWork.PALDAT[work.soundWork.FMPORT + work.cd.channelNumber];
+            d = (byte)((d & 0b0011_1111) | c);
+            work.soundWork.PALDAT[work.soundWork.FMPORT + work.cd.channelNumber] = d;
+            a = (byte)(0x0B4 + work.cd.channelNumber);
+            PSGOUT(a, d);
+            return;
+
+        STE020:
+            byte dat = work.mData[work.hl++].dat;
+            c = dat;
+            dat &= 0b0000_1111;
+            a = work.soundWork.DRMVOL[dat];
+            a = (byte)(((c << 2) & 0b1100_0000) | (a & 0b0001_1111));
+            work.soundWork.DRMVOL[dat] = a;
+            PSGOUT((byte)(dat + 0x18), a);
+        }
+
+        public void PANNING()
+        {
+            if ((work.cd.panEnable & 1) == 0) return;
+            if ((--work.cd.panCounter1) != 0) return;
+
+            work.cd.panCounter1 = work.cd.panCounter2;//; カウンター再設定
+
+            if (work.cd.panMode == 4)
+            {
+                //LEFT
+                byte ah = work.cd.panValue;
+                if (ah >= 3)
+                {
+                    ah = 0;
+                }
+                ah++;
+                work.cd.panValue = ah;//ah : 1～3
+            }
+            else if (work.cd.panMode == 5)
+            {
+                //RIGHT
+                byte ah = work.cd.panValue;
+                ah--;
+                if (ah == 0)
+                {
+                    ah = 3;
+                }
+                work.cd.panValue = ah;//ah : 1～3
+            }
+            else
+            {
+                //RANDOM
+                ushort ax;
+                do
+                {
+                    ax = work.soundWork.RANDUM;
+                    ax *= 5;
+                    ax += 0x1993;
+                    work.soundWork.RANDUM = ax;
+                    ax &= 0x0300;
+                } while (ax == 0);
+                work.cd.panValue = (byte)(ax >> 8);//ah : 1～3
+            }
+
+            byte a = work.cd.panValue;
+            byte c = (byte)(((a >> 2) & 0x3f) | (a << 6));//右ローテート2回(左6回のほうがC#的にはシンプル)
+            byte d = work.soundWork.PALDAT[work.soundWork.FMPORT + work.cd.channelNumber];
+            d = (byte)((d & 0b0011_1111) | c);
+            work.soundWork.PALDAT[work.soundWork.FMPORT + work.cd.channelNumber] = d;
+            a = (byte)(0x0B4 + work.cd.channelNumber);
+            PSGOUT(a, d);
         }
 
         // **	ﾌﾗｸﾞｾｯﾄ**

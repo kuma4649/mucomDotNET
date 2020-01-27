@@ -373,6 +373,24 @@ namespace mucomDotNET.Compiler
 
             msub.MWRITE(new MubDat(0xf8), new MubDat((byte)n));// COM OF 'p'
 
+            ////
+            //AMD98
+            char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+            if (c == ',')//0x2c
+            {
+                if (n < 4)
+                {
+                    WriteWarning(msg.get("W0415"), mucInfo.row, mucInfo.col);
+                }
+
+                mucInfo.srcCPtr++;
+                ptr = mucInfo.srcCPtr;
+                n = msub.REDATA(mucInfo.lin, ref ptr);
+                mucInfo.srcCPtr = ptr;
+                msub.MWRIT2(new MubDat((byte)n));// ２こめ
+            }
+            ////
+
             return EnmFCOMPNextRtn.fcomp1;
         }
 
@@ -2468,7 +2486,7 @@ namespace mucomDotNET.Compiler
         {
             mucInfo.ErrSign = false;
 
-            if (work.tcnt[work.COMNOW] != 0)
+            if (work.tcnt[work.COMNOW] != 0 && mucInfo.bufDst.Get(work.DATTBL + 4 * work.COMNOW + 2)!=null)
             {
                 goto CMPE2;
             }

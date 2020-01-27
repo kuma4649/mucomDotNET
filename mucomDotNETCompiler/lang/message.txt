@@ -42,6 +42,7 @@ W0411=Volume (246 to 251 or less) was specified when the VM command value was 0.
 W0412=If you use the 't' or 'T' command in the SSG part, the tempo of the entire song changes, not at the specified time.
 W0413=!!Caution!! The timer-B setting value is 253 to 255 or less. (Driver hang up!)
 W0414=Portamento specifies a clock of 129 or higher. (Value:{0})
+W0415=AutoPanning specifies a clock of 3 or lower. (Value:{0})
 E0400=Trying to call undefined macro!
 E0401=Unable to return from macro line.(Address Exceeded)
 E0402=Unable to return from macro line.(Address Undefined)

@@ -70,6 +70,7 @@ namespace mucomDotNET.Driver
         public byte LFOP6_VAL { get; internal set; }
         public byte FLGADR { get; internal set; }
         public int NEWFNM { get; internal set; }
+        public ushort RANDUM { get; internal set; } = 0;
 
         // **	PMS/AMS/LR DATA	**
         public byte[] PALDAT = new byte[] {
@@ -254,5 +255,10 @@ namespace mucomDotNET.Driver
         public int returnAddress = 0;//DW	0	        ; ﾘﾀｰﾝｱﾄﾞﾚｽ	34,35
         public int reserve = 0;//DB	0,0         ; 36,37 (ｱｷ)
 
+        public byte panEnable = 0;//DB ? ;パーン 38
+        public byte panMode = 0;//DB ? ;パーン モード 39
+        public byte panCounter1 = 0;//DB ? ;パーン カウンター 40
+        public byte panCounter2 = 0;//DB ? ;パーン カウンター 41
+        public byte panValue = 0;//DB ? ;パーン 値 42
     }
 }
