@@ -1,11 +1,8 @@
 ﻿using mucomDotNET.Common;
-using mucomDotNET.Driver;
 using NAudio.Wave;
-using NAudio.CoreAudioApi;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 
 namespace mucomDotNET.Player
 {
@@ -51,7 +48,8 @@ namespace mucomDotNET.Player
                 waveProvider = new SineWaveProvider16();
                 waveProvider.SetWaveFormat((int)SamplingRate, 2);
                 callBack = EmuCallback;
-                output = new DirectSoundOut(1000);
+                int latency = 1000;
+                output = new DirectSoundOut(latency);
                 output.Init(waveProvider);
 
                 MDSound.ym2608 ym2608 = new MDSound.ym2608();
@@ -67,7 +65,7 @@ namespace mucomDotNET.Player
                     SamplingRate = SamplingRate,
                     Clock = opnaMasterClock,
                     Volume = 0,
-                    Option = null
+                    Option = new object[] { GetApplicationFolder() }
                 };
                 mds = new MDSound.MDSound(SamplingRate, samplingBuffer, new MDSound.MDSound.Chip[] { chip });
 
@@ -100,6 +98,10 @@ namespace mucomDotNET.Player
                     //ステータスが0(終了)又は0未満(エラー)の場合はループを抜けて終了
                     if (drv.Status() <= 0)
                     {
+                        if (drv.Status() == 0)
+                        {
+                            System.Threading.Thread.Sleep((int)(latency*1.1));//実際の音声が発音しきるまでlatencyの分だけ待つ
+                        }
                         break;
                     }
                 }
@@ -124,17 +126,28 @@ namespace mucomDotNET.Player
             return 0;
         }
 
+        public static string GetApplicationFolder()
+        {
+            string path = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            if (!string.IsNullOrEmpty(path))
+            {
+                path += path[path.Length - 1] == '\\' ? "" : "\\";
+            }
+            return path;
+        }
+
+
         private static long traceLine = 0;
         private static void WriteLineF(LogLevel level, string msg)
         {
-            traceLine++;
+            //traceLine++;
             //if (traceLine < 48434) return;
-            File.AppendAllText(@"C:\Users\kuma\Desktop\new.log", string.Format("[{0,-7}] {1}" + Environment.NewLine, level, msg));
+            //File.AppendAllText(@"C:\Users\kuma\Desktop\new.log", string.Format("[{0,-7}] {1}" + Environment.NewLine, level, msg));
         }
 
         static void WriteLine(LogLevel level, string msg)
         {
-            System.Console.WriteLine("[{0,-7}] {1}", level, msg);
+            Console.WriteLine("[{0,-7}] {1}", level, msg);
         }
 
         private static int EmuCallback(short[] buffer, int offset, int count)

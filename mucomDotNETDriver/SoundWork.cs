@@ -31,6 +31,11 @@ namespace mucomDotNET.Driver
         public byte[] INITPM = null;
         public ushort[] DETDAT = null;
         public byte[] DRMVOL = null;
+        public byte[] DrmPanEnable = null;
+        public byte[] DrmPanMode = null;
+        public byte[] DrmPanCounter = null;
+        public byte[] DrmPanCounterWork = null;
+        public byte[] DrmPanValue = null;
         public byte[] OP_SEL = null;
         public byte[] TYPE1 = null;
         public byte[] TYPE2 = null;
@@ -166,6 +171,11 @@ namespace mucomDotNET.Driver
             INITPM = new byte[] { 0, 0, 0, 0, 0, 56, 0, 0, 0 };
             DETDAT = new ushort[4] { 0, 0, 0, 0 };
             DRMVOL = new byte[6] { 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0 };
+            DrmPanCounter = new byte[6] { 0, 0, 0, 0, 0, 0 };
+            DrmPanCounterWork = new byte[6] { 0, 0, 0, 0, 0, 0 };
+            DrmPanEnable = new byte[6] { 0, 0, 0, 0, 0, 0 };
+            DrmPanMode = new byte[6] { 0, 0, 0, 0, 0, 0 };
+            DrmPanValue = new byte[6] { 0, 0, 0, 0, 0, 0 };
             OP_SEL = new byte[4] { 0xa6, 0xac, 0xad, 0xae };
             DMY = 8;
             TYPE1 = new byte[] { 0x032, 0x044, 0x046 };
@@ -257,8 +267,10 @@ namespace mucomDotNET.Driver
 
         public byte panEnable = 0;//DB ? ;パーン 38
         public byte panMode = 0;//DB ? ;パーン モード 39
-        public byte panCounter1 = 0;//DB ? ;パーン カウンター 40
-        public byte panCounter2 = 0;//DB ? ;パーン カウンター 41
+        public byte panCounterWork = 0;//DB ? ;パーン カウンター 40
+        public byte panCounter = 0;//DB ? ;パーン カウンター 41
         public byte panValue = 0;//DB ? ;パーン 値 42
+
+        public bool musicEnd { get; internal set; }
     }
 }

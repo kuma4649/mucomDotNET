@@ -368,7 +368,10 @@ namespace mucomDotNET.Compiler
             }
 
             int ptr = mucInfo.srcCPtr;
-            int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0414"));
+            //Ryhthm の内訳
+            // bit0～3 rythmType R:5 T:4 H:3 C:2 S:1 B:0
+            // bit4～7 パン 1:右, 2:左, 3:中央 4:右オート 5:左オート 6:ランダム
+            int n = (byte)msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0414"));
             mucInfo.srcCPtr = ptr;
 
             msub.MWRITE(new MubDat(0xf8), new MubDat((byte)n));// COM OF 'p'
@@ -378,7 +381,10 @@ namespace mucomDotNET.Compiler
             char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
             if (c == ',')//0x2c
             {
-                if (n < 4)
+                if (
+                    ((tp == ChannelType.FM||tp== ChannelType.ADPCM) && n < 4)
+                    || (tp == ChannelType.RHYTHM && (n >> 4) < 4)
+                    )
                 {
                     WriteWarning(msg.get("W0415"), mucInfo.row, mucInfo.col);
                 }
