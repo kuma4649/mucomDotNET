@@ -76,6 +76,7 @@ namespace mucomDotNET.Driver
         public byte FLGADR { get; internal set; }
         public int NEWFNM { get; internal set; }
         public ushort RANDUM { get; internal set; } = 0;
+        public int KEY_FLAG { get; internal set; } = 0;
 
         // **	PMS/AMS/LR DATA	**
         public byte[] PALDAT = new byte[] {
@@ -229,7 +230,7 @@ namespace mucomDotNET.Driver
         //                  ; bit 5 = decay flag
         //                  ; bit 6 = sustain flag
         //                  ; bit 7 = soft envelope flag
-        public int algo = 0;//DB	0	        ; ｱﾙｺﾞﾘｽﾞﾑ No.      7
+        public int algo = 0;//DB	0	        ; ｱﾙｺﾞﾘｽﾞﾑ No.      7(FM)
         public int volReg = 0;//DB	8   	    ; VOL.REG.No.       7
         public int channelNumber = 0;//DB    0	        ; ﾁｬﾝﾈﾙ ﾅﾝﾊﾞｰ          	8
         public int detune = 0;//DW	0	        ; ﾃﾞﾁｭｰﾝ DATA		9,10
@@ -259,9 +260,11 @@ namespace mucomDotNET.Driver
         public bool loopEndFlg = false;//			        ; 0=1LOOPEND FLAG
 
         public int beforeCode = 0;//DB 	0               ; BEFORE CODE		32
-        public bool tlLfoflg = false;//DB	0	        ; bit	6=TL LFO FLAG     33
+        public bool hardEnveFlg = false;//              ; bit   7=HardEnvelope FLAG   33
+        public bool tlLfoflg = false;//DB	0	        ; bit	6=TL LFO FLAG     
         public bool reverbFlg = false;//			          ; 5=REVERVE FLAG
         public bool reverbMode = false;//                     ; 4=REVERVE MODE
+        public byte hardEnvelopValue = 0;//                   ; 0-3=hardware Envelope value 
         public int returnAddress = 0;//DW	0	        ; ﾘﾀｰﾝｱﾄﾞﾚｽ	34,35
         public int reserve = 0;//DB	0,0         ; 36,37 (ｱｷ)
 

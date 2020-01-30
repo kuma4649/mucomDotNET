@@ -44,7 +44,7 @@ namespace mucomDotNET.Compiler
         ,0x56 //,'V'	TOTAL VOLUME OFFSET
         ,0x5c //,'\'    BEFORE CODE
         //,0x73 //,'s'	HARD ENVE SET
-        //,0x6d //,'m'	HARD ENVE PERIOD
+        ,0x6d //,'m'	HARD ENVE PERIOD
         ,0x6b //,'k'	KEY SHIFT 2
         ,0x73 //,'s'	KEY ON REVISE
         ,0x25 //,'%'	SET LIZM(DIRECT CLOCK)

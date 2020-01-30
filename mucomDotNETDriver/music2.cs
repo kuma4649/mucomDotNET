@@ -149,10 +149,8 @@ namespace mucomDotNET.Driver
 
             FMCOM2 = new Action[] {
                 PVMCHG // 0xFF 0xF0 - PCM VOLUME MODE
-                //,HRDENV	// 0xFF 0xF1 - HARD ENVE SET 's'
-                //,ENVPOD // 0xFF 0xF2 - HARD ENVE PERIOD
-                ,NTMEAN
-                ,NTMEAN
+                ,HRDENV	// 0xFF 0xF1 - HARD ENVE SET 's'  -> 'S'(kuma)
+                ,ENVPOD // 0xFF 0xF2 - HARD ENVE PERIOD 'm'
                 ,REVERVE// 0xFF 0xF3 - ﾘﾊﾞｰﾌﾞ
                 ,REVMOD	// 0xFF 0xF4 - ﾘﾊﾞｰﾌﾞﾓｰﾄﾞ
                 ,REVSW	// 0xFF 0xF5 - ﾘﾊﾞｰﾌﾞ ｽｲｯﾁ
@@ -229,6 +227,8 @@ namespace mucomDotNET.Driver
             work.soundWork.C2NUM = 0;
             work.soundWork.CHNUM = 0;
             work.soundWork.PVMODE = 0;
+
+            work.soundWork.KEY_FLAG = 0;
 
             int num = work.soundWork.MUSNUM;
             work.mDataAdr = work.soundWork.MU_TOP;
@@ -545,10 +545,12 @@ namespace mucomDotNET.Driver
                 return;
             }
 
+            //FMSUB0
+
             if (work.mData[work.cd.dataAddressWork].dat == 0xfd) return;// COUNT OVER ?
 
             //    BIT	5,(IX+33)
-            if (work.cd.reverbFlg)//KUMA: 0x20(bit5)=REVERVE FLAG
+            if (work.cd.reverbFlg)//KUMA: 0x20(0b0010_0000)(bit5) = REVERVE FLAG  
             {
                 FS2();
                 return;
@@ -1780,6 +1782,7 @@ namespace mucomDotNET.Driver
 
         public void PSGVOL()
         {
+            work.cd.hardEnveFlg = false;
             byte e = (byte)(work.cd.volume & 0b1111_0000);
             byte c = work.mData[work.hl].dat;
             PV1(c, e);
@@ -1849,19 +1852,22 @@ namespace mucomDotNET.Driver
         public void VOLUPS()
         {
             byte d = work.mData[work.hl++].dat;
-            byte a = (byte)work.cd.volume;
-            byte e = a;
-            a &= 0b0000_1111;
-            a += d;
-            if (a >= 16)
+            if (!work.cd.hardEnveFlg)
             {
-                return;
+                byte a = (byte)work.cd.volume;
+                byte e = a;
+                a &= 0b0000_1111;
+                a += d;
+                if (a >= 16)
+                {
+                    return;
+                }
+                d = a;
+                a = e;
+                a &= 0b1111_0000;
+                a |= d;
+                work.cd.volume = a;
             }
-            d = a;
-            a = e;
-            a &= 0b1111_0000;
-            a |= d;
-            work.cd.volume = a;
         }
 
         // **	LFO ﾙｰﾁﾝ	**
@@ -2105,8 +2111,11 @@ namespace mucomDotNET.Driver
             {
                 e = 0;
             }
-            byte d = (byte)work.cd.volReg;
-            PSGOUT(d, e);
+            if (work.soundWork.KEY_FLAG != 0xff)
+            {
+                byte d = (byte)work.cd.volReg;
+                PSGOUT(d, e);
+            }
             return;
         }
 
@@ -2130,6 +2139,12 @@ namespace mucomDotNET.Driver
 
         public void SSSUBA()
         {
+            // --	HARD ENV.KEY OFF   --
+            if (work.cd.hardEnveFlg)
+            {
+                PSGOUT((byte)work.cd.volReg, 0);//SSG KEY OFF
+            }
+
             // --	SOFT ENV.KEY OFF   --
 
             if (work.cd.reverbFlg)
@@ -2248,23 +2263,36 @@ namespace mucomDotNET.Driver
 
         SSSUBF:         // KEYON ｻﾚﾀﾄｷ ﾉ ｼｮﾘ
 
-            //// ---	SOFT ENV.KEYON     ---
+            if (work.cd.hardEnveFlg)
+            {
+                //// ---   HARD ENV. KEY ON
+                if (work.soundWork.KEY_FLAG != 0xff)
+                {
+                    PSGOUT((byte)work.cd.volReg, 0x10);
+                }
+                PSGOUT(0x0d, (byte)work.cd.hardEnvelopValue);
+            }
+            else
+            {
+                //// ---	SOFT ENV.KEYON     ---
 
-            //SSSUBG:
-            a = (byte)work.cd.volume;
-            a &= 0b0000_1111;
-            a |= 0b1001_0000;//  TO STATE 1 (ATTACK)
-            work.cd.volume = a;
+                //SSSUBG:
+                a = (byte)work.cd.volume;
+                a &= 0b0000_1111;
+                a |= 0b1001_0000;//  TO STATE 1 (ATTACK)
+                work.cd.volume = a;
 
-            a = (byte)work.cd.softEnvelopeParam[0];//  ENVE INIT
-            work.cd.softEnvelopeCounter = a;//KUMA:ALがcounterの初期値として使用される
-            work.cd.lfoContFlg = false;// RESET LFO CONTINE FLAG
-            SOFEV7();
-            //SSSUBH:
-            c = (byte)work.cd.lfoPeak;
-            c >>= 1;
-            work.cd.lfoPeakWork = c;//  LFO PEAK LEVEL ｻｲ ｾｯﾃｲ
-            work.cd.lfoDelayWork = work.cd.lfoDelay;//  LFO DELAY ﾉ ｻｲｾｯﾃｲ
+                a = (byte)work.cd.softEnvelopeParam[0];//  ENVE INIT
+                work.cd.softEnvelopeCounter = a;//KUMA:ALがcounterの初期値として使用される
+                work.cd.lfoContFlg = false;// RESET LFO CONTINE FLAG
+                SOFEV7();
+
+                //SSSUBH:
+                c = (byte)work.cd.lfoPeak;
+                c >>= 1;
+                work.cd.lfoPeakWork = c;//  LFO PEAK LEVEL ｻｲ ｾｯﾃｲ
+                work.cd.lfoDelayWork = work.cd.lfoDelay;//  LFO DELAY ﾉ ｻｲｾｯﾃｲ
+            }
         SSSUB9:
             //Z80.HL = Mem.stack.Pop();
 
@@ -2443,23 +2471,55 @@ namespace mucomDotNET.Driver
 
         public void SSSUB3(byte a)
         {
-            //del
-            //Z80.Zero = ((Mem.LD_8((ushort)(Z80.IX + 33)) & 0x80) == 0);
-            //if (!Z80.Zero)
-            //{
-            //    SETPT();// IF HARD ENVE THEN SETPT
-            //    return;
-            //}
-            byte e = a;//added
-            if (work.soundWork.READY == 0)//added
+            if (!work.cd.hardEnveFlg)
             {
-                e = 0;//added
+                byte e = a;
+                if (work.soundWork.READY == 0)
+                {
+                    e = 0;
+                }
+                if (work.soundWork.KEY_FLAG != 0xff)
+                {
+                    byte d = (byte)work.cd.volReg;
+                    PSGOUT(d, e);
+                }
             }
-            //SSSUB32:
-            byte d = (byte)work.cd.volReg;
-            PSGOUT(d,e);
-            SETPT();
+            work.cd.dataAddressWork = work.hl;
+
+            //byte e = a;//added
+            //if (work.soundWork.READY == 0)//added
+            //{
+            //    e = 0;//added
+            //}
+            ////SSSUB32:
+            //byte d = (byte)work.cd.volReg;
+            //PSGOUT(d,e);
+            //SETPT();
         }
 
+        public void HRDENV()
+        {
+
+            byte e = work.mData[work.hl++].dat;
+            byte d = 0x0d;
+            PSGOUT(d, e);
+            work.cd.hardEnveFlg = true;
+            work.cd.hardEnvelopValue = (byte)(e & 0xf);
+            work.cd.volume = 16;
+
+        }
+
+        public void ENVPOD()
+        {
+
+            byte e = work.mData[work.hl++].dat;
+            byte d = 0x0b;
+            PSGOUT(d, e);
+
+            e = work.mData[work.hl++].dat;
+            d = 0x0c;
+            PSGOUT(d, e);
+
+        }
     }
 }

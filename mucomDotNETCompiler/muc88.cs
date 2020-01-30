@@ -35,7 +35,7 @@ namespace mucomDotNET.Compiler
             , SETRST
             , SETLPS
             , SETLPE
-            , SETSE
+            , SETSEorSETHE
             , SETJMP
             , SETQLG
             , SETSEV
@@ -50,8 +50,8 @@ namespace mucomDotNET.Compiler
             , TOTALV
             , SETBEF
             //, SETHE
+            , SETHEP
             , SETKST
-            //, SETHEP
             , SETKON
             , SETDCO
             , SETLR
@@ -68,6 +68,45 @@ namespace mucomDotNET.Compiler
             , SETPTM
             , SETFLG
             };
+        }
+
+        private EnmFCOMPNextRtn SETHE()
+        {
+            msub.MWRITE(new MubDat(0xff), new MubDat(0xf1));
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0504"));
+            mucInfo.srcCPtr = ptr;
+            if (mucInfo.ErrSign || n < 0 || n > 7)
+                throw new MucException(
+                    msg.get("E0505")
+                    , mucInfo.row, mucInfo.col);
+
+            msub.MWRIT2(new MubDat((byte)(n + 8)));
+
+            return EnmFCOMPNextRtn.fcomp1;
+        }
+
+        private EnmFCOMPNextRtn SETHEP()
+        {
+            msub.MWRITE(new MubDat(0xff), new MubDat(0xf2));
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0506"));
+            mucInfo.srcCPtr = ptr;
+            if (mucInfo.ErrSign || n < 0 || n > 65535)
+                throw new MucException(
+                    msg.get("E0507")
+                    , mucInfo.row, mucInfo.col);
+
+            msub.MWRITE(new MubDat((byte)n), new MubDat((byte)(n >> 8)));
+
+            return EnmFCOMPNextRtn.fcomp1;
+        }
+
+        private EnmFCOMPNextRtn SETSEorSETHE()
+        {
+            if (CHCHK() != ChannelType.SSG) return SETSE();//SSG以外ならスロットディチューンコマンドとして動作
+
+            return SETHE();//SSGなら
         }
 
         // *	ﾏｸﾛｾｯﾄ*

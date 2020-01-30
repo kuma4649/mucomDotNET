@@ -15,5 +15,6 @@ del /Q .\output\bin.zip
 copy .\CHANGE.txt .\output\
 copy .\README.md .\output\
 copy .\usage.txt .\output\
+copy .\MML.txt .\output\
 
 pause

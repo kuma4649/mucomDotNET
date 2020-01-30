@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "document", "document", "{A1
 	ProjectSection(SolutionItems) = preProject
 		CHANGE.txt = CHANGE.txt
 		makeZip.bat = makeZip.bat
+		MML.txt = MML.txt
 		README.md = README.md
 		usage.txt = usage.txt
 	EndProjectSection
