@@ -187,7 +187,7 @@ namespace mucomDotNET.Driver
                 ,FLGSET// 0xF9 - FLAG SET
                 ,ENVPST// 0xFA - SOFT ENVELOPE     'E'
                 ,VOLUPS// 0xFB - VOLUME UP    ')'
-                ,NTMEAN// 0xFC -
+                ,OTOSET// 0xFC - ｵﾝｼｮｸﾃｲｷﾞ   '@='
                 ,TIE   // 0x
                 ,RSKIP // 0x
                 ,SECPRC// 0xFF - to sec com
@@ -233,6 +233,8 @@ namespace mucomDotNET.Driver
             int num = work.soundWork.MUSNUM;
             work.mDataAdr = work.soundWork.MU_TOP;
 
+            work.fmVoiceAtMusData = GetVoiceDataAtMusData();
+
             for (int i = 0; i < num; i++)
             {
                 work.mDataAdr += 1 + MAXCH * 4;
@@ -260,6 +262,19 @@ namespace mucomDotNET.Driver
                 FMINIT(ch);
                 //オリジナルは　ix+=WKLENG だが、配列化しているので。
             }
+        }
+
+        private byte[] GetVoiceDataAtMusData()
+        {
+            int otodat = work.mData[1].dat + work.mData[2].dat * 0x100;
+            int voiCnt = work.mData[otodat].dat;
+            List<byte> buf = new List<byte>();
+            buf.Add(work.mData[otodat++].dat);
+            for (int i = 0; i < voiCnt * 25; i++)
+            {
+                buf.Add(work.mData[otodat + i].dat);
+            }
+            return buf.ToArray();
         }
 
         private void FMINIT(int ch)
@@ -1033,8 +1048,9 @@ namespace mucomDotNET.Driver
             // ﾜｰｸ ｶﾗ ｵﾝｼｮｸ ﾅﾝﾊﾞｰ ｦ ｴﾙ
             //STENV0:
             int hl = work.cd.instrumentNumber * 25;// HL=*25
-            hl += work.mData[work.soundWork.OTODAT].dat + work.mData[work.soundWork.OTODAT + 1].dat * 0x100 + 1;// HL ﾊ ｵﾝｼｮｸﾃﾞｰﾀ ｶｸﾉｳ ｱﾄﾞﾚｽ
-            hl += work.soundWork.MUSNUM;
+            //hl += work.mData[work.soundWork.OTODAT].dat + work.mData[work.soundWork.OTODAT + 1].dat * 0x100 + 1;// HL ﾊ ｵﾝｼｮｸﾃﾞｰﾀ ｶｸﾉｳ ｱﾄﾞﾚｽ
+            //hl += work.soundWork.MUSNUM;
+            hl++;//音色数を格納している為いっこずらす
 
             //STENV1:
             byte d = 0x30;// START=PORT 30H
@@ -1048,14 +1064,16 @@ namespace mucomDotNET.Driver
                 do
                 {
                     // GET DATA
-                    PSGOUT(d, work.mData[hl++].dat);
+                    //PSGOUT(d, work.mData[hl++].dat);
+                    PSGOUT(d, work.fmVoiceAtMusData[hl++]);
                     d += 4;// SKIP BLANK PORT
                     b--;
                 } while (b != 0);
                 c--;
             } while (c != 0);
 
-            e = work.mData[hl].dat;// GET FEEDBACK/ALGORIZM
+            //e = work.mData[hl].dat;// GET FEEDBACK/ALGORIZM
+            e = work.fmVoiceAtMusData[hl];// GET FEEDBACK/ALGORIZM
             // GET ALGORIZM
             work.cd.algo = e & 0x07;// STORE ALGORIZM
             // GET ALGO SET ADDRES
@@ -1763,6 +1781,21 @@ namespace mucomDotNET.Driver
                 work.cd.softEnvelopeParam[i] = work.soundWork.SSGDAT[ptr + i];
             }
             work.cd.volume = work.cd.volume | 0b1001_0000;
+
+        }
+
+        public void OTOSET()
+        {
+            byte a = work.mData[work.hl++].dat;
+
+            //OTOCAL
+            int ptr = 0;// SSGDAT;
+            ptr = a * 6;
+
+            for (int i = 0; i < 6; i++)
+            {
+                work.soundWork.SSGDAT[ptr + i] = work.mData[work.hl++].dat;
+            }
 
         }
 

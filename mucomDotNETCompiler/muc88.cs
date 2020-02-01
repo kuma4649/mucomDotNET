@@ -752,7 +752,7 @@ namespace mucomDotNET.Compiler
 
             msub.MWRITE(new MubDat(0xfa), new MubDat((byte)n));// COM OF 'E'
 
-            return SETSE1(5);//ﾉｺﾘ 5 PARAMETER
+            return SETSE1(5, "E0512", "E0513");//ﾉｺﾘ 5 PARAMETER
         }
 
         // **	Q**
@@ -810,10 +810,10 @@ namespace mucomDotNET.Compiler
 
             msub.MWRIT2(new MubDat(0xf7));// COM OF 'S'
             msub.MWRIT2(new MubDat((byte)n));
-            return SETSE1(3);// ﾉｺﾘ 3 PARAMETER
+            return SETSE1(3, "E0434", "E0435");// ﾉｺﾘ 3 PARAMETER
         }
 
-        private EnmFCOMPNextRtn SETSE1(int b)
+        private EnmFCOMPNextRtn SETSE1(int b ,string errCode_Fmt,string errCode_Val)
         {
             do
             {
@@ -823,7 +823,7 @@ namespace mucomDotNET.Compiler
                 if (c != ',')// 0x2c
                 {
                     throw new MucException(
-                        msg.get("E0434")
+                        msg.get(errCode_Fmt)//E0434
                         , mucInfo.row, mucInfo.col);
                 }
 
@@ -836,14 +836,14 @@ namespace mucomDotNET.Compiler
                 {
                     // NONDATA ﾅﾗERROR
                     throw new MucException(
-                        msg.get("E0434")
+                        msg.get(errCode_Fmt)//"E0434"
                         , mucInfo.row, mucInfo.col);
                 }
 
                 if (mucInfo.ErrSign)
                 {
                     throw new MucException(
-                        msg.get("E0435")
+                        msg.get(errCode_Val)//"E0435"
                         , mucInfo.row, mucInfo.col);
                 }
 
@@ -1957,6 +1957,7 @@ namespace mucomDotNET.Compiler
         private EnmFCOMPNextRtn SETCOL()
         {
 
+            //音色名による指定か
             mucInfo.srcCPtr++;
             char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr
                 ? mucInfo.lin.Item2[mucInfo.srcCPtr]
@@ -1967,17 +1968,18 @@ namespace mucomDotNET.Compiler
                 return EnmFCOMPNextRtn.fcomp1;
             }
 
-            mucInfo.srcCPtr++;
-            c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
-            if (c == '=')
-            {
-                throw new MucException(
-                    msg.get("E0487")
-                    , mucInfo.row, mucInfo.col);
-            }
+            //mucInfo.srcCPtr++;
+            //c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+            //if (c == '=')
+            //{
+            //    throw new MucException(
+            //        msg.get("E0487")
+            //        , mucInfo.row, mucInfo.col);
+            //}
+            //mucInfo.srcCPtr -= 2;
+            mucInfo.srcCPtr--;
 
-            mucInfo.srcCPtr -= 2;
-
+            //数値を取得する
             int ptr = mucInfo.srcCPtr;
             int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0488"));
             if (mucInfo.ErrSign)
@@ -1987,6 +1989,25 @@ namespace mucomDotNET.Compiler
             mucInfo.srcCPtr = ptr;
 
             ChannelType tp = CHCHK();
+            if (tp == ChannelType.SSG)
+            {
+                //音色番号チェック
+                if (n < 0 || n > 15)
+                {
+                    throw new MucException(
+                        string.Format(msg.get("E0508"), n)
+                        , mucInfo.row, mucInfo.col);
+                }
+            }
+
+            c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+            if (c == '=')
+            {
+                return SETSSGPreset(n);
+            }
+                        
+            //通常の音色指定
+
             if (tp == ChannelType.SSG)
             {
                 return STCL5(n);//SSG
@@ -2004,6 +2025,26 @@ namespace mucomDotNET.Compiler
             }
 
             return STCL72(n);//RHY&PCM
+        }
+
+        private EnmFCOMPNextRtn SETSSGPreset(int n)
+        {
+            msub.MWRITE(new MubDat(0xfc), new MubDat((byte)n));//@= command
+
+            int ptr;
+            ptr = mucInfo.srcCPtr;
+            n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0509"));
+            mucInfo.srcCPtr = ptr;
+            if (mucInfo.ErrSign)
+            {
+                throw new MucException(
+                    msg.get("E0510")
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            msub.MWRIT2(new MubDat((byte)n));//一つ目のパラメータをセット
+
+            return SETSE1(5, "E0510", "E0511");
         }
 
         public void SETVN()
@@ -2077,14 +2118,14 @@ namespace mucomDotNET.Compiler
         {
             num++;
 
-            int voiceIndex = CCVC(num, mucInfo.bufDefVoice);
+            int voiceIndex = CCVC(num, mucInfo.bufDefVoice);// --	VOICE ｶﾞ ﾄｳﾛｸｽﾞﾐｶ?	--
             if (voiceIndex != -1)
             {
                 msub.MWRITE(new MubDat(0xf0), new MubDat((byte)(voiceIndex - 1)));
                 return;
             }
 
-            voiceIndex = CWVC(num, mucInfo.bufDefVoice);
+            voiceIndex = CWVC(num, mucInfo.bufDefVoice);// --	WORK ﾆ ｱｷ ｶﾞ ｱﾙｶ?	--
             if (voiceIndex != -1)
             {
                 msub.MWRITE(new MubDat(0xf0), new MubDat((byte)(voiceIndex - 1)));
@@ -2211,7 +2252,7 @@ namespace mucomDotNET.Compiler
 
         public int CCVC(int num, AutoExtendList<int> buf)
         {
-            for (int b = 0; b < 32; b++)
+            for (int b = 0; b < 256; b++)
             {
                 if (num == buf.Get(b))
                 {
@@ -2226,7 +2267,7 @@ namespace mucomDotNET.Compiler
 
         public int CWVC(int num, AutoExtendList<int> buf)
         {
-            for (int b = 0; b < 32; b++)
+            for (int b = 0; b < 256; b++)
             {
                 if (0 == buf.Get(b))
                 {
@@ -2613,7 +2654,7 @@ namespace mucomDotNET.Compiler
             work.VICADR = work.ENDADR;
 
             int dvPtr = 0;// work.DEFVOICE;
-            int B = 32;
+            int B = 256;//FM:256色
             int useOto = 0;
 
             do

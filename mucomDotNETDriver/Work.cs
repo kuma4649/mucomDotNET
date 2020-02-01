@@ -32,6 +32,7 @@ namespace mucomDotNET.Driver
         public Tuple<string, ushort[]>[] pcmTables = null;
         public MubDat[] mData = null;
         public SoundWork soundWork = null;
+        public byte[] fmVoiceAtMusData = null;
 
         public Work()
         {

@@ -129,7 +129,7 @@ E0482='l'Length set command
 E0483='l'Length set command value is illegal.
 E0484=Trying to set value[{1}] more than C-value[{0}].
 E0485='o'Octave command 
-E0486='o'Octave command value exceeding range(1～8).
+E0486='o'Octave command value exceeding range(1~8).
 E0487='@='Command not implemented.
 E0488='@'Patch Set Command
 E0489='@'Patch Set Command value is illegal.
@@ -147,6 +147,16 @@ E0500=Analysis of the duration failed.The value after '%' is invalid.
 E0501=Analysis of the duration failed.The value is invalid.
 E0502=Analysis of the duration failed.The read value exceeds the value specified by 'C'.(value:{0})
 E0503=Analysis of the duration failed.As a result of calculating the dot, the range was exceeded.(value:{0})
+E0504='S'Hardware envelope command
+E0505='S'Hardware envelope command value exceeding range(0~7).
+E0506='m'Hardware envelope speed command
+E0507='m'Hardware envelope speed command value exceeding range(0~65535).
+E0508=SSG Patch number exceeding range(0~7).(value:{0})
+E0509='@='SSG preset rewrite command
+E0510='@='Illegal format on SSG preset rewrite command.
+E0511='@='Illegal value on SSG preset rewrite command.
+E0512='E'Illegal format on Software Envelope command.
+E0513='E'Illegal value on Software Envelope command.
 
 ;Program.cs 0600
 E0600=I want arguments(.muc File) please?
