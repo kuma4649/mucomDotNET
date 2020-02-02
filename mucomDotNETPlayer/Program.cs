@@ -1,16 +1,43 @@
 ﻿using mucomDotNET.Common;
 using NAudio.Wave;
+using Nc86ctl;
+using NScci;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Threading;
 
 namespace mucomDotNET.Player
 {
     class Program
     {
-        private static DirectSoundOut output = null;
+        private static DirectSoundOut audioOutput = null;
         public delegate int naudioCallBack(short[] buffer, int offset, int sampleCount);
         private static naudioCallBack callBack = null;
+        private static Thread trdMain=null;
+        private static Stopwatch sw = null;
+        private static double swFreq = 0;
+        public static bool trdClosed = false;
+        private static object lockObj = new object();
+        private static bool _trdStopped = true;
+        public static bool trdStopped
+        {
+            get
+            {
+                lock (lockObj)
+                {
+                    return _trdStopped;
+                }
+            }
+            set
+            {
+                lock (lockObj)
+                {
+                    _trdStopped = value;
+                }
+            }
+        }
 
         private static readonly uint SamplingRate = 55467;//44100;
         private static readonly uint samplingBuffer = 1024;
@@ -19,6 +46,12 @@ namespace mucomDotNET.Player
         private static short[] emuRenderBuf = new short[2];
         private static Driver.Driver drv = null;
         private static readonly uint opnaMasterClock = 7987200;
+        private static int device = 0;
+        private static int loop = 0;
+
+        private static NScci.NScci nScci;
+        private static Nc86ctl.Nc86ctl nc86ctl;
+        private static RSoundChip rsc;
 
         static int Main(string[] args)
         {
@@ -29,28 +62,45 @@ namespace mucomDotNET.Player
 #else
             Log.level = LogLevel.INFO;
 #endif
+            int fnIndex = AnalyzeOption(args);
 
-            if (args == null || args.Length != 1)
+            if (args == null || args.Length != fnIndex + 1)
             {
                 Log.WriteLine(LogLevel.ERROR, "引数(.mubファイル)１個欲しいよぉ");
                 return -1;
             }
-            if (!File.Exists(args[0]))
+            if (!File.Exists(args[fnIndex]))
             {
                 Log.WriteLine(LogLevel.ERROR, "ファイルが見つかりません");
                 return -1;
             }
 
+            rsc = CheckDevice();
+
             try
             {
 
                 SineWaveProvider16 waveProvider;
-                waveProvider = new SineWaveProvider16();
-                waveProvider.SetWaveFormat((int)SamplingRate, 2);
-                callBack = EmuCallback;
                 int latency = 1000;
-                output = new DirectSoundOut(latency);
-                output.Init(waveProvider);
+
+                switch (device)
+                {
+                    case 0:
+                        waveProvider = new SineWaveProvider16();
+                        waveProvider.SetWaveFormat((int)SamplingRate, 2);
+                        callBack = EmuCallback;
+                        audioOutput = new DirectSoundOut(latency);
+                        audioOutput.Init(waveProvider);
+                        break;
+                    case 1:case 2:
+                        trdMain = new Thread(new ThreadStart(RealCallback));
+                        trdMain.Priority = ThreadPriority.Highest;
+                        trdMain.IsBackground = true;
+                        trdMain.Name = "trdVgmReal";
+                        sw = Stopwatch.StartNew();
+                        swFreq = Stopwatch.Frequency;
+                        break;
+                }
 
                 MDSound.ym2608 ym2608 = new MDSound.ym2608();
                 MDSound.MDSound.Chip chip = new MDSound.MDSound.Chip
@@ -72,7 +122,7 @@ namespace mucomDotNET.Player
 
 
                 drv = new Driver.Driver();
-                drv.Init(args[0], OPNAWrite, false);
+                drv.Init(args[fnIndex], OPNAWrite, OPNAWaitSend, false);
 
                 List<Tuple<string, string>> tags = drv.GetTags();
                 foreach (Tuple<string, string> tag in tags)
@@ -83,7 +133,16 @@ namespace mucomDotNET.Player
 
                 drv.StartRendering((int)SamplingRate, (int)opnaMasterClock);
 
-                output.Play();
+                switch(device)
+                {
+                    case 0:
+                        audioOutput.Play();
+                        break;
+                    case 1: case 2:
+                        trdMain.Start();
+                        break;
+                }
+
                 drv.MSTART(0);
 
                 Log.WriteLine(LogLevel.INFO, "終了する場合は何かキーを押してください");
@@ -100,7 +159,7 @@ namespace mucomDotNET.Player
                     {
                         if (drv.Status() == 0)
                         {
-                            System.Threading.Thread.Sleep((int)(latency*1.1));//実際の音声が発音しきるまでlatencyの分だけ待つ
+                            System.Threading.Thread.Sleep((int)(latency * 2.0));//実際の音声が発音しきるまでlatency*2の分だけ待つ
                         }
                         break;
                     }
@@ -115,15 +174,259 @@ namespace mucomDotNET.Player
             }
             finally
             {
-                if (output != null)
+                if (audioOutput != null)
                 {
-                    output.Stop();
-                    output.Dispose();
-                    output = null;
+                    audioOutput.Stop();
+                    audioOutput.Dispose();
+                    audioOutput = null;
+                }
+                if(trdMain!=null)
+                {
+                    ;
+                }
+                if (nc86ctl != null)
+                {
+                    nc86ctl.deinitialize();
+                    nc86ctl = null;
+                }
+                if (nScci != null)
+                {
+                    nScci.Dispose();
+                    nScci = null;
                 }
             }
 
             return 0;
+        }
+
+        private static void OPNAWaitSend()
+        {
+            switch (device)
+            {
+                case 0:
+                    return;
+                case 1:
+                    int n = nc86ctl.getNumberOfChip();
+                    for (int i = 0; i < n; i++)
+                    {
+                        NIRealChip rc = nc86ctl.getChipInterface(i);
+                        if (rc != null)
+                        {
+                            while ((rc.@in(0x0) & 0x83) != 0)
+                                System.Threading.Thread.Sleep(0);
+                            while ((rc.@in(0x100) & 0xbf) != 0)
+                            {
+                                System.Threading.Thread.Sleep(0);
+                            }
+                        }
+                    }
+                    break;
+                case 2:
+                    nScci.NSoundInterfaceManager_.sendData();
+                    while (!nScci.NSoundInterfaceManager_.isBufferEmpty()) { }
+                    break;
+            }
+        }
+
+        private static void RealCallback()
+        {
+            double o = sw.ElapsedTicks / swFreq;
+            double step = 1 / (double)SamplingRate;
+
+            trdStopped = false;
+            try
+            {
+                while (!trdClosed)
+                {
+                    Thread.Sleep(0);
+
+                    double el1 = sw.ElapsedTicks / swFreq;
+                    if (el1 - o < step) continue;
+                    if (el1 - o >= step * SamplingRate / 100.0)//閾値10ms
+                    {
+                        do
+                        {
+                            o += step;
+                        } while (el1 - o >= step);
+                    }
+                    else
+                    {
+                        o += step;
+                    }
+
+                    //if (Stopped || Paused)
+                    //{
+                    //    if (realChip != null && !oneTimeReset)
+                    //    {
+                    //        softReset(EnmModel.RealModel);
+                    //        oneTimeReset = true;
+                    //        chipRegister.resetAllMIDIout();
+                    //    }
+                    //    continue;
+                    //}
+                    //if (hiyorimiNecessary && driverVirtual.isDataBlock) { continue; }
+
+                    OneFrame();
+                }
+            }
+            catch
+            {
+            }
+            trdStopped = true;
+        }
+
+        private static RSoundChip CheckDevice()
+        {
+            SChipType ct = null;
+            int iCount = 0;
+
+            switch (device)
+            {
+                case 1://GIMIC存在チェック
+                    nc86ctl = new Nc86ctl.Nc86ctl();
+                    nc86ctl.initialize();
+                    iCount = nc86ctl.getNumberOfChip();
+                    if (iCount == 0)
+                    {
+                        nc86ctl.deinitialize();
+                        nc86ctl = null;
+                        Log.WriteLine(LogLevel.ERROR, "Not found G.I.M.I.C.");
+                        device = 0;
+                        break;
+                    }
+                    for (int i = 0; i < iCount; i++)
+                    {
+                        NIRealChip rc = nc86ctl.getChipInterface(i);
+                        NIGimic2 gm = rc.QueryInterface();
+                        ChipType cct = gm.getModuleType();
+                        int o = -1;
+                        if (cct == ChipType.CHIP_YM2608 || cct == ChipType.CHIP_YMF288 || cct == ChipType.CHIP_YM2203)
+                        {
+                            ct = new SChipType();
+                            ct.SoundLocation = -1;
+                            ct.BusID = i;
+                            string seri = gm.getModuleInfo().Serial;
+                            if (!int.TryParse(seri, out o))
+                            {
+                                o = -1;
+                                ct = null;
+                                continue;
+                            }
+                            ct.SoundChip = o;
+                            ct.ChipName = gm.getModuleInfo().Devname;
+                            ct.InterfaceName = gm.getMBInfo().Devname;
+                            break;
+                        }
+                    }
+                    RC86ctlSoundChip rsc = null;
+                    if (ct == null)
+                    {
+                        nc86ctl.deinitialize();
+                        nc86ctl = null;
+                        Log.WriteLine(LogLevel.ERROR, "Not found G.I.M.I.C.(OPNA module)");
+                        device = 0;
+                    }
+                    else
+                    {
+                        rsc = new RC86ctlSoundChip(-1, ct.BusID, ct.SoundChip);
+                        rsc.c86ctl = nc86ctl;
+                        rsc.init();
+                    }
+                    return rsc;
+                case 2://SCCI存在チェック
+                    nScci = new NScci.NScci();
+                    iCount = nScci.NSoundInterfaceManager_.getInterfaceCount();
+                    if (iCount == 0)
+                    {
+                        nScci.Dispose();
+                        nScci = null;
+                        Log.WriteLine(LogLevel.ERROR, "Not found SCCI.");
+                        device = 0;
+                        break;
+                    }
+                    for (int i = 0; i < iCount; i++)
+                    {
+                        NSoundInterface iIntfc = nScci.NSoundInterfaceManager_.getInterface(i);
+                        NSCCI_INTERFACE_INFO iInfo = nScci.NSoundInterfaceManager_.getInterfaceInfo(i);
+                        int sCount = iIntfc.getSoundChipCount();
+                        for (int s = 0; s < sCount; s++)
+                        {
+                            NSoundChip sc = iIntfc.getSoundChip(s);
+                            int t = sc.getSoundChipType();
+                            if (t == 1)
+                            {
+                                ct = new SChipType();
+                                ct.SoundLocation = 0;
+                                ct.BusID = i;
+                                ct.SoundChip = s;
+                                ct.ChipName = sc.getSoundChipInfo().cSoundChipName;
+                                ct.InterfaceName = iInfo.cInterfaceName;
+                                goto scciExit;
+                            }
+                        }
+                    }
+                scciExit:;
+                    RScciSoundChip rssc = null;
+                    if (ct == null)
+                    {
+                        nScci.Dispose();
+                        nScci = null;
+                        Log.WriteLine(LogLevel.ERROR, "Not found SCCI(OPNA module).");
+                        device = 0;
+                    }
+                    else
+                    {
+                        rssc = new RScciSoundChip(0, ct.BusID, ct.SoundChip);
+                        rssc.scci = nScci;
+                        rssc.init();
+                    }
+                    return rssc;
+            }
+
+            return null;
+        }
+
+        private static int AnalyzeOption(string[] args)
+        {
+            int i = 0;
+
+            device = 0;
+            loop = 0;
+
+            while (args[i] != null && args[i].Length > 0 && args[i][0] == '-')
+            {
+                string op = args[i].Substring(1).ToUpper();
+                if (op == "D=EMU")
+                {
+                    device = 0;
+                }
+                if (op == "D=GIMIC")
+                {
+                    device = 1;
+                }
+                if (op == "D=SCCI")
+                {
+                    device = 2;
+                }
+                if (op == "D=WAVE")
+                {
+                    device = 3;
+                }
+
+                if (op.Substring(0, 2) == "L=")
+                {
+                    if (!int.TryParse(op.Substring(2), out loop))
+                    {
+                        loop = 0;
+                    }
+                }
+
+                i++;
+            }
+
+            if (device == 3 && loop == 0) loop = 1;
+
+            return i;
         }
 
         public static string GetApplicationFolder()
@@ -182,7 +485,16 @@ namespace mucomDotNET.Player
         private static void OPNAWrite(Driver.OPNAData dat)
         {
             //Log.WriteLine(LogLevel.TRACE, string.Format("FM P{2} Out:Adr[{0:x02}] val[{1:x02}]", (int)dat.address, (int)dat.data,dat.port));
-            mds.WriteYM2608(0, dat.port, dat.address, dat.data);
+            switch(device)
+            {
+                case 0:
+                    mds.WriteYM2608(0, dat.port, dat.address, dat.data);
+                    break;
+                case 1:
+                case 2:
+                    rsc.setRegister(dat.port * 0x100 + dat.address, dat.data);
+                    break;
+            }
         }
 
 
@@ -202,4 +514,5 @@ namespace mucomDotNET.Player
 
         }
     }
+
 }

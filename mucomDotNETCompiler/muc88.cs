@@ -1883,6 +1883,13 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETLIZ()
         {
+            char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr+1 ? mucInfo.lin.Item2[mucInfo.srcCPtr+1] : (char)0;
+            if (c == '%')//0x2c
+            {
+                mucInfo.srcCPtr++;
+                return SETDCO();
+            }
+
             int ptr = mucInfo.srcCPtr;
             int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0482"));
             if (mucInfo.ErrSign)
@@ -1904,7 +1911,7 @@ namespace mucomDotNET.Compiler
 
             do
             {
-                char c =
+                c =
                     mucInfo.lin.Item2.Length > mucInfo.srcCPtr
                     ? mucInfo.lin.Item2[mucInfo.srcCPtr]
                     : (char)0;

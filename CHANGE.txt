@@ -1,6 +1,17 @@
 更新履歴
+TAG015 2020/02/03
+  Compiler&Player
+    ・l%の実装。(%コマンドと同じ)
+
+TAG014 2020/02/03
+  Compiler&Player
+    ・TLLFOの実装。
+  Player
+    ・GIMICとSCCIに対応。
+    次はlコマンドの%指定の予定
+
 TAG013 2020/02/01
-  Compiler 
+  Compiler
     ・新規で追加された警告メッセージの英語の定義が漏れていたため追加。
     ・Eコマンド解析のエラー時にSコマンドのエラーメッセージが出ていたため修正。
   Compiler&Player
