@@ -69,10 +69,6 @@
     <Reference Include="NAudio, Version=1.9.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\NAudio.1.9.0\lib\net35\NAudio.dll</HintPath>
     </Reference>
-    <Reference Include="RealChipCtlWrap, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>lib\RealChipCtlWrap.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -88,8 +84,6 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RSoundChip.cs" />
-    <Compile Include="SChipType.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -100,8 +94,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <None Include="lib\c86ctl.ini" />
-    <None Include="lib\scci.ini" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -127,11 +119,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="lib\c86ctl.dll" />
     <Content Include="lib\MDSound.dll" />
-    <Content Include="lib\RealChipCtlWrap.dll" />
-    <Content Include="lib\scci.dll" />
-    <Content Include="lib\scciconfig.exe" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
@@ -151,9 +139,6 @@
     </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>copy "$(ProjectDir)lib"\*.dll "$(TargetDir)"
-copy "$(ProjectDir)lib"\*.ini "$(TargetDir)"
-copy "$(ProjectDir)lib"\*.exe "$(TargetDir)"
-</PostBuildEvent>
+    <PostBuildEvent>copy "$(ProjectDir)lib"\*.dll "$(TargetDir)"</PostBuildEvent>
   </PropertyGroup>
 </Project>

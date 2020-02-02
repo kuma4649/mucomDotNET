@@ -168,7 +168,7 @@ namespace mucomDotNET.Driver
                 , SETCO
                 , SETVC2
                 , SETPEK
-                , TLLFO
+                //, TLLFO
             };
         }
 
@@ -1256,7 +1256,7 @@ namespace mucomDotNET.Driver
             return;
 
         TLL2:
-            work.cd.TLlfoSlot = a;
+            work.soundWork.LFOP6_VAL = a;
             work.cd.tlLfoflg = true;
             a = work.mData[work.hl++].dat;
             work.cd.fnum = a;
@@ -2066,7 +2066,7 @@ namespace mucomDotNET.Driver
 
         public void LFOP6(int hl)
         {
-            byte c = work.cd.TLlfoSlot;//.soundWork.LFOP6_VAL;
+            byte c = work.soundWork.LFOP6_VAL;
             
             byte d = 0x40;
             d += (byte)work.cd.channelNumber;

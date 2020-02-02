@@ -18,14 +18,7 @@ How to mucom.NET !
 
 
 ＊プレイヤー
-  mucomDotNETPlayer.exe [-D=[EMU|GIMIC|SCCI]] file.mub
+  mucomDotNETPlayer.exe file.mub
 
   mucomDotNETPlayerに.mubファイルをドロップすると演奏を開始します。
-  -Dオプションを指定することにより再生デバイスを変更できます。
-    -D=EMU
-      エミュレーションによる再生を行います。
-    -D=GIMIC
-      G.I.M.I.C.のOPNAモジュールによる再生を行います。
-    -D=SCCI
-      SCCIのOPNAモジュールによる再生を行います。
 

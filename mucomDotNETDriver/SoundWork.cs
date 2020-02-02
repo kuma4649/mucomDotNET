@@ -275,6 +275,5 @@ namespace mucomDotNET.Driver
         public byte panValue = 0;//DB ? ;パーン 値 42
 
         public bool musicEnd { get; internal set; }
-        public byte TLlfoSlot { get; internal set; }
     }
 }
