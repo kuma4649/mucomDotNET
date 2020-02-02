@@ -1,4 +1,11 @@
 更新履歴
+TAG014 2020/02/03
+  Compiler&Player
+    ・TLLFOの実装。
+  Player
+    ・GIMICとSCCIに対応。
+    次はlコマンドの%指定の予定
+
 TAG013 2020/02/01
   Compiler
     ・新規で追加された警告メッセージの英語の定義が漏れていたため追加。

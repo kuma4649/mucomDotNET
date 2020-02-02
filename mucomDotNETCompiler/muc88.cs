@@ -1291,18 +1291,19 @@ namespace mucomDotNET.Compiler
             }
             //M07:
             iy += 3;
-            if (work.SECCOM == 0x44)//'D'
+            if (work.SECCOM == 'D')//0x44
             {
                 return MODP2(iy, 6, msg.get("E0450"));//'D'
             }
             //M08:
-            if (work.SECCOM != 0x54)//'T'
+            if (work.SECCOM != 'T')//0x54
             {
                 throw new MucException(
                     msg.get("E0451")
                     , mucInfo.row, mucInfo.col);
             }
 
+            //MT
             ChannelType tp = CHCHK();
             if (tp == ChannelType.SSG)
             {
@@ -1327,6 +1328,13 @@ namespace mucomDotNET.Compiler
                     , mucInfo.row, mucInfo.col);
             }
 
+            if (n < 0 || n > 15)
+            {
+                throw new MucException(
+                    string.Format(msg.get("E0514"), n)
+                    , mucInfo.row, mucInfo.col);
+            }
+
             msub.MWRITE(new MubDat(7), new MubDat((byte)n));
             if ((byte)n == 0)
             {
@@ -1348,6 +1356,13 @@ namespace mucomDotNET.Compiler
             {
                 throw new MucException(
                     msg.get("E0456")
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            if (n < 0 || n > 255)
+            {
+                throw new MucException(
+                    string.Format(msg.get("E0515"), n)
                     , mucInfo.row, mucInfo.col);
             }
 
