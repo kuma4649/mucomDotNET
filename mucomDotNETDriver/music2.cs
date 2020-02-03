@@ -229,6 +229,7 @@ namespace mucomDotNET.Driver
             work.soundWork.PVMODE = 0;
 
             work.soundWork.KEY_FLAG = 0;
+            work.soundWork.RANDUM = (ushort)System.DateTime.Now.Ticks;
 
             int num = work.soundWork.MUSNUM;
             work.mDataAdr = work.soundWork.MU_TOP;
@@ -1248,14 +1249,13 @@ namespace mucomDotNET.Driver
         public void TLLFO()
         {
             byte a = work.mData[work.hl++].dat;
-            if (a != 0)
+            if (a == 0)
             {
-                goto TLL2;
+                work.cd.tlLfoflg = false;
+                return;
             }
-            work.cd.tlLfoflg = false;
-            return;
 
-        TLL2:
+        //TLL2:
             work.cd.TLlfoSlot = a;
             work.cd.tlLfoflg = true;
             a = work.mData[work.hl++].dat;

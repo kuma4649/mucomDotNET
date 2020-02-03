@@ -9,23 +9,28 @@ How to mucom.NET !
     悦に入ります。気に食わなければ1に戻って修正
   4.完成。Let's 8801 Programing!
 
+
+
 [使い方]
 ＊コンパイラ
   mucomDotNETConsole.exe file.muc ...
 
-  mucomDotNETConsoleに.mucファイルをドロップするとコンパイルを実施し、エラーが無ければmubファイルを作成します。
-  複数ドロップすることも可能です。
+  *mucomDotNETConsoleに.mucファイルをドロップするとコンパイルを実施し、エラーが無ければmubファイルを作成します。
+   複数ドロップすることも可能です。
+  *音色定義ファイルの指定がmucファイル中にない場合や見つからない場合は、
+   voice.datまたはmucompcm.binをmucomDotNETConsole.exeがある位置を検索します。
 
 
 ＊プレイヤー
   mucomDotNETPlayer.exe [-D=[EMU|GIMIC|SCCI]] file.mub
 
-  mucomDotNETPlayerに.mubファイルをドロップすると演奏を開始します。
-  -Dオプションを指定することにより再生デバイスを変更できます。
-    -D=EMU
-      エミュレーションによる再生を行います。
-    -D=GIMIC
-      G.I.M.I.C.のOPNAモジュールによる再生を行います。
-    -D=SCCI
-      SCCIのOPNAモジュールによる再生を行います。
+  *mucomDotNETPlayerに.mubファイルをドロップすると演奏を開始します。
+  *オプション指定
+   -Dオプションを指定することにより再生デバイスを変更できます。
+     -D=EMU
+       エミュレーションによる再生をWindowsの音声デバイスから行います。
+     -D=GIMIC
+       G.I.M.I.C.のOPNAモジュールによる再生を行います。モジュールが見つからない場合はEMUと同じ動作になります
+     -D=SCCI
+       SCCIのOPNAモジュールによる再生を行います。モジュールが見つからない場合はEMUと同じ動作になります
 

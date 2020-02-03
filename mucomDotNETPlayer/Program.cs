@@ -228,53 +228,6 @@ namespace mucomDotNET.Player
             }
         }
 
-        private static void RealCallback()
-        {
-            double o = sw.ElapsedTicks / swFreq;
-            double step = 1 / (double)SamplingRate;
-
-            trdStopped = false;
-            try
-            {
-                while (!trdClosed)
-                {
-                    Thread.Sleep(0);
-
-                    double el1 = sw.ElapsedTicks / swFreq;
-                    if (el1 - o < step) continue;
-                    if (el1 - o >= step * SamplingRate / 100.0)//閾値10ms
-                    {
-                        do
-                        {
-                            o += step;
-                        } while (el1 - o >= step);
-                    }
-                    else
-                    {
-                        o += step;
-                    }
-
-                    //if (Stopped || Paused)
-                    //{
-                    //    if (realChip != null && !oneTimeReset)
-                    //    {
-                    //        softReset(EnmModel.RealModel);
-                    //        oneTimeReset = true;
-                    //        chipRegister.resetAllMIDIout();
-                    //    }
-                    //    continue;
-                    //}
-                    //if (hiyorimiNecessary && driverVirtual.isDataBlock) { continue; }
-
-                    OneFrame();
-                }
-            }
-            catch
-            {
-            }
-            trdStopped = true;
-        }
-
         private static RSoundChip CheckDevice()
         {
             SChipType ct = null;
@@ -331,6 +284,9 @@ namespace mucomDotNET.Player
                         rsc = new RC86ctlSoundChip(-1, ct.BusID, ct.SoundChip);
                         rsc.c86ctl = nc86ctl;
                         rsc.init();
+
+                        rsc.SetMasterClock(7987200);//SoundBoardII
+                        rsc.setSSGVolume(63);//PC-8801
                     }
                     return rsc;
                 case 2://SCCI存在チェック
@@ -440,7 +396,7 @@ namespace mucomDotNET.Player
         }
 
 
-        private static long traceLine = 0;
+        //private static long traceLine = 0;
         private static void WriteLineF(LogLevel level, string msg)
         {
             //traceLine++;
@@ -475,6 +431,53 @@ namespace mucomDotNET.Player
             }
 
             return count;
+        }
+
+        private static void RealCallback()
+        {
+            double o = sw.ElapsedTicks / swFreq;
+            double step = 1 / (double)SamplingRate;
+
+            trdStopped = false;
+            try
+            {
+                while (!trdClosed)
+                {
+                    Thread.Sleep(0);
+
+                    double el1 = sw.ElapsedTicks / swFreq;
+                    if (el1 - o < step) continue;
+                    if (el1 - o >= step * SamplingRate / 100.0)//閾値10ms
+                    {
+                        do
+                        {
+                            o += step;
+                        } while (el1 - o >= step);
+                    }
+                    else
+                    {
+                        o += step;
+                    }
+
+                    //if (Stopped || Paused)
+                    //{
+                    //    if (realChip != null && !oneTimeReset)
+                    //    {
+                    //        softReset(EnmModel.RealModel);
+                    //        oneTimeReset = true;
+                    //        chipRegister.resetAllMIDIout();
+                    //    }
+                    //    continue;
+                    //}
+                    //if (hiyorimiNecessary && driverVirtual.isDataBlock) { continue; }
+
+                    OneFrame();
+                }
+            }
+            catch
+            {
+            }
+            trdStopped = true;
         }
 
         private static void OneFrame()
