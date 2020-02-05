@@ -1304,12 +1304,12 @@ namespace mucomDotNET.Compiler
             }
 
             ChannelType tp = CHCHK();
-            if (tp == ChannelType.SSG)
-            {
-                throw new MucException(
-                    msg.get("E0452")
-                    , mucInfo.row, mucInfo.col);
-            }
+            //if (tp == ChannelType.SSG)
+            //{
+            //    throw new MucException(
+            //        msg.get("E0452")
+            //        , mucInfo.row, mucInfo.col);
+            //}
 
             ptr = mucInfo.srcCPtr;
             n = msub.REDATA(mucInfo.lin, ref ptr);
@@ -1328,7 +1328,7 @@ namespace mucomDotNET.Compiler
             }
 
             msub.MWRITE(new MubDat(7), new MubDat((byte)n));
-            if ((byte)n == 0)
+            if ((byte)n == 0 || tp== ChannelType.SSG)
             {
                 return EnmFCOMPNextRtn.fcomp1;
             }

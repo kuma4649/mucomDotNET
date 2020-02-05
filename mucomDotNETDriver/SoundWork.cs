@@ -276,5 +276,7 @@ namespace mucomDotNET.Driver
 
         public bool musicEnd { get; internal set; }
         public byte TLlfoSlot { get; internal set; }
+        public bool SSGTremoloFlg { get; internal set; }
+        public int SSGTremoloVol { get; internal set; }
     }
 }

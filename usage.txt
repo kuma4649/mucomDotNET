@@ -7,7 +7,7 @@ How to mucom.NET !
     エラーが出たら1に戻って修正
   3.プレイヤーでmubファイルを演奏する
     悦に入ります。気に食わなければ1に戻って修正
-  4.完成。Let's 8801 Programing!
+  4.完成!! Let's 8801 Programing!
 
 
 

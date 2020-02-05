@@ -1,4 +1,8 @@
 更新履歴
+TAG017 2020/02/05
+  Compiler&Player
+    ・MT(SSGトレモロlfo)コマンドを追加。
+
 TAG016 2020/02/04
   Player
     ・GIMICの周波数とSSGの音量を設定するように修正。

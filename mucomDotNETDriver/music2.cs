@@ -168,7 +168,7 @@ namespace mucomDotNET.Driver
                 , SETCO
                 , SETVC2
                 , SETPEK
-                , TLLFO
+                , TLLFOorSSGTremolo
             };
         }
 
@@ -1246,8 +1246,20 @@ namespace mucomDotNET.Driver
             LFORST();
         }
 
+        public void TLLFOorSSGTremolo()
+        {
+            if (work.soundWork.SSGF1 == 0)
+            {
+                TLLFO();
+                return;
+            }
+
+            SSGTremolo();
+        }
+
         public void TLLFO()
         {
+
             byte a = work.mData[work.hl++].dat;
             if (a == 0)
             {
@@ -1262,6 +1274,20 @@ namespace mucomDotNET.Driver
             work.cd.fnum = a;
             work.cd.bfnum2 = 0;
             work.cd.TLlfo = a;
+        }
+
+        public void SSGTremolo()
+        {
+            byte a = work.mData[work.hl++].dat;
+            if (a == 0)
+            {
+                work.cd.SSGTremoloFlg = false;
+                work.cd.SSGTremoloVol = 0;
+                return;
+            }
+
+            work.cd.SSGTremoloFlg = true;
+            work.cd.SSGTremoloVol = 0;
         }
 
         // **	ﾘﾋﾟｰﾄ ｽﾀｰﾄ ｾｯﾄ**
@@ -1972,6 +1998,13 @@ namespace mucomDotNET.Driver
 
         public void PLSKI2(int hl)
         {
+            if (work.soundWork.SSGF1 != 0 && work.cd.SSGTremoloFlg)
+            {
+                work.cd.SSGTremoloVol += hl;
+                //Console.WriteLine(work.cd.SSGTremoloVol);
+                return;
+            }
+
             int de = work.cd.fnum;// GET FNUM1
             // GET B/FNUM2
             hl += de;//  HL= NEW F-NUMBER
@@ -2139,6 +2172,13 @@ namespace mucomDotNET.Driver
             }
 
             SOFENV();
+
+            if (work.cd.SSGTremoloFlg)
+            {
+                work.A_Reg = (byte)Math.Max(Math.Min((work.A_Reg + work.cd.SSGTremoloVol / 16), 15), 0);
+            }
+            
+
             byte e = work.A_Reg;
             if (work.soundWork.READY == 0)
             {
