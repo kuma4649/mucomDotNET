@@ -25,6 +25,7 @@ namespace mucomDotNET.Driver
         public bool carry { get; internal set; }
         public uint hl { get; internal set; }
         public byte A_Reg { get; internal set; }
+        public int weight { get; internal set; }
 
         public OPNATimer timer = null;
         public ulong timeCounter = 0L;

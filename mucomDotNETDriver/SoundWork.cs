@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mucomDotNET.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -220,10 +221,12 @@ namespace mucomDotNET.Driver
 
     public class CHDAT
     {
+        public MubDat[] mData = null;
+
         public int lengthCounter = 1;//DB	1	        ; LENGTH ｶｳﾝﾀｰ      IX+ 0
         public int instrumentNumber = 24;//DB	24	        ; ｵﾝｼｮｸ ﾅﾝﾊﾞｰ		1
         public uint dataAddressWork = 0;//DW	0	        ; DATA ADDRES WORK	2,3
-        public uint dataTopAddress = 0;//DW	0	        ; DATA TOP ADDRES	4,5
+        public int dataTopAddress = -1;//DW	0	        ; DATA TOP ADDRES	4,5
         public int volume = 10;//DB	10	        ; VOLUME DATA		6
         public int softEnvelopeFlag = 0;
         //			        ; bit 4 = attack flag

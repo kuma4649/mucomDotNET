@@ -48,6 +48,7 @@ namespace mucomDotNET.Player
         private static readonly uint opnaMasterClock = 7987200;
         private static int device = 0;
         private static int loop = 0;
+        private static bool isLoadADPCM = true;
 
         private static NScci.NScci nScci;
         private static Nc86ctl.Nc86ctl nc86ctl;
@@ -122,7 +123,7 @@ namespace mucomDotNET.Player
 
 
                 drv = new Driver.Driver();
-                drv.Init(args[fnIndex], OPNAWrite, OPNAWaitSend, false);
+                drv.Init(args[fnIndex], OPNAWrite, OPNAWaitSend, false, isLoadADPCM);
 
                 List<Tuple<string, string>> tags = drv.GetTags();
                 foreach (Tuple<string, string> tag in tags)
@@ -348,6 +349,7 @@ namespace mucomDotNET.Player
 
             device = 0;
             loop = 0;
+            isLoadADPCM = true;
 
             while (args[i] != null && args[i].Length > 0 && args[i][0] == '-')
             {
@@ -369,11 +371,19 @@ namespace mucomDotNET.Player
                     device = 3;
                 }
 
-                if (op.Substring(0, 2) == "L=")
+                if (op.Length>2 && op.Substring(0, 2) == "L=")
                 {
                     if (!int.TryParse(op.Substring(2), out loop))
                     {
                         loop = 0;
+                    }
+                }
+
+                if (op.Length > 10 && op.Substring(0, 10) == "LOADADPCM=")
+                {
+                    if (!bool.TryParse(op.Substring(10), out isLoadADPCM))
+                    {
+                        isLoadADPCM = true;
                     }
                 }
 

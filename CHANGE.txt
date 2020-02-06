@@ -1,4 +1,9 @@
 更新履歴
+TAG018 2020/02/06
+  Player
+    ・パート毎に64Kbyte(正確には65535byte)まで可能に。(Compilerはまだ(^^;;)
+    ・ADPCMの読み込みをスキップするオプションを追加。
+
 TAG017 2020/02/05
   Compiler&Player
     ・MT(SSGトレモロlfo)コマンドを追加。

@@ -35,20 +35,20 @@ namespace mucomDotNET.Driver
             , RETurnWork
         }
 
-        public void Init(string fileName, Action<OPNAData> opnaWrite,Action opnaWaitSend,bool notSoundBoard2)
+        public void Init(string fileName, Action<OPNAData> opnaWrite,Action opnaWaitSend,bool notSoundBoard2,bool isLoadADPCM)
         {
             byte[] srcBuf = File.ReadAllBytes(fileName);
-            Init(fileName, opnaWrite, opnaWaitSend, notSoundBoard2, srcBuf);
+            Init(fileName, opnaWrite, opnaWaitSend, notSoundBoard2, srcBuf, isLoadADPCM);
         }
 
-        public void Init(string fileName, Action<OPNAData> opnaWrite, Action opnaWaitSend, bool notSoundBoard2, byte[] srcBuf)
+        public void Init(string fileName, Action<OPNAData> opnaWrite, Action opnaWaitSend, bool notSoundBoard2, byte[] srcBuf,bool isLoadADPCM)
         {
             List<MubDat> bl = new List<MubDat>();
             foreach (byte b in srcBuf) bl.Add(new MubDat(b));
-            Init(fileName, opnaWrite, opnaWaitSend, notSoundBoard2, bl.ToArray());
+            Init(fileName, opnaWrite, opnaWaitSend, notSoundBoard2, bl.ToArray(), isLoadADPCM);
         }
 
-        public void Init(string fileName, Action<OPNAData> opnaWrite, Action opnaWaitSend, bool notSoundBoard2, MubDat[] srcBuf)
+        public void Init(string fileName, Action<OPNAData> opnaWrite, Action opnaWaitSend, bool notSoundBoard2, MubDat[] srcBuf,bool isLoadADPCM)
         {
             pathWork = Path.GetDirectoryName(fileName);
             fnMUB = fileName;
@@ -66,8 +66,11 @@ namespace mucomDotNET.Driver
 
             if (pcm != null)
             {
-                OPNAData[] pcmSendData = GetPCMSendData();
-                foreach (OPNAData dat in pcmSendData) { WriteRegister(dat); }
+                if (isLoadADPCM)
+                {
+                    OPNAData[] pcmSendData = GetPCMSendData();
+                    foreach (OPNAData dat in pcmSendData) { WriteRegister(dat); }
+                }
 
                 WaitSendOPNA();
             }
