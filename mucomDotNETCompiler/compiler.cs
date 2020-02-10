@@ -280,12 +280,18 @@ namespace mucomDotNET.Compiler
                 int mubsize = 0;
                 string strTcount = "";
                 string strLcount = "";
+                string strBcount = "";
                 for (int i = 0; i < Muc88.MAXCH; i++)
                 {
                     if (work.lcnt[i] != 0) { work.lcnt[i] = work.tcnt[i] - (work.lcnt[i] - 1); }
                     if (work.tcnt[i] > maxcount) maxcount = work.tcnt[i];
                     strTcount += string.Format("{0}:{1} ", (char)('A' + i), work.tcnt[i]);
                     strLcount += string.Format("{0}:{1} ", (char)('A' + i), work.lcnt[i]);
+                    strBcount += string.Format("{0}:{1:x04} ", (char)('A' + i), work.bufCount[i]);
+                    if (work.bufCount[i] > 0xffff)
+                    {
+                        throw new MucException(string.Format(Common.msg.get("E0700"), (char)('A' + i), work.bufCount[i]));
+                    }
                 }
 
                 if (work.pcmFlag == 0) pcmflag = 2;
@@ -300,9 +306,11 @@ namespace mucomDotNET.Compiler
                 Log.WriteLine(LogLevel.INFO,strTcount);
                 Log.WriteLine(LogLevel.INFO, "[ Loop count  ]");
                 Log.WriteLine(LogLevel.INFO, strLcount);
+                Log.WriteLine(LogLevel.INFO, "[ Buffer count  ]");
+                Log.WriteLine(LogLevel.INFO, strBcount);
                 Log.WriteLine(LogLevel.INFO, "");
                 Log.WriteLine(LogLevel.INFO, string.Format("Used FM voice : {0}", fmvoice));
-                Log.WriteLine(LogLevel.INFO, string.Format("#Data Buffer  : ${0:x04} - ${1:x04} (${2:x04})", start, start + length - 1, length));
+                Log.WriteLine(LogLevel.INFO, string.Format("#Data Buffer  : ${0:x05} - ${1:x05} (${2:x05})", start, start + length - 1, length));
                 Log.WriteLine(LogLevel.INFO, string.Format("#Max Count    : {0}", maxcount));
                 Log.WriteLine(LogLevel.INFO, string.Format("#MML Lines    : {0}", mucInfo.lines));
                 Log.WriteLine(LogLevel.INFO, string.Format("#Data         : {0}", mubsize));
@@ -311,8 +319,13 @@ namespace mucomDotNET.Compiler
                     Path.Combine(mucInfo.workPath
                     , mucInfo.fnDst)
                     //, (ushort)start
-                    , (ushort)length
+                    , length
                     , pcmflag);
+            }
+            catch (MucException me)
+            {
+                Log.WriteLine(LogLevel.ERROR, me.Message);
+                return -1;
             }
             catch
             {
@@ -325,7 +338,7 @@ namespace mucomDotNET.Compiler
         public string OutFileName { get; set; }
 
         //private int SaveMusic(string fname, ushort start, ushort length, int option)
-        private int SaveMusic(string fname, ushort length, int option)
+        private int SaveMusic(string fname, int length, int option)
         {
             //		音楽データファイルを出力(コンパイルが必要)
             //		filename     = 出力される音楽データファイル

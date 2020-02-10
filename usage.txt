@@ -43,4 +43,6 @@ How to mucom.NET !
        演奏前にADPCMの転送処理が入ります。
      -LOADADPCM=FALSE
        演奏前のADPCMの転送処理をスキップします。
+     -LOADADPCM=ONLY
+       ADPCMの転送処理のみ行います。演奏は行いません。
 

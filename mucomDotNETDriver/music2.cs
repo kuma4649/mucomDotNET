@@ -295,17 +295,19 @@ namespace mucomDotNET.Driver
 
             //次のチャンネル
             int nCPtr= (int)Cmn.getLE16(work.mData, work.soundWork.TB_TOP + 4);
-            if (nCPtr < stPtr)
-            {
-                nCPtr += work.weight;
-                work.weight += 0x1_0000;
-            }
+
             List<MubDat> bf = new List<MubDat>();
-            for(int i = 0; i < nCPtr - stPtr; i++)
+            int length = (int)(nCPtr - stPtr + (nCPtr < stPtr ? 0x10000 : 0));
+            for (int i = 0; i < length; i++)
             {
                 bf.Add(work.mData[work.soundWork.MU_TOP + work.weight + stPtr + i]);
             }
             work.soundWork.CHDAT[ch].mData = bf.ToArray();
+
+            if (nCPtr < stPtr)
+            {
+                work.weight += 0x1_0000;
+            }
 
             //work.soundWork.CHDAT[ch].dataAddressWork
             //    = (uint)(work.soundWork.MU_TOP + stPtr + work.weight);//ix 2,3

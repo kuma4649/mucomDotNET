@@ -2389,11 +2389,15 @@ namespace mucomDotNET.Compiler
             {
 
                 work.MACFG = 0x00;
+                work.bufStartPtr = work.MDATA;
+
                 COMPST();
                 if (mucInfo.ErrSign) return;
 
                 CMPEND();// ﾘﾝｸ ﾎﾟｲﾝﾀ = 0->BASIC END
                 if (mucInfo.ErrSign) return;
+
+                work.bufCount[work.COMNOW - 1] = work.MDATA - work.bufStartPtr;
 
             } while (work.COMNOW != work.MAXCH);
         }

@@ -48,6 +48,8 @@ namespace mucomDotNET.Player
         private static readonly uint opnaMasterClock = 7987200;
         private static int device = 0;
         private static int loop = 0;
+
+        private static bool loadADPCMOnly = false;
         private static bool isLoadADPCM = true;
 
         private static NScci.NScci nScci;
@@ -123,7 +125,7 @@ namespace mucomDotNET.Player
 
 
                 drv = new Driver.Driver();
-                drv.Init(args[fnIndex], OPNAWrite, OPNAWaitSend, false, isLoadADPCM);
+                drv.Init(args[fnIndex], OPNAWrite, OPNAWaitSend, false, isLoadADPCM, loadADPCMOnly);
 
                 List<Tuple<string, string>> tags = drv.GetTags();
                 foreach (Tuple<string, string> tag in tags)
@@ -131,6 +133,8 @@ namespace mucomDotNET.Player
                     if (tag.Item1 == "") continue;
                     Log.WriteLine(LogLevel.INFO, string.Format("{0,-16} : {1}", tag.Item1, tag.Item2));
                 }
+                
+                if (loadADPCMOnly) return 0;
 
                 drv.StartRendering((int)SamplingRate, (int)opnaMasterClock);
 
@@ -381,9 +385,18 @@ namespace mucomDotNET.Player
 
                 if (op.Length > 10 && op.Substring(0, 10) == "LOADADPCM=")
                 {
-                    if (!bool.TryParse(op.Substring(10), out isLoadADPCM))
+                    if (op.Substring(10) == "ONLY")
                     {
+                        loadADPCMOnly = true;
                         isLoadADPCM = true;
+                    }
+                    else
+                    {
+                        loadADPCMOnly = false;
+                        if (!bool.TryParse(op.Substring(10), out isLoadADPCM))
+                        {
+                            isLoadADPCM = true;
+                        }
                     }
                 }
 

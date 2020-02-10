@@ -241,7 +241,7 @@ namespace mucomDotNET.Compiler
             //Common.WriteLine("{0:x2}", dat);
             mucInfo.bufDst.Set(work.MDATA++, dat);
 
-            if (work.MDATA > 0xffff)
+            if (work.MDATA - work.bufStartPtr > 0xffff)
             {
                 throw new MucException(
                     msg.get("E0200")
@@ -258,7 +258,7 @@ namespace mucomDotNET.Compiler
             //Common.WriteLine("{0:x2}", cmdDat);
             mucInfo.bufDst.Set(work.MDATA++, cmdDat);
 
-            if (work.MDATA > 0xffff)
+            if (work.MDATA - work.bufStartPtr > 0xffff)
             {
                 throw new MucException(
                     msg.get("E0200")
