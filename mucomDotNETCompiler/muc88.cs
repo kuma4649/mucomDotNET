@@ -594,7 +594,7 @@ namespace mucomDotNET.Compiler
         }
 
 
-        // *	KEY SHIFT	*
+        // *	KEY SHIFT(k)	*
 
         private EnmFCOMPNextRtn SETKST()
         {
@@ -608,15 +608,42 @@ namespace mucomDotNET.Compiler
         }
 
 
-        // *	KEY SHIFT(k)	*
+        // *	KEY SHIFT(K)	*
 
         public EnmFCOMPNextRtn SETKS2()
         {
+            char ch = mucInfo.lin.Item2.Length > (mucInfo.srcCPtr + 1) ? mucInfo.lin.Item2[mucInfo.srcCPtr + 1] : (char)0;
+            if (ch == 'D')
+            {
+                return SETKeyOnDelay();
+            }
+
             int ptr;
             ptr = mucInfo.srcCPtr;
             int n = (byte)msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0422"));
             mucInfo.srcCPtr = ptr;
             work.SIFTDA2 = (byte)n;
+
+            return EnmFCOMPNextRtn.fcomp1;
+        }
+
+        private EnmFCOMPNextRtn SETKeyOnDelay()
+        {
+            int ptr = mucInfo.srcCPtr + 1;
+            int[] n = new int[4];
+
+            for (int i = 0; i < 4; i++)
+            {
+                n[i] = (byte)msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0516"));
+                if (n[i] > work.CLOCK) throw new MucException(string.Format(msg.get("E0517"), n[i]), mucInfo.lin.Item1, ptr);//ERRORIF
+                if (n[i] < 0) throw new MucException(string.Format(msg.get("E0518"), n[i]), mucInfo.lin.Item1, ptr);//ERRORIF
+            }
+
+            mucInfo.srcCPtr = ptr;
+
+            msub.MWRITE(new MubDat(0xff), new MubDat(0xf6));
+            msub.MWRITE(new MubDat((byte)n[0]), new MubDat((byte)n[1]));
+            msub.MWRITE(new MubDat((byte)n[2]), new MubDat((byte)n[3]));
 
             return EnmFCOMPNextRtn.fcomp1;
         }

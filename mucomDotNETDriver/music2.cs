@@ -154,7 +154,7 @@ namespace mucomDotNET.Driver
                 ,REVERVE// 0xFF 0xF3 - ﾘﾊﾞｰﾌﾞ
                 ,REVMOD	// 0xFF 0xF4 - ﾘﾊﾞｰﾌﾞﾓｰﾄﾞ
                 ,REVSW	// 0xFF 0xF5 - ﾘﾊﾞｰﾌﾞ ｽｲｯﾁ
-                ,NTMEAN
+                ,SetKeyOnDelay // 0xFF 0xF6
                 ,NTMEAN
             };
         }
@@ -539,6 +539,7 @@ namespace mucomDotNET.Driver
             work.cd = work.soundWork.CHDAT[work.idx];
 
             PANNING();//AMD98
+            KeyOnDelaying();
 
             if (work.soundWork.CHDAT[ix].muteFlg) //KUMA: 0x08(bit3)=MUTE FLAG
             {
@@ -551,6 +552,7 @@ namespace mucomDotNET.Driver
                 work.soundWork.READY = 0xff;
             }
         }
+
 
         public void SSGENT(int ix)
         {
@@ -654,6 +656,10 @@ namespace mucomDotNET.Driver
                 return;
             }
 
+            work.cd.KDWork[0] = 0;
+            work.cd.KDWork[1] = 0;
+            work.cd.KDWork[2] = 0;
+            work.cd.KDWork[3] = 0;
             PSGOUT(0x28, (byte)(work.soundWork.FMPORT + work.cd.channelNumber));//  KEY-OFF
 
         }
@@ -982,11 +988,31 @@ namespace mucomDotNET.Driver
         {
             if (work.soundWork.READY == 0) return;
 
-            byte a = 0xf4;
+            byte a = 0x04;
             if (work.soundWork.FMPORT == 0)
             {
-                a = 0xf0;
+                a = 0x00;
             }
+
+            if (!work.cd.KeyOnDelayFlag)
+            {
+                a += work.cd.keyOnSlot;
+            }
+            else
+            {
+                work.cd.keyOnSlot = 0x00;
+                if (work.cd.KD[0] == 0) work.cd.keyOnSlot += 0x10;
+                if (work.cd.KD[1] == 0) work.cd.keyOnSlot += 0x20;
+                if (work.cd.KD[2] == 0) work.cd.keyOnSlot += 0x40;
+                if (work.cd.KD[3] == 0) work.cd.keyOnSlot += 0x80;
+                a += work.cd.keyOnSlot;
+
+                work.cd.KDWork[0] = work.cd.KD[0];
+                work.cd.KDWork[1] = work.cd.KD[1];
+                work.cd.KDWork[2] = work.cd.KD[2];
+                work.cd.KDWork[3] = work.cd.KD[3];
+            }
+
             //KEYON2:
             a += (byte)work.cd.channelNumber;
             PSGOUT(0x28, a);//KEY-ON
@@ -2620,5 +2646,78 @@ namespace mucomDotNET.Driver
             PSGOUT(d, e);
 
         }
+
+        private void SetKeyOnDelay()
+        {
+            work.cd.KeyOnDelayFlag = false;
+            for (int i = 0; i < 4; i++)
+            {
+                work.cd.KDWork[i] = work.cd.KD[i] = work.cd.mData[work.hl++].dat;
+                if (work.cd.KD[i] != 0) work.cd.KeyOnDelayFlag = true;
+            }
+
+            work.cd.keyOnSlot = 0x00;
+            if (!work.cd.KeyOnDelayFlag) work.cd.keyOnSlot = 0xf0;
+        }
+
+        private void KeyOnDelaying()
+        {
+            if (work.soundWork.DRMF1 != 0) return;
+            if (work.soundWork.PCMFLG != 0) return;
+            if (!work.cd.KeyOnDelayFlag) return;
+
+            byte newf = work.cd.keyOnSlot;
+            for(int i = 0; i < 4; i++)
+            {
+                if (work.cd.KDWork[i] == 0) continue;
+                work.cd.KDWork[i]--;
+                if (work.cd.KDWork[i] == 0)
+                {
+                    newf |= (byte)(0x10 << i);
+                }
+            }
+
+            if (newf != work.cd.keyOnSlot)
+            {
+                //Key On!!
+                KEYON2();
+                work.cd.keyOnSlot = newf;
+            }
+        }
+
+        public void KEYON2()
+        {
+            if (work.soundWork.READY == 0) return;
+
+            byte a = 0x04;
+            if (work.soundWork.FMPORT == 0)
+            {
+                a = 0x00;
+            }
+
+            if (!work.cd.KeyOnDelayFlag)
+            {
+                a += work.cd.keyOnSlot;
+            }
+            else
+            {
+                work.cd.keyOnSlot = 0x00;
+                if (work.cd.KDWork[0] == 0) work.cd.keyOnSlot += 0x10;
+                if (work.cd.KDWork[1] == 0) work.cd.keyOnSlot += 0x20;
+                if (work.cd.KDWork[2] == 0) work.cd.keyOnSlot += 0x40;
+                if (work.cd.KDWork[3] == 0) work.cd.keyOnSlot += 0x80;
+                a += work.cd.keyOnSlot;
+            }
+
+            //KEYON2:
+            a += (byte)work.cd.channelNumber;
+            PSGOUT(0x28, a);//KEY-ON
+
+            if (work.cd.reverbFlg)
+            {
+                STVOL();
+            }
+        }
+
     }
 }
