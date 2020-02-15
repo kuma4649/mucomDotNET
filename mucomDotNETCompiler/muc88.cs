@@ -1838,6 +1838,7 @@ namespace mucomDotNET.Compiler
             }
 
             msub.MWRITE(new MubDat(0xff), new MubDat(0xf0));
+            mucInfo.srcCPtr--;
             char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
             if (c != 'm')// vm command
             {

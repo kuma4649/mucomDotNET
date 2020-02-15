@@ -16,5 +16,9 @@ copy .\CHANGE.txt .\output\
 copy .\README.md .\output\
 copy .\usage.txt .\output\
 copy .\MML.txt .\output\
+copy .\compile.bat .\output\
+copy .\play.bat .\output\
+copy .\playOnGIMIC.bat .\output\
+copy .\playOnSCCI.bat .\output\
 
 pause
