@@ -1,4 +1,5 @@
 ﻿using mucomDotNET.Common;
+using mucomDotNET.Interface;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace mucomDotNET.Driver
 {
-    public class Driver
+    public class Driver :iDriver
     {
         private MUBHeader header = null;
         private List<Tuple<string, string>> tags = null;
         private byte[] pcm = null;
         private Action<OPNAData> WriteOPNA;
-        private Action WaitSendOPNA;
+        private Action<long,int> WaitSendOPNA;
         private string pathWork = "";
         private string fnMUB = "";
         private string fnVoicedat="";
@@ -35,20 +36,20 @@ namespace mucomDotNET.Driver
             , RETurnWork
         }
 
-        public void Init(string fileName, Action<OPNAData> opnaWrite, Action opnaWaitSend, bool notSoundBoard2, bool isLoadADPCM, bool loadADPCMOnly)
+        public void Init(string fileName, Action<OPNAData> opnaWrite, Action<long, int> opnaWaitSend, bool notSoundBoard2, bool isLoadADPCM, bool loadADPCMOnly)
         {
             byte[] srcBuf = File.ReadAllBytes(fileName);
             Init(fileName, opnaWrite, opnaWaitSend, notSoundBoard2, srcBuf, isLoadADPCM, loadADPCMOnly);
         }
 
-        public void Init(string fileName, Action<OPNAData> opnaWrite, Action opnaWaitSend, bool notSoundBoard2, byte[] srcBuf, bool isLoadADPCM, bool loadADPCMOnly)
+        public void Init(string fileName, Action<OPNAData> opnaWrite, Action<long, int> opnaWaitSend, bool notSoundBoard2, byte[] srcBuf, bool isLoadADPCM, bool loadADPCMOnly)
         {
             List<MubDat> bl = new List<MubDat>();
             foreach (byte b in srcBuf) bl.Add(new MubDat(b));
             Init(fileName, opnaWrite, opnaWaitSend, notSoundBoard2, bl.ToArray(), isLoadADPCM, loadADPCMOnly);
         }
 
-        public void Init(string fileName, Action<OPNAData> opnaWrite, Action opnaWaitSend, bool notSoundBoard2, MubDat[] srcBuf,bool isLoadADPCM, bool loadADPCMOnly)
+        public void Init(string fileName, Action<OPNAData> opnaWrite, Action<long,int> opnaWaitSend, bool notSoundBoard2, MubDat[] srcBuf,bool isLoadADPCM, bool loadADPCMOnly)
         {
             pathWork = Path.GetDirectoryName(fileName);
             fnMUB = fileName;
@@ -64,15 +65,20 @@ namespace mucomDotNET.Driver
             WriteOPNA = opnaWrite;
             WaitSendOPNA = opnaWaitSend;
 
+            //PCMを送信する
             if (pcm != null)
             {
                 if (isLoadADPCM)
                 {
                     OPNAData[] pcmSendData = GetPCMSendData();
-                    foreach (OPNAData dat in pcmSendData) { WriteRegister(dat); }
-                }
 
-                WaitSendOPNA();
+                    var sw = new System.Diagnostics.Stopwatch();
+                    sw.Start();
+                    foreach (OPNAData dat in pcmSendData) { WriteRegister(dat); }
+                    sw.Stop();
+
+                    WaitSendOPNA(sw.ElapsedMilliseconds, pcmSendData.Length);
+                }
             }
 
             if (loadADPCMOnly) return;

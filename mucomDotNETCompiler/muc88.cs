@@ -1,6 +1,6 @@
 ﻿using mucomDotNET.Common;
+using mucomDotNET.Interface;
 using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace mucomDotNET.Compiler

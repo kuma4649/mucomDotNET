@@ -1,4 +1,5 @@
 ﻿using mucomDotNET.Common;
+using mucomDotNET.Interface;
 using NAudio.Wave;
 using Nc86ctl;
 using NScci;
@@ -44,7 +45,7 @@ namespace mucomDotNET.Player
         private static short[] frames = new short[samplingBuffer * 4];
         private static MDSound.MDSound mds = null;
         private static short[] emuRenderBuf = new short[2];
-        private static Driver.Driver drv = null;
+        private static Interface.iDriver drv = null;
         private static readonly uint opnaMasterClock = 7987200;
         private static int device = 0;
         private static int loop = 0;
@@ -204,13 +205,19 @@ namespace mucomDotNET.Player
             return 0;
         }
 
-        private static void OPNAWaitSend()
+        private static void OPNAWaitSend(long elapsed, int size)
         {
             switch (device)
             {
-                case 0:
+                case 0://EMU
                     return;
-                case 1:
+                case 1://GIMIC
+
+                    //サイズと経過時間から、追加でウエイトする。
+                    int m = Math.Max((int)(size / 20 - elapsed), 0);//20 閾値(magic number)
+                    Thread.Sleep(m);
+
+                    //ポートも一応見る
                     int n = nc86ctl.getNumberOfChip();
                     for (int i = 0; i < n; i++)
                     {
@@ -218,17 +225,19 @@ namespace mucomDotNET.Player
                         if (rc != null)
                         {
                             while ((rc.@in(0x0) & 0x83) != 0)
-                                System.Threading.Thread.Sleep(0);
+                                Thread.Sleep(0);
                             while ((rc.@in(0x100) & 0xbf) != 0)
-                            {
-                                System.Threading.Thread.Sleep(0);
-                            }
+                                Thread.Sleep(0);
                         }
                     }
+
                     break;
-                case 2:
+                case 2://SCCI
                     nScci.NSoundInterfaceManager_.sendData();
-                    while (!nScci.NSoundInterfaceManager_.isBufferEmpty()) { }
+                    while (!nScci.NSoundInterfaceManager_.isBufferEmpty()) 
+                    {
+                        Thread.Sleep(0);
+                    }
                     break;
             }
         }
@@ -508,7 +517,7 @@ namespace mucomDotNET.Player
             drv.Rendering();
         }
 
-        private static void OPNAWrite(Driver.OPNAData dat)
+        private static void OPNAWrite(OPNAData dat)
         {
             //Log.WriteLine(LogLevel.TRACE, string.Format("FM P{2} Out:Adr[{0:x02}] val[{1:x02}]", (int)dat.address, (int)dat.data,dat.port));
             switch(device)

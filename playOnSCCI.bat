@@ -1,1 +1,1 @@
-%~dp0\player\mucomDotNETPlayer.exe -D=EMU "%1"
+%~dp0\player\mucomDotNETPlayer.exe -D=SCCI "%1"

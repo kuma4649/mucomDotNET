@@ -90,6 +90,10 @@
       <Project>{8ffc1451-42cc-4d05-a59f-efd658f44b07}</Project>
       <Name>Compiler</Name>
     </ProjectReference>
+    <ProjectReference Include="..\mucomDotNETInterface\Interface.csproj">
+      <Project>{0a400c69-6347-4b84-a3a0-11bf81e6c623}</Project>
+      <Name>Interface</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

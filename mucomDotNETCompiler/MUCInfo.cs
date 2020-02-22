@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 using mucomDotNET.Common;
+using mucomDotNET.Interface;
 
 namespace mucomDotNET.Compiler
 {
-    public class MUCInfo
+    public class MUCInfo_
     {
         public string title { get; internal set; }
         public string composer { get; internal set; }

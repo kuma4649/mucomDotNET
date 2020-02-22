@@ -19,6 +19,7 @@
 [著作権・免責]  
 mucom.NETはクリエイティブコモンズで規定されたCC BY-NC-SA 4.0ライセンスとします。  
 https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ja  
+(但し、Interfaceプロジェクト内のコードはMITライセンスとする。)
 著作権は作者が保有しています。  
 このソフトは無保証であり、このソフトを使用した事による  
 いかなる損害も作者は一切の責任を負いません。  

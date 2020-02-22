@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace mucomDotNET.Compiler
+namespace mucomDotNET.Interface
 {
-    public class AutoExtendList_<T>
+    public class AutoExtendList<T>
     {
         private List<T> buf;
 
@@ -16,7 +14,7 @@ namespace mucomDotNET.Compiler
             }
         }
 
-        public AutoExtendList_()
+        public AutoExtendList()
         {
             buf = new List<T>();
         }

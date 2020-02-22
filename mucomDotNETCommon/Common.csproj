@@ -48,5 +48,11 @@
     <Compile Include="MubDat.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\mucomDotNETInterface\Interface.csproj">
+      <Project>{0a400c69-6347-4b84-a3a0-11bf81e6c623}</Project>
+      <Name>Interface</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

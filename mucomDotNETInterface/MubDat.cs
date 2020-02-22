@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace mucomDotNET.Common
+﻿namespace mucomDotNET.Interface
 {
-    public class MubDat_
+    public class MubDat
     {
         public byte dat;
         public int? row;
@@ -14,7 +8,7 @@ namespace mucomDotNET.Common
         public int? len;
         public int? ch;
 
-        public MubDat_(byte dat, int? row = null, int? col = null, int? len = null,int? ch=null)
+        public MubDat(byte dat, int? row = null, int? col = null, int? len = null, int? ch = null)
         {
             this.dat = dat;
             this.row = row;

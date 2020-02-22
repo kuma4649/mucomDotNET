@@ -4,24 +4,20 @@ using System.Text;
 using System.IO;
 using System.Linq;
 using mucomDotNET.Common;
+using mucomDotNET.Interface;
 
 namespace mucomDotNET.Compiler
 {
-    public class Compiler
+    public class Compiler : mucomDotNET.Interface.iCompiler
     {
-        private string srcFn = "";
-        private byte[] srcBuf = null;
-        private string workPath = "";
-        private MUCInfo mucInfo = new MUCInfo();
-        private Muc88 muc88 = null;
-        private Msub msub = null;
-        private expand expand = null;
-        private smon smon = null;
-        private string fnVoicedat = "";
-        private string fnPcm = "";
-        private byte[] voice;
-        private byte[] pcmdata;
-        private readonly List<Tuple<int, string>> basSrc = new List<Tuple<int, string>>();
+        public string OutFileName { get; set; }
+
+        public enum EnmMUCOMFileType
+        {
+            unknown,
+            MUB,
+            MUC
+        }
 
         public void Init()
         {
@@ -146,6 +142,25 @@ namespace mucomDotNET.Compiler
             return mucInfo;
         }
 
+
+
+
+
+        private string srcFn = "";
+        private byte[] srcBuf = null;
+        private string workPath = "";
+        private MUCInfo mucInfo = new MUCInfo();
+        private Muc88 muc88 = null;
+        private Msub msub = null;
+        private expand expand = null;
+        private smon smon = null;
+        private string fnVoicedat = "";
+        private string fnPcm = "";
+        private byte[] voice;
+        private byte[] pcmdata;
+        private readonly List<Tuple<int, string>> basSrc = new List<Tuple<int, string>>();
+        private readonly List<MubDat> dat = new List<MubDat>();
+
         private EnmMUCOMFileType CheckFileType(byte[] buf)
         {
             if (buf == null || buf.Length < 4)
@@ -162,12 +177,6 @@ namespace mucomDotNET.Compiler
             }
 
             return EnmMUCOMFileType.MUC;
-        }
-        public enum EnmMUCOMFileType
-        {
-            unknown,
-            MUB,
-            MUC
         }
 
         private readonly List<Tuple<string, string>> tags=new List<Tuple<string, string>>();
@@ -332,10 +341,6 @@ namespace mucomDotNET.Compiler
                 return -1;
             }
         }
-
-        private readonly List<MubDat> dat = new List<MubDat>();
-
-        public string OutFileName { get; set; }
 
         //private int SaveMusic(string fname, ushort start, ushort length, int option)
         private int SaveMusic(string fname, int length, int option)

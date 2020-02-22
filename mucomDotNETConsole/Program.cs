@@ -1,4 +1,5 @@
-﻿using mucomDotNET.Compiler;
+﻿using mucomDotNET.Interface;
+using mucomDotNET.Compiler;
 using mucomDotNET.Common;
 using System;
 using System.IO;
@@ -26,7 +27,7 @@ namespace mucomDotNET.Console
             {
                 foreach (string arg in args)
                 {
-                    Compiler.Compiler compiler = new Compiler.Compiler();
+                    mucomDotNET.Interface.iCompiler compiler = new Compiler.Compiler();
                     compiler.Init();
                     byte[] dat = compiler.Start(arg);
                     if (dat != null)

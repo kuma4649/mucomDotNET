@@ -125,6 +125,10 @@
       <Project>{8ab04fa5-c36b-44b6-95ef-b0a4dd9b353b}</Project>
       <Name>Driver</Name>
     </ProjectReference>
+    <ProjectReference Include="..\mucomDotNETInterface\Interface.csproj">
+      <Project>{0a400c69-6347-4b84-a3a0-11bf81e6c623}</Project>
+      <Name>Interface</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="lib\c86ctl.dll" />

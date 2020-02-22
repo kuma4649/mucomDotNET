@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mucomDotNET.Interface;
+using System;
 
 namespace mucomDotNET.Common
 {
