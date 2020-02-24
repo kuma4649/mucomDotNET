@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace mucomDotNET.Common
+namespace mucomDotNET.Interface
 {
     public enum LogLevel : int
     {

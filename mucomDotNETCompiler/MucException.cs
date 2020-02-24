@@ -1,4 +1,5 @@
 ﻿using mucomDotNET.Common;
+using mucomDotNET.Interface;
 using System;
 using System.Runtime.Serialization;
 

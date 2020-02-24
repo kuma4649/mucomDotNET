@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace mucomDotNET.Common
+namespace mucomDotNET.Interface
 {
     public static class Log
     {
@@ -11,6 +11,7 @@ namespace mucomDotNET.Common
 
         public static void WriteLine(LogLevel level, string msg)
         {
+
             if (level <= Log.level)
             {
                 writeLine?.Invoke(level, msg);

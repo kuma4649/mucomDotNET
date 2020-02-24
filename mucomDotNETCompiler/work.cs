@@ -1,4 +1,5 @@
-﻿using System;
+﻿using mucomDotNET.Interface;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -92,5 +93,6 @@ namespace mucomDotNET.Compiler
         public static int OTODAT = 1;// 0xc201 w FMｵﾝｼｮｸ ｶﾞ ｶｸﾉｳｻﾚﾙ ｱﾄﾞﾚｽﾄｯﾌﾟ ｶﾞ ﾊｲｯﾃｲﾙ
         public static int SSGDAT = 3;// 0xc203 w SSG...
         public static int MU_TOP = 5;// 0xc205 w ﾐｭｰｼﾞｯｸ ﾃﾞｰﾀ(ｱﾄﾞﾚｽﾃｰﾌﾞﾙ ﾌｸﾑ) ｽﾀｰﾄ ｱﾄﾞﾚｽ
+        public static CompilerInfo compilerInfo = null;
     }
 }

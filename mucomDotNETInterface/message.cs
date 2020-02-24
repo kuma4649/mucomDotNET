@@ -2,7 +2,7 @@
 using System.IO;
 using System.Reflection;
 
-namespace mucomDotNET.Common
+namespace mucomDotNET.Interface
 {
     public static class msg
     {
@@ -14,14 +14,14 @@ namespace mucomDotNET.Common
             Assembly myAssembly = Assembly.GetEntryAssembly();
             string path = Path.GetDirectoryName(myAssembly.Location);
             string lang = System.Globalization.CultureInfo.CurrentCulture.Name;
-            string file = Path.Combine(path, "lang", string.Format("message.{0}.txt", lang));
+            string file = Path.Combine(path, "lang", string.Format("mucomDotNETmessage.{0}.txt", lang));
             file = file.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
             string[] lines = null;
             try
             {
                 if (!File.Exists(file))
                 {
-                    file = Path.Combine(path, "lang", "message.txt");
+                    file = Path.Combine(path, "lang", "mucomDotNETmessage.txt");
                     file = file.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
                 }
                 lines = File.ReadAllLines(file);

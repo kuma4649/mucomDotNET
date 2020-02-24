@@ -2353,7 +2353,7 @@ namespace mucomDotNET.Compiler
 
         internal int GetErrorLine()
         {
-            return errLin;
+            return mucInfo.row;// errLin;
         }
 
         internal int COMPIL()
@@ -2578,11 +2578,13 @@ namespace mucomDotNET.Compiler
 
         public void WriteWarning(string wmsg, int row, int col)
         {
+            work.compilerInfo.warningList.Add(new Tuple<int, int, string>(row, col, wmsg));
             Log.WriteLine(LogLevel.WARNING, string.Format(msg.get("E0300"), row, col, wmsg));
         }
 
         public void WriteWarning(string wmsg)
         {
+            work.compilerInfo.warningList.Add(new Tuple<int, int, string>(-1, -1, wmsg));
             Log.WriteLine(LogLevel.WARNING, string.Format(msg.get("E0300"), "-", "-", wmsg));
         }
 
@@ -2665,6 +2667,7 @@ namespace mucomDotNET.Compiler
             work.CLOCK = 128;
             work.VOLUME = 0;
             work.OCTINT = 0;// 検証結果による値。おそらく実機では不定
+            work.compilerInfo = new CompilerInfo();
         }
 
         public void CMPEN1()

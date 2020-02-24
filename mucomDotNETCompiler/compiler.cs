@@ -33,13 +33,19 @@ namespace mucomDotNET.Compiler
             expand.muc88 = muc88;
         }
 
-        public MubDat[] StartToMubDat(string arg)
+        public MubDat[] StartToMubDat(string srcFn)
+        {
+            workPath = Path.GetDirectoryName(srcFn);
+            return StartToMubDat(srcFn, workPath);
+        }
+
+        public MubDat[] StartToMubDat(string srcPath,string wrkPath)
         {
             try
             {
-                srcFn = arg;
+                srcFn = srcPath;
                 srcBuf = File.ReadAllBytes(srcFn);
-                workPath = Path.GetDirectoryName(srcFn);
+                workPath = wrkPath;
                 mucInfo = GetMUCInfo(srcBuf);
                 fnVoicedat = string.IsNullOrEmpty(mucInfo.voice) ? "voice.dat" : System.IO.Path.Combine(workPath, mucInfo.voice);
                 LoadFMVoice(fnVoicedat);
@@ -59,23 +65,40 @@ namespace mucomDotNET.Compiler
                 //MUCOM88 初期化
                 int ret = muc88.COMPIL();//vector 0xeea8
 
+                work.compilerInfo.bin = null;
+                work.compilerInfo.mucInfo = null;
+
                 //コンパイルエラー発生時は0以外が返る
                 if (ret != 0)
                 {
                     int errLine = muc88.GetErrorLine();
+                    work.compilerInfo.errorList.Add(new Tuple<int, int, string>(mucInfo.row, mucInfo.col, string.Format(msg.get("E0100"), errLine)));
                     Log.WriteLine(LogLevel.ERROR, string.Format(msg.get("E0100"), errLine));
                     return null;
                 }
 
                 ret = SaveMub();
-                if (ret == 0) return dat.ToArray();
+                if (ret == 0)
+                {
+                    List<byte> ba = new List<byte>();
+                    foreach (MubDat d in dat)
+                    {
+                        ba.Add(d.dat);
+                    }
+                    work.compilerInfo.bin = ba.ToArray();
+                    work.compilerInfo.mucInfo = mucInfo;
+
+                    return dat.ToArray();
+                }
             }
             catch(MucException me)
             {
+                work.compilerInfo.errorList.Add(new Tuple<int, int, string>(-1, -1, me.Message));
                 Log.WriteLine(LogLevel.ERROR, me.Message);
             }
             catch (Exception e)
             {
+                work.compilerInfo.errorList.Add(new Tuple<int, int, string>(-1, -1, e.Message));
                 Log.WriteLine(LogLevel.ERROR, string.Format(
                     msg.get("E0000")
                     ,e.Message
@@ -90,13 +113,7 @@ namespace mucomDotNET.Compiler
             MubDat[] ma = StartToMubDat(arg);
             if (ma == null || ma.Length < 1) return null;
 
-            List<byte> ba = new List<byte>();
-            foreach(MubDat d in ma)
-            {
-                ba.Add(d.dat);
-            }
-
-            return ba.ToArray();
+            return work.compilerInfo.bin;
         }
 
         public MUCInfo GetMUCInfo(byte[] buf)
@@ -142,7 +159,10 @@ namespace mucomDotNET.Compiler
             return mucInfo;
         }
 
-
+        public CompilerInfo GetCompilerInfo()
+        {
+            return work.compilerInfo;
+        }
 
 
 
@@ -290,18 +310,28 @@ namespace mucomDotNET.Compiler
                 string strTcount = "";
                 string strLcount = "";
                 string strBcount = "";
+                
+                work.compilerInfo.totalCount = new List<int>();
+                work.compilerInfo.loopCount = new List<int>();
+                work.compilerInfo.bufferCount = new List<int>();
+
                 for (int i = 0; i < Muc88.MAXCH; i++)
                 {
                     if (work.lcnt[i] != 0) { work.lcnt[i] = work.tcnt[i] - (work.lcnt[i] - 1); }
                     if (work.tcnt[i] > maxcount) maxcount = work.tcnt[i];
                     strTcount += string.Format("{0}:{1} ", (char)('A' + i), work.tcnt[i]);
+                    work.compilerInfo.totalCount.Add(work.tcnt[i]);
                     strLcount += string.Format("{0}:{1} ", (char)('A' + i), work.lcnt[i]);
+                    work.compilerInfo.loopCount.Add(work.lcnt[i]);
                     strBcount += string.Format("{0}:{1:x04} ", (char)('A' + i), work.bufCount[i]);
+                    work.compilerInfo.bufferCount.Add(work.bufCount[i]);
                     if (work.bufCount[i] > 0xffff)
                     {
-                        throw new MucException(string.Format(Common.msg.get("E0700"), (char)('A' + i), work.bufCount[i]));
+                        throw new MucException(string.Format(Interface.msg.get("E0700"), (char)('A' + i), work.bufCount[i]));
                     }
                 }
+
+                work.compilerInfo.jclock = work.JCLOCK;
 
                 if (work.pcmFlag == 0) pcmflag = 2;
                 msg = Encoding.GetEncoding("Shift_JIS").GetString(textLineBuf, 31, 4);
@@ -333,6 +363,7 @@ namespace mucomDotNET.Compiler
             }
             catch (MucException me)
             {
+                work.compilerInfo.errorList.Add(new Tuple<int, int, string>(-1, -1, me.Message));
                 Log.WriteLine(LogLevel.ERROR, me.Message);
                 return -1;
             }
@@ -376,6 +407,8 @@ namespace mucomDotNET.Compiler
             int dataOffset = 0x50;
             int dataSize = length;
             int tagOffset = length + 0x50;
+
+            dat.Clear();
 
             dat.Add(new MubDat(0x4d));// M
             dat.Add(new MubDat(0x55));// U

@@ -66,10 +66,10 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <Content Include="lang\message.ja-JP.txt">
+    <Content Include="lang\mucomDotNETmessage.ja-JP.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="lang\message.txt">
+    <Content Include="lang\mucomDotNETmessage.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
