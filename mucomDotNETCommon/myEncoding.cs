@@ -1,7 +1,6 @@
-﻿using mucomDotNET.Common;
-using System.Text;
+﻿using System.Text;
 
-namespace mucomDotNET.Player
+namespace mucomDotNET.Common
 {
     public class myEncoding : iEncoding
     {
