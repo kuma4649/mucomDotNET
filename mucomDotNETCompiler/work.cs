@@ -1,4 +1,4 @@
-﻿using mucomDotNET.Interface;
+﻿using musicDriverInterface;
 using System;
 using System.Collections.Generic;
 using System.Text;

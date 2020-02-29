@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using mucomDotNET.Common;
-using mucomDotNET.Interface;
+using musicDriverInterface;
 
 namespace mucomDotNET.Driver
 {
@@ -27,12 +27,13 @@ namespace mucomDotNET.Driver
         public uint hl { get; internal set; }
         public byte A_Reg { get; internal set; }
         public int weight { get; internal set; }
+        public object crntMmlDatum { get; internal set; }
 
         public OPNATimer timer = null;
         public ulong timeCounter = 0L;
         public byte[] fmVoice = null;
         public Tuple<string, ushort[]>[] pcmTables = null;
-        public MubDat[] mData = null;
+        public MmlDatum[] mData = null;
         public SoundWork soundWork = null;
         public byte[] fmVoiceAtMusData = null;
 

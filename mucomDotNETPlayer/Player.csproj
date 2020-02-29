@@ -52,6 +52,9 @@
       <HintPath>lib\MDSound.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
+    <Reference Include="musicDriverInterface">
+      <HintPath>..\lib\musicDriverInterface.dll</HintPath>
+    </Reference>
     <Reference Include="RealChipCtlWrap, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
       <HintPath>lib\RealChipCtlWrap.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
@@ -73,8 +76,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <None Include="lib\c86ctl.ini" />
-    <None Include="lib\scci.ini" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -88,13 +89,24 @@
   <ItemGroup>
     <ProjectReference Include="..\mucomDotNETCommon\Common.csproj" />
     <ProjectReference Include="..\mucomDotNETDriver\Driver.csproj" />
-    <ProjectReference Include="..\mucomDotNETInterface\Interface.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="lib\c86ctl.dll" />
+    <Content Include="c86ctl.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="lib\MDSound.dll" />
     <Content Include="lib\RealChipCtlWrap.dll" />
     <Content Include="lib\scci.dll" />
-    <Content Include="lib\scciconfig.exe" />
+    <Content Include="scciconfig.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="c86ctl.ini">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="scci.ini">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

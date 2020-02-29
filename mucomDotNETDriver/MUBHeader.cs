@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using mucomDotNET.Common;
-using mucomDotNET.Interface;
+using musicDriverInterface;
 
 namespace mucomDotNET.Driver
 {
@@ -27,10 +27,10 @@ namespace mucomDotNET.Driver
         public uint ext_player = 0;
         public uint pad1 = 0;
         public byte[] ext_fmvoice = new byte[32];
-        private MubDat[] srcBuf = null;
+        private MmlDatum[] srcBuf = null;
 
 
-        public MUBHeader(MubDat[] buf)
+        public MUBHeader(MmlDatum[] buf)
         {
             magic = Cmn.getLE32(buf, 0x0000);
             dataoffset = Cmn.getLE32(buf, 0x0004);
@@ -45,28 +45,28 @@ namespace mucomDotNET.Driver
             if (magic == 0x3842554d) //'MUB8'
             {
                 ext_flags = Cmn.getLE16(buf, 0x0020);
-                ext_system = buf[0x0022].dat;
-                ext_target = buf[0x0023].dat;
+                ext_system = (uint)buf[0x0022].dat;
+                ext_target = (uint)buf[0x0023].dat;
                 ext_channel_num = Cmn.getLE16(buf, 0x0024);
                 ext_fmvoice_num = Cmn.getLE16(buf, 0x0026);
                 ext_player = Cmn.getLE32(buf, 0x0028);
                 pad1 = Cmn.getLE32(buf, 0x002c);
                 for (int i = 0; i < 32; i++)
                 {
-                    ext_fmvoice[i] = buf[0x0030 + i].dat;
+                    ext_fmvoice[i] = (byte)buf[0x0030 + i].dat;
                 }
             }
             srcBuf = buf;
         }
 
-        public MubDat[] GetDATA()
+        public MmlDatum[] GetDATA()
         {
             try
             {
                 if (dataoffset == 0) return null;
                 if (srcBuf == null) return null;
 
-                List<MubDat> lb = new List<MubDat>();
+                List<MmlDatum> lb = new List<MmlDatum>();
                 for (int i = 0; i < datasize; i++)
                 {
                     lb.Add(srcBuf[dataoffset + i]);
@@ -90,7 +90,7 @@ namespace mucomDotNET.Driver
                 List<byte> lb = new List<byte>();
                 for (int i = 0; i < tagsize; i++)
                 {
-                    lb.Add(srcBuf[tagdata + i].dat);
+                    lb.Add((byte)srcBuf[tagdata + i].dat);
                 }
 
                 return GetTagsByteArray(lb.ToArray());
@@ -111,7 +111,7 @@ namespace mucomDotNET.Driver
                 List<byte> lb = new List<byte>();
                 for (int i = 0; i < pcmsize; i++)
                 {
-                    lb.Add(srcBuf[pcmdata + i].dat);
+                    lb.Add((byte)srcBuf[pcmdata + i].dat);
                 }
 
                 return lb.ToArray();

@@ -1,5 +1,5 @@
 ﻿using mucomDotNET.Common;
-using mucomDotNET.Interface;
+using musicDriverInterface;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -237,7 +237,7 @@ namespace mucomDotNET.Compiler
             return false;
         }
 
-        public void MWRIT2(MubDat dat)
+        public void MWRIT2(MmlDatum dat)
         {
             //Common.WriteLine("{0:x2}", dat);
             mucInfo.bufDst.Set(work.MDATA++, dat);
@@ -252,7 +252,7 @@ namespace mucomDotNET.Compiler
             muc88.DispHex4(work.MDATA, 36);
         }
 
-        public void MWRITE(MubDat cmdNo, MubDat cmdDat)
+        public void MWRITE(MmlDatum cmdNo, MmlDatum cmdDat)
         {
             //Common.WriteLine("{0:x2}", cmdNo);
             mucInfo.bufDst.Set(work.MDATA++, cmdNo);

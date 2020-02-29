@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace mucomDotNET.Interface
+namespace mucomDotNET.Common
 {
     public class AutoExtendList<T>
     {
