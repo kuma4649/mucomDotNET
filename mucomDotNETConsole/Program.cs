@@ -27,8 +27,7 @@ namespace mucomDotNET.Console
             {
                 foreach (string arg in args)
                 {
-                    iEncoding enc = new myEncoding();
-                    iCompiler compiler = new Compiler.Compiler(enc);
+                    iCompiler compiler = new Compiler.Compiler();
                     compiler.Init();
                     byte[] dat = ((Compiler.Compiler)compiler).Start(arg, WriteLine);
                     if (dat != null)

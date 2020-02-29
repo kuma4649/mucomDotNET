@@ -19,9 +19,9 @@ namespace mucomDotNET.Compiler
             MUC
         }
 
-        public Compiler(iEncoding enc)
+        public Compiler(iEncoding enc = null)
         {
-            this.enc = enc;
+            this.enc = enc ?? myEncoding.Default;
         }
 
         public void Init()
