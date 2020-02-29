@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Console", "mucomDotNETConsole\Console.csproj", "{C78892A7-905F-44D2-9B29-64B4EE235588}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Console", "mucomDotNETConsole\Console.csproj", "{C78892A7-905F-44D2-9B29-64B4EE235588}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "document", "document", "{A1B058B6-4952-4E00-93B2-1104739841E9}"
 	ProjectSection(SolutionItems) = preProject
@@ -18,15 +18,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "document", "document", "{A1
 		usage.txt = usage.txt
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Compiler", "mucomDotNETCompiler\Compiler.csproj", "{8FFC1451-42CC-4D05-A59F-EFD658F44B07}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Compiler", "mucomDotNETCompiler\Compiler.csproj", "{8FFC1451-42CC-4D05-A59F-EFD658F44B07}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Driver", "mucomDotNETDriver\Driver.csproj", "{8AB04FA5-C36B-44B6-95EF-B0A4DD9B353B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Driver", "mucomDotNETDriver\Driver.csproj", "{8AB04FA5-C36B-44B6-95EF-B0A4DD9B353B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Player", "mucomDotNETPlayer\Player.csproj", "{7043EF1F-A429-4282-BDD3-BEBB2417D22C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Player", "mucomDotNETPlayer\Player.csproj", "{7043EF1F-A429-4282-BDD3-BEBB2417D22C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "mucomDotNETCommon\Common.csproj", "{34AAD812-CF44-4080-9BE9-1FDA164BAE55}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "mucomDotNETCommon\Common.csproj", "{34AAD812-CF44-4080-9BE9-1FDA164BAE55}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Interface", "mucomDotNETInterface\Interface.csproj", "{0A400C69-6347-4B84-A3A0-11BF81E6C623}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{CAA32685-98D6-40B5-AD18-79006ED7B1F7}"
+	ProjectSection(SolutionItems) = preProject
+		lib\musicDriverInterface.dll = lib\musicDriverInterface.dll
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -98,18 +101,6 @@ Global
 		{34AAD812-CF44-4080-9BE9-1FDA164BAE55}.Release|x64.Build.0 = Release|Any CPU
 		{34AAD812-CF44-4080-9BE9-1FDA164BAE55}.Release|x86.ActiveCfg = Release|Any CPU
 		{34AAD812-CF44-4080-9BE9-1FDA164BAE55}.Release|x86.Build.0 = Release|Any CPU
-		{0A400C69-6347-4B84-A3A0-11BF81E6C623}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0A400C69-6347-4B84-A3A0-11BF81E6C623}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0A400C69-6347-4B84-A3A0-11BF81E6C623}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{0A400C69-6347-4B84-A3A0-11BF81E6C623}.Debug|x64.Build.0 = Debug|Any CPU
-		{0A400C69-6347-4B84-A3A0-11BF81E6C623}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{0A400C69-6347-4B84-A3A0-11BF81E6C623}.Debug|x86.Build.0 = Debug|Any CPU
-		{0A400C69-6347-4B84-A3A0-11BF81E6C623}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0A400C69-6347-4B84-A3A0-11BF81E6C623}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0A400C69-6347-4B84-A3A0-11BF81E6C623}.Release|x64.ActiveCfg = Release|Any CPU
-		{0A400C69-6347-4B84-A3A0-11BF81E6C623}.Release|x64.Build.0 = Release|Any CPU
-		{0A400C69-6347-4B84-A3A0-11BF81E6C623}.Release|x86.ActiveCfg = Release|Any CPU
-		{0A400C69-6347-4B84-A3A0-11BF81E6C623}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

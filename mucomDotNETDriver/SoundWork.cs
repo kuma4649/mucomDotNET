@@ -1,5 +1,5 @@
 ﻿using mucomDotNET.Common;
-using mucomDotNET.Interface;
+using musicDriverInterface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -222,7 +222,7 @@ namespace mucomDotNET.Driver
 
     public class CHDAT
     {
-        public MubDat[] mData = null;
+        public MmlDatum[] mData = null;
 
         public int lengthCounter = 1;//DB	1	        ; LENGTH ｶｳﾝﾀｰ      IX+ 0
         public int instrumentNumber = 24;//DB	24	        ; ｵﾝｼｮｸ ﾅﾝﾊﾞｰ		1

@@ -1,4 +1,4 @@
-﻿using mucomDotNET.Interface;
+﻿using musicDriverInterface;
 using System;
 
 namespace mucomDotNET.Common
@@ -31,7 +31,7 @@ namespace mucomDotNET.Common
             return dat;
         }
 
-        public static UInt32 getLE16(MubDat[] buf, UInt32 adr)
+        public static UInt32 getLE16(MmlDatum[] buf, UInt32 adr)
         {
             if (buf == null || buf.Length - 1 < adr + 1)
             {
@@ -70,7 +70,7 @@ namespace mucomDotNET.Common
             return dat;
         }
 
-        public static UInt32 getLE32(MubDat[] buf, UInt32 adr)
+        public static UInt32 getLE32(MmlDatum[] buf, UInt32 adr)
         {
             if (buf == null || buf.Length - 1 < adr + 3)
             {

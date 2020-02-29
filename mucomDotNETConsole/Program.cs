@@ -1,6 +1,6 @@
-﻿using mucomDotNET.Interface;
-using mucomDotNET.Compiler;
+﻿using mucomDotNET.Compiler;
 using mucomDotNET.Common;
+using musicDriverInterface;
 using System;
 using System.IO;
 
@@ -10,7 +10,7 @@ namespace mucomDotNET.Console
     {
         static void Main(string[] args)
         {
-            Log.writeLine = WriteLine;
+            //Log.writeLine = WriteLine;
 #if DEBUG
             Log.level = LogLevel.INFO;//.INFO;
 #else
@@ -27,9 +27,9 @@ namespace mucomDotNET.Console
             {
                 foreach (string arg in args)
                 {
-                    mucomDotNET.Interface.iCompiler compiler = new Compiler.Compiler();
+                    iCompiler compiler = new Compiler.Compiler();
                     compiler.Init();
-                    byte[] dat = compiler.Start(arg);
+                    byte[] dat = ((Compiler.Compiler)compiler).Start(arg, WriteLine);
                     if (dat != null)
                     {
                         File.WriteAllBytes(compiler.OutFileName, dat);
@@ -48,5 +48,11 @@ namespace mucomDotNET.Console
         {
             System.Console.WriteLine("[{0,-7}] {1}", level, msg);
         }
+
+        static void WriteLine(string msg)
+        {
+            System.Console.WriteLine(msg);
+        }
+
     }
 }

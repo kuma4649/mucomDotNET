@@ -1,5 +1,5 @@
 ﻿using mucomDotNET.Common;
-using mucomDotNET.Interface;
+using musicDriverInterface;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,7 +14,7 @@ namespace mucomDotNET.Driver
         private MUBHeader header = null;
         private List<Tuple<string, string>> tags = null;
         private byte[] pcm = null;
-        private Action<OPNAData> WriteOPNA;
+        private Action<ChipDatum> WriteOPNA;
         private Action<long,int> WaitSendOPNA;
         private string pathWork = "";
         private string fnMUB = "";
@@ -35,25 +35,35 @@ namespace mucomDotNET.Driver
             , EFfeCt
             , RETurnWork
         }
+        private iEncoding enc = null;
 
-        public void Init(string fileName, Action<OPNAData> opnaWrite, Action<long, int> opnaWaitSend, bool notSoundBoard2, bool isLoadADPCM, bool loadADPCMOnly)
+        public Driver(iEncoding enc = null)
+        {
+            this.enc = enc ?? myEncoding.Default;
+        }
+
+        public void Init(string fileName, Action<ChipDatum> opnaWrite, Action<long, int> opnaWaitSend, bool notSoundBoard2, bool isLoadADPCM, bool loadADPCMOnly)
         {
             byte[] srcBuf = File.ReadAllBytes(fileName);
             Init(fileName, opnaWrite, opnaWaitSend, notSoundBoard2, srcBuf, isLoadADPCM, loadADPCMOnly);
         }
 
-        public void Init(string fileName, Action<OPNAData> opnaWrite, Action<long, int> opnaWaitSend, bool notSoundBoard2, byte[] srcBuf, bool isLoadADPCM, bool loadADPCMOnly)
+        public void Init(string fileName, Action<ChipDatum> opnaWrite, Action<long, int> opnaWaitSend, bool notSoundBoard2, byte[] srcBuf, bool isLoadADPCM, bool loadADPCMOnly)
         {
-            List<MubDat> bl = new List<MubDat>();
-            foreach (byte b in srcBuf) bl.Add(new MubDat(b));
-            Init(fileName, opnaWrite, opnaWaitSend, notSoundBoard2, bl.ToArray(), isLoadADPCM, loadADPCMOnly);
+            List<MmlDatum> bl = new List<MmlDatum>();
+            foreach (byte b in srcBuf) bl.Add(new MmlDatum(b));
+            Init(fileName, opnaWrite, opnaWaitSend, bl.ToArray(), new object[] { notSoundBoard2, isLoadADPCM, loadADPCMOnly });
         }
 
-        public void Init(string fileName, Action<OPNAData> opnaWrite, Action<long,int> opnaWaitSend, bool notSoundBoard2, MubDat[] srcBuf,bool isLoadADPCM, bool loadADPCMOnly)
+        public void Init(string fileName, Action<ChipDatum> chipWriteRegister, Action<long, int> chipWaitSend, MmlDatum[] srcBuf, object addtionalOption)
         {
+            bool notSoundBoard2 = (bool)((object[])addtionalOption)[0];
+            bool isLoadADPCM = (bool)((object[])addtionalOption)[1];
+            bool loadADPCMOnly = (bool)((object[])addtionalOption)[2];
+
             pathWork = Path.GetDirectoryName(fileName);
             fnMUB = fileName;
-            header = new MUBHeader(srcBuf);
+            header = new MUBHeader(srcBuf, enc);
             work.mData = GetDATA();
             tags = GetTags();
             GetFileNameFromTag();
@@ -62,19 +72,19 @@ namespace mucomDotNET.Driver
             if (pcm == null) GetPCMDataFromFile();
             work.pcmTables = GetPCMTable();
 
-            WriteOPNA = opnaWrite;
-            WaitSendOPNA = opnaWaitSend;
+            WriteOPNA = chipWriteRegister;
+            WaitSendOPNA = chipWaitSend;
 
             //PCMを送信する
             if (pcm != null)
             {
                 if (isLoadADPCM)
                 {
-                    OPNAData[] pcmSendData = GetPCMSendData();
+                    ChipDatum[] pcmSendData = GetPCMSendData();
 
                     var sw = new System.Diagnostics.Stopwatch();
                     sw.Start();
-                    foreach (OPNAData dat in pcmSendData) { WriteRegister(dat); }
+                    foreach (ChipDatum dat in pcmSendData) { WriteRegister(dat); }
                     sw.Stop();
 
                     WaitSendOPNA(sw.ElapsedMilliseconds, pcmSendData.Length);
@@ -92,7 +102,7 @@ namespace mucomDotNET.Driver
         //data Information
         //-------
 
-        public MubDat[] GetDATA()
+        public MmlDatum[] GetDATA()
         {
             return header.GetDATA();
         }
@@ -131,7 +141,7 @@ namespace mucomDotNET.Driver
                     item2[3] = (ushort)(pcm[inftable + 26] | (pcm[inftable + 27] * 0x100));
                     Array.Copy(pcm, i * 32, pcmname, 0, 16);
                     pcmname[16] = 0;
-                    string item1 = Encoding.GetEncoding("shift_jis").GetString(pcmname);
+                    string item1 = enc.GetStringFromSjisArray(pcmname);//Encoding.GetEncoding("shift_jis").GetString(pcmname);
 
                     Tuple<string, ushort[]> pd = new Tuple<string, ushort[]>(item1, item2);
                     pcmtable.Add(pd);
@@ -143,40 +153,40 @@ namespace mucomDotNET.Driver
             return pcmtable.ToArray();
         }
 
-        public OPNAData[] GetPCMSendData()
+        public ChipDatum[] GetPCMSendData()
         {
             if (pcm == null) return null;
 
             int startAddress = 0;
-            List<OPNAData> dat = new List<OPNAData>
+            List<ChipDatum> dat = new List<ChipDatum>
             {
-                new OPNAData(0x1, 0x00, 0x20),
-                new OPNAData(0x1, 0x00, 0x21),
-                new OPNAData(0x1, 0x00, 0x00),
+                new ChipDatum(0x1, 0x00, 0x20),
+                new ChipDatum(0x1, 0x00, 0x21),
+                new ChipDatum(0x1, 0x00, 0x00),
 
-                new OPNAData(0x1, 0x10, 0x00),
-                new OPNAData(0x1, 0x10, 0x80),
+                new ChipDatum(0x1, 0x10, 0x00),
+                new ChipDatum(0x1, 0x10, 0x80),
 
-                new OPNAData(0x1, 0x00, 0x61),
-                new OPNAData(0x1, 0x00, 0x68),
-                new OPNAData(0x1, 0x01, 0x00),
-                new OPNAData(0x1, 0x02, (byte)((startAddress >> 2) & 0xff)),
-                new OPNAData(0x1, 0x03, (byte)((startAddress >> 10) & 0xff)),
-                new OPNAData(0x1, 0x04, 0xff),
-                new OPNAData(0x1, 0x05, 0xff),
-                new OPNAData(0x1, 0x0c, 0xff),
-                new OPNAData(0x1, 0x0d, 0xff)
+                new ChipDatum(0x1, 0x00, 0x61),
+                new ChipDatum(0x1, 0x00, 0x68),
+                new ChipDatum(0x1, 0x01, 0x00),
+                new ChipDatum(0x1, 0x02, (byte)((startAddress >> 2) & 0xff)),
+                new ChipDatum(0x1, 0x03, (byte)((startAddress >> 10) & 0xff)),
+                new ChipDatum(0x1, 0x04, 0xff),
+                new ChipDatum(0x1, 0x05, 0xff),
+                new ChipDatum(0x1, 0x0c, 0xff),
+                new ChipDatum(0x1, 0x0d, 0xff)
             };
 
             // データ転送
             int infosize = 0x400;
             for (int cnt = 0; cnt < pcm.Length - infosize; cnt++)
             {
-                dat.Add(new OPNAData(0x1, 0x08, pcm[infosize + cnt]));
+                dat.Add(new ChipDatum(0x1, 0x08, pcm[infosize + cnt]));
                 //log.Write(string.Format("#PCMDATA adr:{0:x04} dat:{1:x02}", (infosize + cnt) >> 2, pcmdata[infosize + cnt]));
             }
-            dat.Add(new OPNAData(0x1, 0x00, 0x00));
-            dat.Add(new OPNAData(0x1, 0x10, 0x80));
+            dat.Add(new ChipDatum(0x1, 0x00, 0x00));
+            dat.Add(new ChipDatum(0x1, 0x10, 0x80));
 
             return dat.ToArray();
         }
@@ -226,11 +236,11 @@ namespace mucomDotNET.Driver
             }
         }
 
-        public void WriteRegister(OPNAData reg)
+        public void WriteRegister(ChipDatum reg)
         {
             lock (lockObjWriteReg)
             {
-                if (reg.port == 0) { work.timer.WriteReg(reg.address, reg.data); }
+                if (reg.port == 0) { work.timer.WriteReg((byte)reg.address, (byte)reg.data); }
                 WriteOPNA?.Invoke(reg);
             }
         }
@@ -240,37 +250,37 @@ namespace mucomDotNET.Driver
         //Command
         //--------
 
-        public void MSTART(int musicNumber)
+        public void MusicSTART(int musicNumber)
         {
             Log.WriteLine(LogLevel.TRACE, "演奏開始");
             music2.MSTART(musicNumber);
         }
 
-        public void MSTOP()
+        public void MusicSTOP()
         {
             Log.WriteLine(LogLevel.TRACE, "演奏停止");
             music2.MSTOP();
         }
 
-        public void FDO()
+        public void FadeOut()
         {
             Log.WriteLine(LogLevel.TRACE, "フェードアウト");
             music2.FDO();
         }
 
-        public object RETW()
+        public object GetWork()
         {
             Log.WriteLine(LogLevel.TRACE, "ワークエリア取得");
             return music2.RETW();
         }
 
-        public void EFC()
+        public void ShotEffect()
         {
             Log.WriteLine(LogLevel.TRACE, "効果音");
             music2.EFC();
         }
 
-        public int Status()
+        public int GetStatus()
         {
             return work.Status;
         }
@@ -333,7 +343,6 @@ namespace mucomDotNET.Driver
                 return null;
             }
         }
-
 
     }
 }

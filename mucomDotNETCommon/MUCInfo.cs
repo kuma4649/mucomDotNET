@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using musicDriverInterface;
 
-namespace mucomDotNET.Interface
+namespace mucomDotNET.Common
 {
     public class MUCInfo
     {
@@ -24,10 +25,29 @@ namespace mucomDotNET.Interface
         public byte[] voiceData { get; set; }
         public byte[] pcmData { get; set; }
         public List<Tuple<int, string>> basSrc { get; set; }
-        public string fnSrc { get; set; }
+
+        private string _fnSrc = null;
+        public string fnSrc {
+            get
+            {
+                return _fnSrc;
+            }
+            set
+            {
+                _fnSrc = value;
+                _fnSrcOnlyFile = System.IO.Path.GetFileName(value);
+            } 
+        }
+        private string _fnSrcOnlyFile = null;
+        public string fnSrcOnlyFile {
+            get
+            {
+                return _fnSrcOnlyFile;
+            }
+        }
         public string workPath { get; set; }
         public string fnDst { get; set; }
-        public AutoExtendList<MubDat> bufDst { get; set; }
+        public AutoExtendList<MmlDatum> bufDst { get; set; }
         public int srcLinPtr { get; set; }
         public int srcCPtr { get; set; }
         public Tuple<int, string> lin { get; set; }
@@ -69,7 +89,7 @@ namespace mucomDotNET.Interface
             fnSrc = "";
             workPath = "";
             fnDst = "";
-            bufDst = new AutoExtendList<MubDat>();
+            bufDst = new AutoExtendList<MmlDatum>();
             srcLinPtr = 0;
             srcCPtr = 0;
             bufMac = new AutoExtendList<int>();

@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.Linq;
 using mucomDotNET.Common;
-using mucomDotNET.Interface;
+using musicDriverInterface;
 
 namespace mucomDotNET.Compiler
 {
-    public class Compiler : mucomDotNET.Interface.iCompiler
+    public class Compiler : iCompiler
     {
         public string OutFileName { get; set; }
+        private iEncoding enc = null;
 
         public enum EnmMUCOMFileType
         {
@@ -19,10 +19,15 @@ namespace mucomDotNET.Compiler
             MUC
         }
 
+        public Compiler(iEncoding enc = null)
+        {
+            this.enc = enc ?? myEncoding.Default;
+        }
+
         public void Init()
         {
-            muc88 = new Muc88(mucInfo);
-            msub = new Msub(mucInfo);
+            muc88 = new Muc88(mucInfo, enc);
+            msub = new Msub(mucInfo, enc);
             expand = new expand(mucInfo);
             smon = new smon(mucInfo);
             muc88.msub = msub;
@@ -33,16 +38,30 @@ namespace mucomDotNET.Compiler
             expand.muc88 = muc88;
         }
 
-        public MubDat[] StartToMubDat(string srcFn)
+        public byte[] Start(string arg, Action<string> dispMessage)
         {
-            workPath = Path.GetDirectoryName(srcFn);
-            return StartToMubDat(srcFn, workPath);
+            MmlDatum[] ma = StartToMmlData(arg, dispMessage);
+            if (ma == null || ma.Length < 1) return null;
+
+            List<byte> ba = new List<byte>();
+            foreach (MmlDatum d in dat)
+            {
+                ba.Add((byte)d.dat);
+            }
+            return ba.ToArray();
         }
 
-        public MubDat[] StartToMubDat(string srcPath,string wrkPath)
+        public MmlDatum[] StartToMmlData(string srcFn, Action<string> dispMessage)
+        {
+            workPath = Path.GetDirectoryName(srcFn);
+            return StartToMmlData(srcFn, workPath, dispMessage);
+        }
+
+        public MmlDatum[] StartToMmlData(string srcPath, string wrkPath, Action<string> dispMessage)
         {
             try
             {
+                Log.writeMethod = dispMessage;
                 srcFn = srcPath;
                 srcBuf = File.ReadAllBytes(srcFn);
                 workPath = wrkPath;
@@ -65,8 +84,8 @@ namespace mucomDotNET.Compiler
                 //MUCOM88 初期化
                 int ret = muc88.COMPIL();//vector 0xeea8
 
-                work.compilerInfo.bin = null;
-                work.compilerInfo.mucInfo = null;
+                //work.compilerInfo.bin = null;
+                //work.compilerInfo.mucInfo = null;
 
                 //コンパイルエラー発生時は0以外が返る
                 if (ret != 0)
@@ -81,17 +100,17 @@ namespace mucomDotNET.Compiler
                 if (ret == 0)
                 {
                     List<byte> ba = new List<byte>();
-                    foreach (MubDat d in dat)
+                    foreach (MmlDatum d in dat)
                     {
-                        ba.Add(d.dat);
+                        ba.Add((byte)d.dat);
                     }
-                    work.compilerInfo.bin = ba.ToArray();
-                    work.compilerInfo.mucInfo = mucInfo;
+                    //work.compilerInfo.bin = ba.ToArray();
+                    //work.compilerInfo.mucInfo = mucInfo;
 
                     return dat.ToArray();
                 }
             }
-            catch(MucException me)
+            catch (MucException me)
             {
                 work.compilerInfo.errorList.Add(new Tuple<int, int, string>(-1, -1, me.Message));
                 Log.WriteLine(LogLevel.ERROR, me.Message);
@@ -101,19 +120,11 @@ namespace mucomDotNET.Compiler
                 work.compilerInfo.errorList.Add(new Tuple<int, int, string>(-1, -1, e.Message));
                 Log.WriteLine(LogLevel.ERROR, string.Format(
                     msg.get("E0000")
-                    ,e.Message
-                    ,e.StackTrace));
+                    , e.Message
+                    , e.StackTrace));
             }
 
             return null;
-        }
-
-        public byte[] Start(string arg)
-        {
-            MubDat[] ma = StartToMubDat(arg);
-            if (ma == null || ma.Length < 1) return null;
-
-            return work.compilerInfo.bin;
         }
 
         public MUCInfo GetMUCInfo(byte[] buf)
@@ -179,7 +190,7 @@ namespace mucomDotNET.Compiler
         private byte[] voice;
         private byte[] pcmdata;
         private readonly List<Tuple<int, string>> basSrc = new List<Tuple<int, string>>();
-        private readonly List<MubDat> dat = new List<MubDat>();
+        private readonly List<MmlDatum> dat = new List<MmlDatum>();
 
         private EnmMUCOMFileType CheckFileType(byte[] buf)
         {
@@ -199,13 +210,11 @@ namespace mucomDotNET.Compiler
             return EnmMUCOMFileType.MUC;
         }
 
-        private readonly List<Tuple<string, string>> tags=new List<Tuple<string, string>>();
+        private List<Tuple<string, string>> tags=new List<Tuple<string, string>>();
 
         private List<Tuple<string, string>> GetTagsFromMUC(byte[] buf)
         {
-            //Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-
-            var text = Encoding.GetEncoding("shift_jis").GetString(buf)
+            var text = enc.GetStringFromSjisArray(buf)  // Encoding.GetEncoding("shift_jis").GetString(buf)
                 .Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => x.IndexOf("#") == 0);
             tags.Clear();
@@ -280,7 +289,7 @@ namespace mucomDotNET.Compiler
         private int StoreBasicSource(byte[] buf)
         {
             int line = 0;
-            var text = Encoding.GetEncoding("shift_jis").GetString(buf)
+            var text = enc.GetStringFromSjisArray(buf) //Encoding.GetEncoding("shift_jis").GetString(buf)
                 .Split(new string[] { "\r\n" }, StringSplitOptions.None);
 
             basSrc.Clear();
@@ -327,16 +336,16 @@ namespace mucomDotNET.Compiler
                     work.compilerInfo.bufferCount.Add(work.bufCount[i]);
                     if (work.bufCount[i] > 0xffff)
                     {
-                        throw new MucException(string.Format(Interface.msg.get("E0700"), (char)('A' + i), work.bufCount[i]));
+                        throw new MucException(string.Format(Common.msg.get("E0700"), (char)('A' + i), work.bufCount[i]));
                     }
                 }
 
-                work.compilerInfo.jclock = work.JCLOCK;
+                work.compilerInfo.jumpClock = work.JCLOCK;
 
                 if (work.pcmFlag == 0) pcmflag = 2;
-                msg = Encoding.GetEncoding("Shift_JIS").GetString(textLineBuf, 31, 4);
+                msg = enc.GetStringFromSjisArray(textLineBuf, 31, 4);//Encoding.GetEncoding("Shift_JIS").GetString(textLineBuf, 31, 4);
                 int start = Convert.ToInt32(msg, 16);
-                msg = Encoding.GetEncoding("Shift_JIS").GetString(textLineBuf, 41, 4);
+                msg = enc.GetStringFromSjisArray(textLineBuf, 41, 4);//Encoding.GetEncoding("Shift_JIS").GetString(textLineBuf, 41, 4);
                 int length = mucInfo.bufDst.Count;
                 mubsize = length;
 
@@ -410,73 +419,73 @@ namespace mucomDotNET.Compiler
 
             dat.Clear();
 
-            dat.Add(new MubDat(0x4d));// M
-            dat.Add(new MubDat(0x55));// U
-            dat.Add(new MubDat(0x42));// B
-            dat.Add(new MubDat(0x38));// 8
+            dat.Add(new MmlDatum(0x4d));// M
+            dat.Add(new MmlDatum(0x55));// U
+            dat.Add(new MmlDatum(0x42));// B
+            dat.Add(new MmlDatum(0x38));// 8
 
-            dat.Add(new MubDat((byte)dataOffset));
-            dat.Add(new MubDat((byte)(dataOffset >> 8)));
-            dat.Add(new MubDat((byte)(dataOffset >> 16)));
-            dat.Add(new MubDat((byte)(dataOffset >> 24)));
+            dat.Add(new MmlDatum((byte)dataOffset));
+            dat.Add(new MmlDatum((byte)(dataOffset >> 8)));
+            dat.Add(new MmlDatum((byte)(dataOffset >> 16)));
+            dat.Add(new MmlDatum((byte)(dataOffset >> 24)));
 
-            dat.Add(new MubDat((byte)dataSize));
-            dat.Add(new MubDat((byte)(dataSize >> 8)));
-            dat.Add(new MubDat((byte)(dataSize >> 16)));
-            dat.Add(new MubDat((byte)(dataSize >> 24)));
+            dat.Add(new MmlDatum((byte)dataSize));
+            dat.Add(new MmlDatum((byte)(dataSize >> 8)));
+            dat.Add(new MmlDatum((byte)(dataSize >> 16)));
+            dat.Add(new MmlDatum((byte)(dataSize >> 24)));
 
-            dat.Add(new MubDat((byte)tagOffset));
-            dat.Add(new MubDat((byte)(tagOffset >> 8)));
-            dat.Add(new MubDat((byte)(tagOffset >> 16)));
-            dat.Add(new MubDat((byte)(tagOffset >> 24)));
+            dat.Add(new MmlDatum((byte)tagOffset));
+            dat.Add(new MmlDatum((byte)(tagOffset >> 8)));
+            dat.Add(new MmlDatum((byte)(tagOffset >> 16)));
+            dat.Add(new MmlDatum((byte)(tagOffset >> 24)));
 
-            dat.Add(new MubDat(0));//tagdata size(dummy)
-            dat.Add(new MubDat(0));
-            dat.Add(new MubDat(0));
-            dat.Add(new MubDat(0));
+            dat.Add(new MmlDatum(0));//tagdata size(dummy)
+            dat.Add(new MmlDatum(0));
+            dat.Add(new MmlDatum(0));
+            dat.Add(new MmlDatum(0));
 
-            dat.Add(new MubDat((byte)pcmptr));//pcmdata ptr(32bit)
-            dat.Add(new MubDat((byte)(pcmptr >> 8)));
-            dat.Add(new MubDat((byte)(pcmptr >> 16)));
-            dat.Add(new MubDat((byte)(pcmptr >> 24)));
+            dat.Add(new MmlDatum((byte)pcmptr));//pcmdata ptr(32bit)
+            dat.Add(new MmlDatum((byte)(pcmptr >> 8)));
+            dat.Add(new MmlDatum((byte)(pcmptr >> 16)));
+            dat.Add(new MmlDatum((byte)(pcmptr >> 24)));
 
-            dat.Add(new MubDat((byte)pcmsize));//pcmdata size(32bit)
-            dat.Add(new MubDat((byte)(pcmsize >> 8)));
-            dat.Add(new MubDat((byte)(pcmsize >> 16)));
-            dat.Add(new MubDat((byte)(pcmsize >> 24)));
+            dat.Add(new MmlDatum((byte)pcmsize));//pcmdata size(32bit)
+            dat.Add(new MmlDatum((byte)(pcmsize >> 8)));
+            dat.Add(new MmlDatum((byte)(pcmsize >> 16)));
+            dat.Add(new MmlDatum((byte)(pcmsize >> 24)));
 
-            dat.Add(new MubDat((byte)work.JCLOCK));// JCLOCKの値(Jコマンドのタグ位置)
-            dat.Add(new MubDat((byte)(work.JCLOCK >> 8)));
+            dat.Add(new MmlDatum((byte)work.JCLOCK));// JCLOCKの値(Jコマンドのタグ位置)
+            dat.Add(new MmlDatum((byte)(work.JCLOCK >> 8)));
 
-            dat.Add(new MubDat(0));//jump line number(dummy)
-            dat.Add(new MubDat(0));
+            dat.Add(new MmlDatum(0));//jump line number(dummy)
+            dat.Add(new MmlDatum(0));
 
-            dat.Add(new MubDat(0));//ext_flags(?)
-            dat.Add(new MubDat(0));
+            dat.Add(new MmlDatum(0));//ext_flags(?)
+            dat.Add(new MmlDatum(0));
 
-            dat.Add(new MubDat(1));//ext_system(?)
+            dat.Add(new MmlDatum(1));//ext_system(?)
 
-            dat.Add(new MubDat(2));//ext_target(?)
+            dat.Add(new MmlDatum(2));//ext_target(?)
 
-            dat.Add(new MubDat(11));//ext_channel_num
-            dat.Add(new MubDat(0));
+            dat.Add(new MmlDatum(11));//ext_channel_num
+            dat.Add(new MmlDatum(0));
 
-            dat.Add(new MubDat((byte)work.OTONUM));//ext_fmvoice_num
-            dat.Add(new MubDat((byte)(work.OTONUM >> 8)));
+            dat.Add(new MmlDatum((byte)work.OTONUM));//ext_fmvoice_num
+            dat.Add(new MmlDatum((byte)(work.OTONUM >> 8)));
 
-            dat.Add(new MubDat(0));//ext_player(?)
-            dat.Add(new MubDat(0));
-            dat.Add(new MubDat(0));
-            dat.Add(new MubDat(0));
+            dat.Add(new MmlDatum(0));//ext_player(?)
+            dat.Add(new MmlDatum(0));
+            dat.Add(new MmlDatum(0));
+            dat.Add(new MmlDatum(0));
 
-            dat.Add(new MubDat(0));//pad1
-            dat.Add(new MubDat(0));
-            dat.Add(new MubDat(0));
-            dat.Add(new MubDat(0));
+            dat.Add(new MmlDatum(0));//pad1
+            dat.Add(new MmlDatum(0));
+            dat.Add(new MmlDatum(0));
+            dat.Add(new MmlDatum(0));
 
             for (int i = 0; i < 32; i++)
             {
-                dat.Add(new MubDat((byte)mucInfo.bufDefVoice.Get(i)));
+                dat.Add(new MmlDatum((byte)mucInfo.bufDefVoice.Get(i)));
             }
 
             if (work.JCLOCK > 0)
@@ -486,11 +495,11 @@ namespace mucomDotNET.Compiler
 
             for (int i = 0; i < length; i++) dat.Add(mucInfo.bufDst.Get(i));
 
-            dat[dataOffset + 0] = new MubDat(0);//バイナリに含まれる曲データ数-1
-            dat[dataOffset + 1] = new MubDat((byte)work.OTODAT);
-            dat[dataOffset + 2] = new MubDat((byte)(work.OTODAT >> 8));
-            dat[dataOffset + 3] = new MubDat((byte)work.ENDADR);
-            dat[dataOffset + 4] = new MubDat((byte)(work.ENDADR >> 8));
+            dat[dataOffset + 0] = new MmlDatum(0);//バイナリに含まれる曲データ数-1
+            dat[dataOffset + 1] = new MmlDatum((byte)work.OTODAT);
+            dat[dataOffset + 2] = new MmlDatum((byte)(work.OTODAT >> 8));
+            dat[dataOffset + 3] = new MmlDatum((byte)work.ENDADR);
+            dat[dataOffset + 4] = new MmlDatum((byte)(work.ENDADR >> 8));
             //dat[dataOffset + 5] = 0xff; //たぶん　テンポコマンド(タイマーB)設定時に更新される
 
             if (tags != null)
@@ -499,36 +508,50 @@ namespace mucomDotNET.Compiler
 
                 foreach (Tuple<string, string> tag in tags)
                 {
-                    byte[] b = Encoding.GetEncoding("shift_jis").GetBytes(string.Format("#{0} {1}\r\n", tag.Item1, tag.Item2));
+                    byte[] b = enc.GetSjisArrayFromString(string.Format("#{0} {1}\r\n", tag.Item1, tag.Item2));
+                    //Encoding.GetEncoding("shift_jis").GetBytes(string.Format("#{0} {1}\r\n", tag.Item1, tag.Item2));
                     footsize += b.Length;
-                    foreach (byte bd in b) dat.Add(new MubDat(bd));
+                    foreach (byte bd in b) dat.Add(new MmlDatum(bd));
                 }
 
                 if (footsize > 0)
                 {
-                    dat.Add(new MubDat(0));
-                    dat.Add(new MubDat(0));
-                    dat.Add(new MubDat(0));
-                    dat.Add(new MubDat(0));
+                    dat.Add(new MmlDatum(0));
+                    dat.Add(new MmlDatum(0));
+                    dat.Add(new MmlDatum(0));
+                    dat.Add(new MmlDatum(0));
                     footsize += 4;
 
-                    dat[16] = new MubDat((byte)footsize);//tagdata size(32bit)
-                    dat[17] = new MubDat((byte)(footsize >> 8));
-                    dat[18] = new MubDat((byte)(footsize >> 16));
-                    dat[19] = new MubDat((byte)(footsize >> 24));
+                    dat[16] = new MmlDatum((byte)footsize);//tagdata size(32bit)
+                    dat[17] = new MmlDatum((byte)(footsize >> 8));
+                    dat[18] = new MmlDatum((byte)(footsize >> 16));
+                    dat[19] = new MmlDatum((byte)(footsize >> 24));
+                }
+                else
+                {
+                    tags = null;
+                }
+            }
+
+            if (tags == null)
+            {
+                //クリア
+                for (int i = 0; i < 8; i++)
+                {
+                    dat[12 + i] = new MmlDatum(0);
                 }
             }
 
             if (pcmuse)
             {
-                for (int i = 0; i < pcmsize; i++) dat.Add(new MubDat(pcmdata[i]));
+                for (int i = 0; i < pcmsize; i++) dat.Add(new MmlDatum(pcmdata[i]));
                 if (pcmsize > 0)
                 {
                     pcmptr = 16 * 3 + 32 + length + footsize;
-                    dat[20] = new MubDat((byte)pcmptr);//pcmdata size(32bit)
-                    dat[21] = new MubDat((byte)(pcmptr >> 8));
-                    dat[22] = new MubDat((byte)(pcmptr >> 16));
-                    dat[23] = new MubDat((byte)(pcmptr >> 24));
+                    dat[20] = new MmlDatum((byte)pcmptr);//pcmdata size(32bit)
+                    dat[21] = new MmlDatum((byte)(pcmptr >> 8));
+                    dat[22] = new MmlDatum((byte)(pcmptr >> 16));
+                    dat[23] = new MmlDatum((byte)(pcmptr >> 24));
                 }
             }
 

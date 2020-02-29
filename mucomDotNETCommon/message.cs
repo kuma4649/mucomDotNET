@@ -2,7 +2,7 @@
 using System.IO;
 using System.Reflection;
 
-namespace mucomDotNET.Interface
+namespace mucomDotNET.Common
 {
     public static class msg
     {

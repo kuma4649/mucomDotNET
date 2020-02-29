@@ -1,5 +1,5 @@
 ﻿using mucomDotNET.Common;
-using mucomDotNET.Interface;
+using musicDriverInterface;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,6 +10,7 @@ namespace mucomDotNET.Compiler
     {
         private readonly MUCInfo mucInfo;
         public Muc88 muc88;
+        private iEncoding enc = null;
 
         public byte[] SCORE = {
             0,0,0,0,0,0
@@ -75,9 +76,10 @@ namespace mucomDotNET.Compiler
             ,0x62,11//   'b' ,11
         };
 
-        public Msub(MUCInfo mucInfo)
+        public Msub(MUCInfo mucInfo,iEncoding enc)
         {
             this.mucInfo = mucInfo;
+            this.enc = enc;
         }
 
         public int REDATA(Tuple<int,string> lin,ref int srcCPtr)
@@ -227,7 +229,7 @@ namespace mucomDotNET.Compiler
                     bHL[i] = (byte)(lin.Item2.Length > srcCPtr ? lin.Item2[srcCPtr] : 0);
                     srcCPtr++;
                 }
-                string trgHL = Encoding.UTF8.GetString(bHL);
+                string trgHL = enc.GetStringFromUtfArray(bHL);// Encoding.UTF8.GetString(bHL);
                 if (trgHL == trgDE)
                 {
                     return true;
@@ -237,7 +239,7 @@ namespace mucomDotNET.Compiler
             return false;
         }
 
-        public void MWRIT2(MubDat dat)
+        public void MWRIT2(MmlDatum dat)
         {
             //Common.WriteLine("{0:x2}", dat);
             mucInfo.bufDst.Set(work.MDATA++, dat);
@@ -252,7 +254,7 @@ namespace mucomDotNET.Compiler
             muc88.DispHex4(work.MDATA, 36);
         }
 
-        public void MWRITE(MubDat cmdNo, MubDat cmdDat)
+        public void MWRITE(MmlDatum cmdNo, MmlDatum cmdDat)
         {
             //Common.WriteLine("{0:x2}", cmdNo);
             mucInfo.bufDst.Set(work.MDATA++, cmdNo);

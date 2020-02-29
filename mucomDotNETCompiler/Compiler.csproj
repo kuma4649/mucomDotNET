@@ -18,7 +18,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\mucomDotNETCommon\Common.csproj" />
-    <ProjectReference Include="..\mucomDotNETInterface\Interface.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="lang\mucomDotNETmessage.ja-JP.txt">
@@ -27,5 +26,10 @@
     <Content Include="lang\mucomDotNETmessage.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="musicDriverInterface">
+      <HintPath>..\lib\musicDriverInterface.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

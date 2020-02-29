@@ -37,8 +37,11 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="musicDriverInterface">
+      <HintPath>..\lib\musicDriverInterface.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions" />
     <ProjectReference Include="..\mucomDotNETCommon\Common.csproj" />
     <ProjectReference Include="..\mucomDotNETCompiler\Compiler.csproj" />
-    <ProjectReference Include="..\mucomDotNETInterface\Interface.csproj" />
   </ItemGroup>
 </Project>

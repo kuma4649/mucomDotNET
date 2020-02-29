@@ -1,5 +1,5 @@
 ﻿using mucomDotNET.Common;
-using mucomDotNET.Interface;
+using musicDriverInterface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,9 +20,9 @@ namespace mucomDotNET.Driver
         public Action[] PSGCOM = null;
 
         private Work work;
-        private Action<OPNAData> WriteOPNARegister = null;
+        private Action<ChipDatum> WriteOPNARegister = null;
 
-        public Music2(Work work, Action<OPNAData> WriteOPNARegister)
+        public Music2(Work work, Action<ChipDatum> WriteOPNARegister)
         {
             this.work = work;
             this.WriteOPNARegister = WriteOPNARegister;
@@ -205,7 +205,7 @@ namespace mucomDotNET.Driver
         {
             for (int e = 0; e < 7; e++)
             {
-                OPNAData dat = new OPNAData(0, 0x28, (byte)e);
+                ChipDatum dat = new ChipDatum(0, 0x28, (byte)e);
                 WriteOPNARegister(dat);
             }
         }
@@ -216,7 +216,7 @@ namespace mucomDotNET.Driver
         {
             for (int b = 0; b < 3; b++)
             {
-                OPNAData dat = new OPNAData(0, (byte)(0x8 + b), 0x0);
+                ChipDatum dat = new ChipDatum(0, (byte)(0x8 + b), 0x0);
                 WriteOPNARegister(dat);
             }
         }
@@ -242,7 +242,7 @@ namespace mucomDotNET.Driver
                 work.mDataAdr = work.soundWork.MU_TOP + Cmn.getLE16(work.mData, (uint)work.mDataAdr);
             }
 
-            work.soundWork.TIMER_B = work.mData[work.mDataAdr].dat;
+            work.soundWork.TIMER_B = (byte)work.mData[work.mDataAdr].dat;
             work.soundWork.TB_TOP = ++work.mDataAdr;
 
             int ch = 0;// (CH1DATのこと)
@@ -274,10 +274,10 @@ namespace mucomDotNET.Driver
             int otodat = work.mData[1].dat + work.mData[2].dat * 0x100 + work.weight;
             int voiCnt = work.mData[otodat].dat;
             List<byte> buf = new List<byte>();
-            buf.Add(work.mData[otodat++].dat);
+            buf.Add((byte)work.mData[otodat++].dat);
             for (int i = 0; i < voiCnt * 25; i++)
             {
-                buf.Add(work.mData[otodat + i].dat);
+                buf.Add((byte)work.mData[otodat + i].dat);
             }
             return buf.ToArray();
         }
@@ -297,7 +297,7 @@ namespace mucomDotNET.Driver
             //次のチャンネル
             int nCPtr= (int)Cmn.getLE16(work.mData, work.soundWork.TB_TOP + 4);
 
-            List<MubDat> bf = new List<MubDat>();
+            List<MmlDatum> bf = new List<MmlDatum>();
             int length = (int)(nCPtr - stPtr + (nCPtr < stPtr ? 0x10000 : 0));
             for (int i = 0; i < length; i++)
             {
@@ -355,16 +355,16 @@ namespace mucomDotNET.Driver
             AKYOFF();// ALL KEY OFF
             SSGOFF();
 
-            OPNAData dat = new OPNAData(0, 0x29, 0x83);// CH 4-6 ENABLE
+            ChipDatum dat = new ChipDatum(0, 0x29, 0x83);// CH 4-6 ENABLE
             WriteOPNARegister(dat);
 
             for (int b = 0; b < 6; b++)
             {
-                dat = new OPNAData(0, (byte)b, 0x00);// CH 4-6 ENABLE
+                dat = new ChipDatum(0, (byte)b, 0x00);// CH 4-6 ENABLE
                 WriteOPNARegister(dat);
             }
 
-            dat = new OPNAData(0, 7, 0b0011_1000);
+            dat = new ChipDatum(0, 7, 0b0011_1000);
             WriteOPNARegister(dat);
 
             // PSGﾊﾞｯﾌｧ ｲﾆｼｬﾗｲｽﾞ
@@ -388,31 +388,31 @@ namespace mucomDotNET.Driver
 
         private void MONO()
         {
-            OPNAData dat;
+            ChipDatum dat;
             work.soundWork.FMPORT = 0;
             for (int b = 0; b < 3; b++)
             {
-                dat = new OPNAData(0, (byte)(0xb4 + b), 0xc0);//fm 1-3
+                dat = new ChipDatum(0, (byte)(0xb4 + b), 0xc0);//fm 1-3
                 WriteOPNARegister(dat);
             }
 
             for (int b = 0; b < 6; b++)
             {
-                dat = new OPNAData(0, (byte)(0x18 + b), 0xc0);//rhythm
+                dat = new ChipDatum(0, (byte)(0x18 + b), 0xc0);//rhythm
                 WriteOPNARegister(dat);
             }
 
             work.soundWork.FMPORT = 4;
             for (int b = 0; b < 3; b++)
             {
-                dat = new OPNAData(1, (byte)(0xb4 + b), 0xc0);//fm 4-6
+                dat = new ChipDatum(1, (byte)(0xb4 + b), 0xc0);//fm 4-6
                 WriteOPNARegister(dat);
             }
 
             work.soundWork.FMPORT = 0;
-            dat = new OPNAData(0, 0x22, 0x00);//lfo freq control
+            dat = new ChipDatum(0, 0x22, 0x00);//lfo freq control
             WriteOPNARegister(dat);
-            dat = new OPNAData(0, 0x12, 0x00);//rhythm test data
+            dat = new ChipDatum(0, 0x12, 0x00);//rhythm test data
             WriteOPNARegister(dat);
 
 
@@ -443,13 +443,13 @@ namespace mucomDotNET.Driver
 
         private void STTMB(byte e)
         {
-            OPNAData dat = new OPNAData(0, 0x26, e);
+            ChipDatum dat = new ChipDatum(0, 0x26, e);
             WriteOPNARegister(dat);
 
-            dat = new OPNAData(0, 0x27, 0x78);
+            dat = new ChipDatum(0, 0x27, 0x78);
             WriteOPNARegister(dat);//  Timer-B OFF
 
-            dat = new OPNAData(0, 0x27, 0x7a);
+            dat = new ChipDatum(0, 0x27, 0x7a);
             WriteOPNARegister(dat);//  Timer-B ON
 
             //割り込みレベルリセット不要
@@ -470,9 +470,9 @@ namespace mucomDotNET.Driver
         public void PL_SND()
         {
 
-            OPNAData dat = new OPNAData(0, 0x27, work.soundWork.PLSET1_VAL);//  TIMER-OFF DATA
+            ChipDatum dat = new ChipDatum(0, 0x27, work.soundWork.PLSET1_VAL);//  TIMER-OFF DATA
             WriteOPNARegister(dat);
-            dat = new OPNAData(0, 0x27, work.soundWork.PLSET2_VAL);//  TIMER-ON DATA
+            dat = new ChipDatum(0, 0x27, work.soundWork.PLSET2_VAL);//  TIMER-ON DATA
             WriteOPNARegister(dat);
 
             DRIVE();
@@ -635,7 +635,7 @@ namespace mucomDotNET.Driver
                 }
             }
 
-            OPNAData dat = new OPNAData(port, d, e);
+            ChipDatum dat = new ChipDatum(port, d, e, 0, work.crntMmlDatum);
             WriteOPNARegister(dat);
         }
 
@@ -676,7 +676,7 @@ namespace mucomDotNET.Driver
 
         public void PCMOUT(byte d, byte e)
         {
-            OPNAData dat = new OPNAData(1, d, e);
+            ChipDatum dat = new ChipDatum(1, d, e, 0, work.crntMmlDatum);
             WriteOPNARegister(dat);
         }
 
@@ -701,7 +701,7 @@ namespace mucomDotNET.Driver
             do
             {
                 Log.WriteLine(LogLevel.TRACE, string.Format("{0:x}", hl + 0xc200));
-                a = work.cd.mData[hl].dat;
+                a = (byte)work.cd.mData[hl].dat;
                 //* 00H as end
                 if (a == 0)// ﾃﾞｰﾀ ｼｭｳﾘｮｳ ｦ ｼﾗﾍﾞﾙ
                 {
@@ -714,7 +714,7 @@ namespace mucomDotNET.Driver
                     }
                     //loopCounter[currentCh]++;
                     hl = (uint)work.cd.dataTopAddress;
-                    a = work.cd.mData[hl].dat;// GET FLAG & LENGTH
+                    a = (byte)work.cd.mData[hl].dat;// GET FLAG & LENGTH
                 }
                 // **	SET LENGTH	**
                 hl++;
@@ -730,6 +730,8 @@ namespace mucomDotNET.Driver
             } while (true);
 
             work.cd.lengthCounter = a & 0x7f;// SET WAIT COUNTER
+
+            work.crntMmlDatum = work.cd.mData[work.cd.dataAddressWork];
 
             if ((a & 0x80) != 0) //BIT7(ｷｭｳﾌ ﾌﾗｸﾞ)
             {
@@ -797,7 +799,7 @@ namespace mucomDotNET.Driver
             byte a, b;
             work.carry = false;
 
-            a = work.cd.mData[hl].dat;// A=BLOCK(OCTAVE-1 ) & KEY CODE DATA
+            a = (byte)work.cd.mData[hl].dat;// A=BLOCK(OCTAVE-1 ) & KEY CODE DATA
             work.cd.dataAddressWork = hl + 1;// SET NEXT SOUND DATA ADD
             if  (!work.cd.keyoffflg // CHECK KEYOFF FLAG
                 && work.cd.beforeCode == a)// GET BEFORE CODE DATA
@@ -1070,7 +1072,7 @@ namespace mucomDotNET.Driver
 
         public void OTOPCM()
         {
-            byte a = work.cd.mData[work.hl++].dat;
+            byte a = (byte)work.cd.mData[work.hl++].dat;
             work.soundWork.PCMNUM = a;
             a--;
             work.cd.instrumentNumber = a;
@@ -1157,7 +1159,7 @@ namespace mucomDotNET.Driver
 
         public void PCMVOL()
         {
-            byte e = work.cd.mData[work.hl++].dat;
+            byte e = (byte)work.cd.mData[work.hl++].dat;
             if (work.soundWork.PVMODE != 0)
             {
                 work.cd.volReg = e;
@@ -1168,7 +1170,7 @@ namespace mucomDotNET.Driver
 
         public void VOLDRM()
         {
-            byte a = work.cd.mData[work.hl++].dat;
+            byte a = (byte)work.cd.mData[work.hl++].dat;
             work.cd.volume = a;
             DVOLSET();
             //VOLDR1:
@@ -1178,7 +1180,7 @@ namespace mucomDotNET.Driver
             do
             {
                 a = (byte)(work.soundWork.DRMVOL[de] & 0b1100_0000);
-                a |= work.cd.mData[work.hl++].dat;
+                a |= (byte)work.cd.mData[work.hl++].dat;
                 work.soundWork.DRMVOL[de++] = a;
                 PSGOUT((byte)(0x18 - b + 6), a);
                 b--;
@@ -1208,7 +1210,7 @@ namespace mucomDotNET.Driver
             work.cd.beforeCode = 0;// DETUNE ﾉ ﾊﾞｱｲﾊ BEFORE CODE ｦ CLEAR
             int de = work.cd.mData[work.hl].dat + work.cd.mData[work.hl + 1].dat * 0x100;
             work.hl += 2;
-            byte a = work.cd.mData[work.hl++].dat;
+            byte a = (byte)work.cd.mData[work.hl++].dat;
             if (a != 0)
             {
                 de += work.cd.detune;
@@ -1237,7 +1239,7 @@ namespace mucomDotNET.Driver
 
         public void LFOON()
         {
-            byte a = work.cd.mData[work.hl++].dat;// GET SUB COMMAND
+            byte a = (byte)work.cd.mData[work.hl++].dat;// GET SUB COMMAND
             if (a != 0)
             {
                 a--;//LFOTBL;
@@ -1253,22 +1255,22 @@ namespace mucomDotNET.Driver
 
         public void SETDEL()
         {
-            byte a = work.cd.mData[work.hl++].dat;
+            byte a = (byte)work.cd.mData[work.hl++].dat;
             work.cd.lfoDelay = a;
             work.cd.lfoDelayWork = a;
         }
 
         public void SETCO()
         {
-            byte a = work.cd.mData[work.hl++].dat;
+            byte a = (byte)work.cd.mData[work.hl++].dat;
             work.cd.lfoCounter = a;
             work.cd.lfoCounterWork = a;
         }
 
         public void SETVCT()
         {
-            byte e = work.cd.mData[work.hl++].dat;
-            byte d = work.cd.mData[work.hl++].dat;
+            byte e = (byte)work.cd.mData[work.hl++].dat;
+            byte d = (byte)work.cd.mData[work.hl++].dat;
 
             work.cd.lfoDelta = e + d * 0x100;
             work.cd.lfoDeltaWork = e + d * 0x100;
@@ -1276,7 +1278,7 @@ namespace mucomDotNET.Driver
 
         public void SETPEK()
         {
-            byte a = work.cd.mData[work.hl++].dat;
+            byte a = (byte)work.cd.mData[work.hl++].dat;
 
             work.cd.lfoPeak = a;//SET PEAK LEVEL
             a >>= 1;
@@ -1313,7 +1315,7 @@ namespace mucomDotNET.Driver
         public void TLLFO()
         {
 
-            byte a = work.cd.mData[work.hl++].dat;
+            byte a = (byte)work.cd.mData[work.hl++].dat;
             if (a == 0)
             {
                 work.cd.tlLfoflg = false;
@@ -1323,7 +1325,7 @@ namespace mucomDotNET.Driver
         //TLL2:
             work.cd.TLlfoSlot = a;
             work.cd.tlLfoflg = true;
-            a = work.cd.mData[work.hl++].dat;
+            a = (byte)work.cd.mData[work.hl++].dat;
             work.cd.fnum = a;
             work.cd.bfnum2 = 0;
             work.cd.TLlfo = a;
@@ -1331,7 +1333,7 @@ namespace mucomDotNET.Driver
 
         public void SSGTremolo()
         {
-            byte a = work.cd.mData[work.hl++].dat;
+            byte a = (byte)work.cd.mData[work.hl++].dat;
             if (a == 0)
             {
                 work.cd.SSGTremoloFlg = false;
@@ -1347,13 +1349,13 @@ namespace mucomDotNET.Driver
 
         public void REPSTF()
         {
-            byte e = work.cd.mData[work.hl++].dat;
-            byte d = work.cd.mData[work.hl++].dat;//DE as REWRITE ADR OFFSET +1
+            byte e = (byte)work.cd.mData[work.hl++].dat;
+            byte d = (byte)work.cd.mData[work.hl++].dat;//DE as REWRITE ADR OFFSET +1
 
             int hl = (int)work.hl;
             hl -= 2;
             hl += e + d * 0x100;
-            byte a = work.cd.mData[hl--].dat;
+            byte a = (byte)work.cd.mData[hl--].dat;
             work.cd.mData[hl].dat = a;
         }
 
@@ -1374,8 +1376,8 @@ namespace mucomDotNET.Driver
 
             work.hl += 2;
 
-            byte e = work.cd.mData[work.hl++].dat;
-            byte d = work.cd.mData[work.hl--].dat;
+            byte e = (byte)work.cd.mData[work.hl++].dat;
+            byte d = (byte)work.cd.mData[work.hl--].dat;
 
             //a &= a;
             work.hl -= (uint)(e + d * 0x100);
@@ -1389,7 +1391,7 @@ namespace mucomDotNET.Driver
 
             for (int bc = 0; bc < 4; bc++)
             {
-                byte a = work.cd.mData[work.hl++].dat;
+                byte a = (byte)work.cd.mData[work.hl++].dat;
                 work.soundWork.DETDAT[bc] = a;
             }
         }
@@ -1428,7 +1430,7 @@ namespace mucomDotNET.Driver
                 return;
             }
             //STER2:
-            byte a = work.cd.mData[work.hl++].dat;
+            byte a = (byte)work.cd.mData[work.hl++].dat;
             byte c = (byte)(((a >> 2) & 0x3f) | (a << 6));
             byte d = work.soundWork.PALDAT[work.soundWork.FMPORT + work.cd.channelNumber];
             d = (byte)((d & 0b0011_1111) | c);
@@ -1437,7 +1439,7 @@ namespace mucomDotNET.Driver
             PSGOUT(a, d);
             return;
         STE2:
-            byte dat = work.cd.mData[work.hl++].dat;
+            byte dat = (byte)work.cd.mData[work.hl++].dat;
             c = dat;
             dat &= 0b0000_1111;
             a = work.soundWork.DRMVOL[dat];
@@ -1461,7 +1463,7 @@ namespace mucomDotNET.Driver
                 return;
             }
 
-            a = work.cd.mData[work.hl++].dat;
+            a = (byte)work.cd.mData[work.hl++].dat;
             if (a >= 4)
             {
                 goto STE012;
@@ -1480,8 +1482,8 @@ namespace mucomDotNET.Driver
         STE012:
             work.cd.panEnable |= 1;//パーン許可
             work.cd.panMode = a;
-            work.cd.panCounterWork = work.cd.mData[work.hl].dat;
-            work.cd.panCounter = work.cd.mData[work.hl].dat;
+            work.cd.panCounterWork = (byte)work.cd.mData[work.hl].dat;
+            work.cd.panCounter = (byte)work.cd.mData[work.hl].dat;
             work.hl++;
             switch (a)
             {
@@ -1528,8 +1530,8 @@ namespace mucomDotNET.Driver
 
             work.soundWork.DrmPanEnable[b] |= 1;//パーン許可
             work.soundWork.DrmPanMode[b] = a;
-            work.soundWork.DrmPanCounterWork[b] = work.cd.mData[work.hl].dat;
-            work.soundWork.DrmPanCounter[b] = work.cd.mData[work.hl].dat;
+            work.soundWork.DrmPanCounterWork[b] = (byte)work.cd.mData[work.hl].dat;
+            work.soundWork.DrmPanCounter[b] = (byte)work.cd.mData[work.hl].dat;
             work.hl++;
 
             switch (a)
@@ -1553,7 +1555,7 @@ namespace mucomDotNET.Driver
 
         public void STEREO_AMD98_ADPCM()
         {
-            byte a = work.cd.mData[work.hl++].dat;
+            byte a = (byte)work.cd.mData[work.hl++].dat;
 
             if (a < 4)
             {
@@ -1565,8 +1567,8 @@ namespace mucomDotNET.Driver
 
             work.cd.panEnable |= 1;//パーン許可
             work.cd.panMode = a;
-            work.cd.panCounterWork = work.cd.mData[work.hl].dat;
-            work.cd.panCounter = work.cd.mData[work.hl].dat;
+            work.cd.panCounterWork = (byte)work.cd.mData[work.hl].dat;
+            work.cd.panCounter = (byte)work.cd.mData[work.hl].dat;
             work.hl++;
 
             switch (a)
@@ -1713,7 +1715,7 @@ namespace mucomDotNET.Driver
 
         public void FLGSET()
         {
-            byte a = work.cd.mData[work.hl++].dat;
+            byte a = (byte)work.cd.mData[work.hl++].dat;
             work.soundWork.FLGADR = a;
         }
 
@@ -1721,8 +1723,8 @@ namespace mucomDotNET.Driver
 
         public void W_REG()
         {
-            byte d = work.cd.mData[work.hl++].dat;
-            byte e = work.cd.mData[work.hl++].dat;
+            byte d = (byte)work.cd.mData[work.hl++].dat;
+            byte e = (byte)work.cd.mData[work.hl++].dat;
             PSGOUT(d, e);
         }
 
@@ -1750,11 +1752,11 @@ namespace mucomDotNET.Driver
 
         public void HLFOON()
         {
-            byte a = work.cd.mData[work.hl++].dat;// FREQ CONT
+            byte a = (byte)work.cd.mData[work.hl++].dat;// FREQ CONT
             a |= 0b0000_1000;
             PSGOUT(0x22, a);
 
-            byte c = work.cd.mData[work.hl++].dat;// PMS
+            byte c = (byte)work.cd.mData[work.hl++].dat;// PMS
             c = (byte)(c | (work.cd.mData[work.hl++].dat << 4));// AMS+PMS
             int de = work.soundWork.FMPORT + work.cd.channelNumber; // PALDAT;
             a = (byte)((work.soundWork.PALDAT[de] & 0b1100_0000) | c);
@@ -1771,14 +1773,14 @@ namespace mucomDotNET.Driver
 
         public void RSKIP()
         {
-            byte e = work.cd.mData[work.hl++].dat;
-            byte d = work.cd.mData[work.hl++].dat;
+            byte e = (byte)work.cd.mData[work.hl++].dat;
+            byte d = (byte)work.cd.mData[work.hl++].dat;
 
             uint hl = work.hl;
             hl -= 2;
             hl += (uint)(e + d * 0x100);
 
-            byte a = work.cd.mData[hl].dat;
+            byte a = (byte)work.cd.mData[hl].dat;
             a--;// LOOP ｶｳﾝﾀ = 1 ?
             if (a == 0)
             {
@@ -1791,7 +1793,7 @@ namespace mucomDotNET.Driver
 
         public void SECPRC()
         {
-            byte a = work.cd.mData[work.hl++].dat;
+            byte a = (byte)work.cd.mData[work.hl++].dat;
             a &= 0xf;// A=COMMAND No.(0-F)
 
             FMCOM2[a]();
@@ -1803,7 +1805,7 @@ namespace mucomDotNET.Driver
 
         public void PVMCHG()
         {
-            byte a = work.cd.mData[work.hl++].dat;
+            byte a = (byte)work.cd.mData[work.hl++].dat;
             work.soundWork.PVMODE = a;
         }
 
@@ -1811,7 +1813,7 @@ namespace mucomDotNET.Driver
 
         public void REVERVE()
         {
-            byte a = work.cd.mData[work.hl++].dat;
+            byte a = (byte)work.cd.mData[work.hl++].dat;
             work.cd.reverbVol = a;
             //RV1:
             work.cd.reverbFlg = true;
@@ -1819,7 +1821,7 @@ namespace mucomDotNET.Driver
 
         public void REVSW()
         {
-            byte a = work.cd.mData[work.hl++].dat;
+            byte a = (byte)work.cd.mData[work.hl++].dat;
             if (a != 0)
             {
                 //goto RV1;
@@ -1832,7 +1834,7 @@ namespace mucomDotNET.Driver
 
         public void REVMOD()
         {
-            byte a = work.cd.mData[work.hl++].dat;
+            byte a = (byte)work.cd.mData[work.hl++].dat;
             if (a != 0)
             {
                 work.cd.reverbMode = true;
@@ -1849,7 +1851,7 @@ namespace mucomDotNET.Driver
 
         public void OTOSSG()
         {
-            byte a = work.cd.mData[work.hl++].dat;
+            byte a = (byte)work.cd.mData[work.hl++].dat;
 
             //OTOCAL
             int ptr = 0;// SSGDAT;
@@ -1865,7 +1867,7 @@ namespace mucomDotNET.Driver
 
         public void OTOSET()
         {
-            byte a = work.cd.mData[work.hl++].dat;
+            byte a = (byte)work.cd.mData[work.hl++].dat;
 
             //OTOCAL
             int ptr = 0;// SSGDAT;
@@ -1873,7 +1875,7 @@ namespace mucomDotNET.Driver
 
             for (int i = 0; i < 6; i++)
             {
-                work.soundWork.SSGDAT[ptr + i] = work.cd.mData[work.hl++].dat;
+                work.soundWork.SSGDAT[ptr + i] = (byte)work.cd.mData[work.hl++].dat;
             }
 
         }
@@ -1896,7 +1898,7 @@ namespace mucomDotNET.Driver
         {
             work.cd.hardEnveFlg = false;
             byte e = (byte)(work.cd.volume & 0b1111_0000);
-            byte c = work.cd.mData[work.hl].dat;
+            byte c = (byte)work.cd.mData[work.hl].dat;
             PV1(c, e);
         }
 
@@ -1919,7 +1921,7 @@ namespace mucomDotNET.Driver
 
         public void NOISE()
         {
-            byte c = work.cd.mData[work.hl++].dat;
+            byte c = (byte)work.cd.mData[work.hl++].dat;
             byte b = (byte)work.cd.channelNumber;
             byte e = work.soundWork.PREGBF[5];
             b >>= 1;
@@ -1954,7 +1956,7 @@ namespace mucomDotNET.Driver
 
         public void NOISEW()
         {
-            byte e = work.cd.mData[work.hl++].dat;
+            byte e = (byte)work.cd.mData[work.hl++].dat;
             PSGOUT(6, e);
             work.soundWork.PREGBF[4] = e;
         }
@@ -1963,7 +1965,7 @@ namespace mucomDotNET.Driver
 
         public void VOLUPS()
         {
-            byte d = work.cd.mData[work.hl++].dat;
+            byte d = (byte)work.cd.mData[work.hl++].dat;
             if (!work.cd.hardEnveFlg)
             {
                 byte a = (byte)work.cd.volume;
@@ -1993,7 +1995,7 @@ namespace mucomDotNET.Driver
             }
             uint hl = work.cd.dataAddressWork;
             hl--;
-            byte a = work.cd.mData[hl].dat;
+            byte a = (byte)work.cd.mData[hl].dat;
             if (a == 0xf0)
             {
                 return;//  ｲｾﾞﾝ ﾉ ﾃﾞｰﾀ ｶﾞ '&' ﾅﾗ RET
@@ -2309,7 +2311,7 @@ namespace mucomDotNET.Driver
                 }
                 //SSSUB1:
                 //SSSUB2:
-                a = work.cd.mData[work.hl++].dat;// INPUT FLAG &LENGTH
+                a = (byte)work.cd.mData[work.hl++].dat;// INPUT FLAG &LENGTH
                 if (a < 0xf0) break;
                 //COMMAND OF PSG?
                 //SSSUB8();
@@ -2333,7 +2335,7 @@ namespace mucomDotNET.Driver
             // **	SET FINE TUNE & COARSE TUNE	**
 
             //SSSUB6:
-            a = work.cd.mData[work.hl++].dat;// LOAD OCT & KEY CODE
+            a = (byte)work.cd.mData[work.hl++].dat;// LOAD OCT & KEY CODE
             byte b, c;
             if (!work.cd.keyoffflg)
             {
@@ -2626,7 +2628,7 @@ namespace mucomDotNET.Driver
         public void HRDENV()
         {
 
-            byte e = work.cd.mData[work.hl++].dat;
+            byte e = (byte)work.cd.mData[work.hl++].dat;
             byte d = 0x0d;
             PSGOUT(d, e);
             work.cd.hardEnveFlg = true;
@@ -2638,11 +2640,11 @@ namespace mucomDotNET.Driver
         public void ENVPOD()
         {
 
-            byte e = work.cd.mData[work.hl++].dat;
+            byte e = (byte)work.cd.mData[work.hl++].dat;
             byte d = 0x0b;
             PSGOUT(d, e);
 
-            e = work.cd.mData[work.hl++].dat;
+            e = (byte)work.cd.mData[work.hl++].dat;
             d = 0x0c;
             PSGOUT(d, e);
 
@@ -2653,7 +2655,7 @@ namespace mucomDotNET.Driver
             work.cd.KeyOnDelayFlag = false;
             for (int i = 0; i < 4; i++)
             {
-                work.cd.KDWork[i] = work.cd.KD[i] = work.cd.mData[work.hl++].dat;
+                work.cd.KDWork[i] = work.cd.KD[i] = (byte)work.cd.mData[work.hl++].dat;
                 if (work.cd.KD[i] != 0) work.cd.KeyOnDelayFlag = true;
             }
 

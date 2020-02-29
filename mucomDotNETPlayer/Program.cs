@@ -1,5 +1,5 @@
 ﻿using mucomDotNET.Common;
-using mucomDotNET.Interface;
+using musicDriverInterface;
 using NAudio.Wave;
 using Nc86ctl;
 using NScci;
@@ -45,7 +45,7 @@ namespace mucomDotNET.Player
         private static short[] frames = new short[samplingBuffer * 4];
         private static MDSound.MDSound mds = null;
         private static short[] emuRenderBuf = new short[2];
-        private static Interface.iDriver drv = null;
+        private static musicDriverInterface.iDriver drv = null;
         private static readonly uint opnaMasterClock = 7987200;
         private static int device = 0;
         private static int loop = 0;
@@ -126,7 +126,14 @@ namespace mucomDotNET.Player
 
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
                 drv = new Driver.Driver();
-                drv.Init(args[fnIndex], OPNAWrite, OPNAWaitSend, false, isLoadADPCM, loadADPCMOnly);
+                ((Driver.Driver)drv).Init(
+                    args[fnIndex]
+                    , OPNAWrite
+                    , OPNAWaitSend
+                    , false
+                    , isLoadADPCM
+                    , loadADPCMOnly
+                    );
 
                 List<Tuple<string, string>> tags = drv.GetTags();
                 foreach (Tuple<string, string> tag in tags)
@@ -149,7 +156,7 @@ namespace mucomDotNET.Player
                         break;
                 }
 
-                drv.MSTART(0);
+                drv.MusicSTART(0);
 
                 Log.WriteLine(LogLevel.INFO, "終了する場合は何かキーを押してください");
 
@@ -161,9 +168,9 @@ namespace mucomDotNET.Player
                         break;
                     }
                     //ステータスが0(終了)又は0未満(エラー)の場合はループを抜けて終了
-                    if (drv.Status() <= 0)
+                    if (drv.GetStatus() <= 0)
                     {
-                        if (drv.Status() == 0)
+                        if (drv.GetStatus() == 0)
                         {
                             System.Threading.Thread.Sleep((int)(latency * 2.0));//実際の音声が発音しきるまでlatency*2の分だけ待つ
                         }
@@ -171,7 +178,7 @@ namespace mucomDotNET.Player
                     }
                 }
 
-                drv.MSTOP();
+                drv.MusicSTOP();
                 drv.StopRendering();
             }
             catch
@@ -183,12 +190,14 @@ namespace mucomDotNET.Player
                 if (audioOutput != null)
                 {
                     audioOutput.Stop();
+                    while (audioOutput.PlaybackState == PlaybackState.Playing) { Thread.Sleep(1); }
                     audioOutput.Dispose();
                     audioOutput = null;
                 }
                 if(trdMain!=null)
                 {
-                    ;
+                    trdClosed = true;
+                    while (!trdStopped) { Thread.Sleep(1); }
                 }
                 if (nc86ctl != null)
                 {
@@ -454,7 +463,6 @@ namespace mucomDotNET.Player
                     buffer[offset + i * 2 + 0] = emuRenderBuf[0];
                     buffer[offset + i * 2 + 1] = emuRenderBuf[1];
 
-                    //Console.WriteLine(frames[i * 2 + 0]);
                 }
             }
             catch//(Exception ex)
@@ -491,19 +499,8 @@ namespace mucomDotNET.Player
                         o += step;
                     }
 
-                    //if (Stopped || Paused)
-                    //{
-                    //    if (realChip != null && !oneTimeReset)
-                    //    {
-                    //        softReset(EnmModel.RealModel);
-                    //        oneTimeReset = true;
-                    //        chipRegister.resetAllMIDIout();
-                    //    }
-                    //    continue;
-                    //}
-                    //if (hiyorimiNecessary && driverVirtual.isDataBlock) { continue; }
-
                     OneFrame();
+
                 }
             }
             catch
@@ -517,13 +514,13 @@ namespace mucomDotNET.Player
             drv.Rendering();
         }
 
-        private static void OPNAWrite(OPNAData dat)
+        private static void OPNAWrite(ChipDatum dat)
         {
             //Log.WriteLine(LogLevel.TRACE, string.Format("FM P{2} Out:Adr[{0:x02}] val[{1:x02}]", (int)dat.address, (int)dat.data,dat.port));
             switch(device)
             {
                 case 0:
-                    mds.WriteYM2608(0, dat.port, dat.address, dat.data);
+                    mds.WriteYM2608(0, (byte)dat.port, (byte)dat.address, (byte)dat.data);
                     break;
                 case 1:
                 case 2:

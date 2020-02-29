@@ -16,6 +16,10 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\mucomDotNETCommon\Common.csproj" />
-    <ProjectReference Include="..\mucomDotNETInterface\Interface.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="musicDriverInterface">
+      <HintPath>..\lib\musicDriverInterface.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

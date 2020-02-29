@@ -1,7 +1,7 @@
-﻿using mucomDotNET.Interface;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using mucomDotNET.Common;
 
 namespace mucomDotNET.Compiler
 {
