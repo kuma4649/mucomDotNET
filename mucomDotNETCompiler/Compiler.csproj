@@ -2,7 +2,7 @@
   <PropertyGroup>
     <RootNamespace>mucomDotNET.Compiler</RootNamespace>
     <AssemblyName>mucomDotNETCompiler</AssemblyName>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyTitle>mucomDotNET</AssemblyTitle>
     <Product>mucomDotNET</Product>
     <Copyright>Copyright ©  2019</Copyright>
@@ -16,11 +16,6 @@
     <ErrorReport>none</ErrorReport>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Net.Http" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\mucomDotNETCommon\Common.csproj" />
     <ProjectReference Include="..\mucomDotNETInterface\Interface.csproj" />

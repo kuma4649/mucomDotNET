@@ -2,7 +2,7 @@
   <PropertyGroup>
     <RootNamespace>mucomDotNET.Driver</RootNamespace>
     <AssemblyName>mucomDotNETDriver</AssemblyName>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyTitle>Driver</AssemblyTitle>
     <Product>Driver</Product>
     <Copyright>Copyright ©  2019</Copyright>
@@ -14,15 +14,6 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="NAudio" Version="1.9.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Net.Http" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\mucomDotNETCommon\Common.csproj" />
     <ProjectReference Include="..\mucomDotNETInterface\Interface.csproj" />

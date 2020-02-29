@@ -2,7 +2,7 @@
   <PropertyGroup>
     <RootNamespace>mucomDotNET.Common</RootNamespace>
     <AssemblyName>mucomDotNETCommon</AssemblyName>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyTitle>mucomDotNETCommon</AssemblyTitle>
     <Product>mucomDotNETCommon</Product>
     <Copyright>Copyright ©  2019</Copyright>
@@ -14,11 +14,6 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Net.Http" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\mucomDotNETInterface\Interface.csproj" />
   </ItemGroup>
