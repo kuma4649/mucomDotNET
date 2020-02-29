@@ -37,9 +37,9 @@ namespace mucomDotNET.Driver
         }
         private iEncoding enc = null;
 
-        public Driver(iEncoding enc)
+        public Driver(iEncoding enc = null)
         {
-            this.enc = enc;
+            this.enc = enc ?? myEncoding.Default;
         }
 
         public void Init(string fileName, Action<ChipDatum> opnaWrite, Action<long, int> opnaWaitSend, bool notSoundBoard2, bool isLoadADPCM, bool loadADPCMOnly)
