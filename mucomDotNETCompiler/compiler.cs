@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.Linq;
 using mucomDotNET.Common;
@@ -11,6 +10,7 @@ namespace mucomDotNET.Compiler
     public class Compiler : iCompiler
     {
         public string OutFileName { get; set; }
+        private iEncoding enc = null;
 
         public enum EnmMUCOMFileType
         {
@@ -19,10 +19,15 @@ namespace mucomDotNET.Compiler
             MUC
         }
 
+        public Compiler(iEncoding enc)
+        {
+            this.enc = enc;
+        }
+
         public void Init()
         {
-            muc88 = new Muc88(mucInfo);
-            msub = new Msub(mucInfo);
+            muc88 = new Muc88(mucInfo, enc);
+            msub = new Msub(mucInfo, enc);
             expand = new expand(mucInfo);
             smon = new smon(mucInfo);
             muc88.msub = msub;
@@ -209,9 +214,7 @@ namespace mucomDotNET.Compiler
 
         private List<Tuple<string, string>> GetTagsFromMUC(byte[] buf)
         {
-            //Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-
-            var text = Encoding.GetEncoding("shift_jis").GetString(buf)
+            var text = enc.GetStringFromSjisArray(buf)  // Encoding.GetEncoding("shift_jis").GetString(buf)
                 .Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => x.IndexOf("#") == 0);
             tags.Clear();
@@ -286,7 +289,7 @@ namespace mucomDotNET.Compiler
         private int StoreBasicSource(byte[] buf)
         {
             int line = 0;
-            var text = Encoding.GetEncoding("shift_jis").GetString(buf)
+            var text = enc.GetStringFromSjisArray(buf) //Encoding.GetEncoding("shift_jis").GetString(buf)
                 .Split(new string[] { "\r\n" }, StringSplitOptions.None);
 
             basSrc.Clear();
@@ -340,9 +343,9 @@ namespace mucomDotNET.Compiler
                 work.compilerInfo.jumpClock = work.JCLOCK;
 
                 if (work.pcmFlag == 0) pcmflag = 2;
-                msg = Encoding.GetEncoding("Shift_JIS").GetString(textLineBuf, 31, 4);
+                msg = enc.GetStringFromSjisArray(textLineBuf, 31, 4);//Encoding.GetEncoding("Shift_JIS").GetString(textLineBuf, 31, 4);
                 int start = Convert.ToInt32(msg, 16);
-                msg = Encoding.GetEncoding("Shift_JIS").GetString(textLineBuf, 41, 4);
+                msg = enc.GetStringFromSjisArray(textLineBuf, 41, 4);//Encoding.GetEncoding("Shift_JIS").GetString(textLineBuf, 41, 4);
                 int length = mucInfo.bufDst.Count;
                 mubsize = length;
 
@@ -505,7 +508,8 @@ namespace mucomDotNET.Compiler
 
                 foreach (Tuple<string, string> tag in tags)
                 {
-                    byte[] b = Encoding.GetEncoding("shift_jis").GetBytes(string.Format("#{0} {1}\r\n", tag.Item1, tag.Item2));
+                    byte[] b = enc.GetSjisArrayFromString(string.Format("#{0} {1}\r\n", tag.Item1, tag.Item2));
+                    //Encoding.GetEncoding("shift_jis").GetBytes(string.Format("#{0} {1}\r\n", tag.Item1, tag.Item2));
                     footsize += b.Length;
                     foreach (byte bd in b) dat.Add(new MmlDatum(bd));
                 }

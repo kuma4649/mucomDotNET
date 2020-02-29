@@ -28,10 +28,12 @@ namespace mucomDotNET.Driver
         public uint pad1 = 0;
         public byte[] ext_fmvoice = new byte[32];
         private MmlDatum[] srcBuf = null;
+        private iEncoding enc = null;
 
-
-        public MUBHeader(MmlDatum[] buf)
+        public MUBHeader(MmlDatum[] buf,iEncoding enc)
         {
+            this.enc = enc;
+
             magic = Cmn.getLE32(buf, 0x0000);
             dataoffset = Cmn.getLE32(buf, 0x0004);
             datasize = Cmn.getLE32(buf, 0x0008);
@@ -124,7 +126,7 @@ namespace mucomDotNET.Driver
 
         private List<Tuple<string, string>> GetTagsByteArray(byte[] buf)
         {
-            var text = Encoding.GetEncoding("shift_jis").GetString(buf)
+            var text = enc.GetStringFromSjisArray(buf) //Encoding.GetEncoding("shift_jis").GetString(buf)
                 .Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => x.IndexOf("#") == 0);
 

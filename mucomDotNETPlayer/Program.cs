@@ -124,8 +124,8 @@ namespace mucomDotNET.Player
                 mds = new MDSound.MDSound(SamplingRate, samplingBuffer, new MDSound.MDSound.Chip[] { chip });
 
 
-
-                drv = new Driver.Driver();
+                iEncoding enc = new myEncoding();
+                drv = new Driver.Driver(enc);
                 ((Driver.Driver)drv).Init(
                     args[fnIndex]
                     , OPNAWrite

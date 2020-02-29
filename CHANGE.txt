@@ -1,4 +1,8 @@
 更新履歴
+TAG026 2020/02/29 2nd
+  Compiler&Driver
+  ・文字エンコーディング処理をインターフェイス化。
+   
 TAG025 2020/02/29
   ・common/compiler/driverを.NetStanderdへ変更。(TAN-Yさんありがとうございます。)
   ・外部アプリケーションとの連携向けインターフェイスを大幅に修正

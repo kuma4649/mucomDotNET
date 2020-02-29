@@ -14,9 +14,11 @@ namespace mucomDotNET.Compiler
         private readonly MUCInfo mucInfo;
         private readonly Func<EnmFCOMPNextRtn>[] COMTBL;
         //private readonly int errLin = 0;
+        private iEncoding enc = null;
 
-        public Muc88(MUCInfo mucInfo)
+        public Muc88(MUCInfo mucInfo,iEncoding enc)
         {
+            this.enc = enc;
             this.mucInfo = mucInfo;
             COMTBL = new Func<EnmFCOMPNextRtn>[]
             {
@@ -2105,8 +2107,9 @@ namespace mucomDotNET.Compiler
             mucInfo.srcCPtr++;
             int voiBPtr = 0x20 + 26;// 0x6020 + 26;
             int num = 1;
-            var unicodeByte = Encoding.Unicode.GetBytes(mucInfo.lin.Item2);
-            var sjis = Encoding.Convert(Encoding.Unicode, Encoding.GetEncoding("shift_jis"), unicodeByte);
+            //var unicodeByte = Encoding.Unicode.GetBytes(mucInfo.lin.Item2);
+            var sjis = enc.GetSjisArrayFromString(mucInfo.lin.Item2);
+            // Encoding.Convert(Encoding.Unicode, Encoding.GetEncoding("shift_jis"), unicodeByte);
 
             do
             {
@@ -2828,7 +2831,7 @@ namespace mucomDotNET.Compiler
         {
             string h = "000" + Convert.ToString(n, 16);//PR END ADR
             h = h.Substring(h.Length - 4, 4);
-            byte[] data = System.Text.Encoding.GetEncoding("shift_jis").GetBytes(h);
+            byte[] data = enc.GetSjisArrayFromString(h);// System.Text.Encoding.GetEncoding("shift_jis").GetBytes(h);
             for (int i = 0; i < data.Length; i++) mucInfo.bufTitle.Set(pos + i, data[i]);
         }
 

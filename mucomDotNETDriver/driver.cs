@@ -35,6 +35,12 @@ namespace mucomDotNET.Driver
             , EFfeCt
             , RETurnWork
         }
+        private iEncoding enc = null;
+
+        public Driver(iEncoding enc)
+        {
+            this.enc = enc;
+        }
 
         public void Init(string fileName, Action<ChipDatum> opnaWrite, Action<long, int> opnaWaitSend, bool notSoundBoard2, bool isLoadADPCM, bool loadADPCMOnly)
         {
@@ -57,7 +63,7 @@ namespace mucomDotNET.Driver
 
             pathWork = Path.GetDirectoryName(fileName);
             fnMUB = fileName;
-            header = new MUBHeader(srcBuf);
+            header = new MUBHeader(srcBuf, enc);
             work.mData = GetDATA();
             tags = GetTags();
             GetFileNameFromTag();
@@ -135,7 +141,7 @@ namespace mucomDotNET.Driver
                     item2[3] = (ushort)(pcm[inftable + 26] | (pcm[inftable + 27] * 0x100));
                     Array.Copy(pcm, i * 32, pcmname, 0, 16);
                     pcmname[16] = 0;
-                    string item1 = Encoding.GetEncoding("shift_jis").GetString(pcmname);
+                    string item1 = enc.GetStringFromSjisArray(pcmname);//Encoding.GetEncoding("shift_jis").GetString(pcmname);
 
                     Tuple<string, ushort[]> pd = new Tuple<string, ushort[]>(item1, item2);
                     pcmtable.Add(pd);
