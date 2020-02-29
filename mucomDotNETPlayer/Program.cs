@@ -123,8 +123,9 @@ namespace mucomDotNET.Player
                 };
                 mds = new MDSound.MDSound(SamplingRate, samplingBuffer, new MDSound.MDSound.Chip[] { chip });
 
-
+#if NETCOREAPP
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+#endif
                 drv = new Driver.Driver();
                 ((Driver.Driver)drv).Init(
                     args[fnIndex]

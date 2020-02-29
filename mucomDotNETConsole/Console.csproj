@@ -37,10 +37,12 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.0" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="musicDriverInterface">
       <HintPath>..\lib\musicDriverInterface.dll</HintPath>
     </Reference>
-    <Reference Include="System.Data.DataSetExtensions" />
     <ProjectReference Include="..\mucomDotNETCommon\Common.csproj" />
     <ProjectReference Include="..\mucomDotNETCompiler\Compiler.csproj" />
   </ItemGroup>
