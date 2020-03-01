@@ -4,9 +4,9 @@ del /Q .\output\*.*
 del /Q .\output\compiler\*.*
 del /Q .\output\player\*.*
 del /Q .\output\toWav\*.*
-xcopy .\mucomDotNETConsole\bin\Release\netcoreapp3.1\*.* .\output\compiler\ /E /R /Y /I /K
+xcopy .\mucomDotNETConsole.Net4\bin\Release\net472\*.* .\output\compiler\ /E /R /Y /I /K
 xcopy .\mucomDotNETPlayer\bin\Release\net472\*.* .\output\player\ /E /R /Y /I /K
-xcopy .\Wav\bin\Release\*.* .\output\toWav\ /E /R /Y /I /K
+xcopy .\Wav.Net4\bin\Release\net472\*.* .\output\toWav\ /E /R /Y /I /K
 del /Q .\output\*.pdb
 del /Q .\output\*.config
 del /Q .\output\compiler\*.pdb

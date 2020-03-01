@@ -20,7 +20,7 @@ namespace Wav
         private static iDriver drv = null;
         private static readonly uint opnaMasterClock = 7987200;
         private static WaveWriter ww = null;
-        private static int loop = -1;
+        private static int loop = 2;
 
         static int Main(string[] args)
         {
@@ -144,7 +144,7 @@ namespace Wav
         private static int AnalyzeOption(string[] args)
         {
             int i = 0;
-            loop = 0;
+            loop = 2;
 
             while (args[i] != null && args[i].Length > 0 && args[i][0] == '-')
             {
@@ -153,7 +153,7 @@ namespace Wav
                 {
                     if (!int.TryParse(op.Substring(2), out loop))
                     {
-                        loop = 0;
+                        loop = 2;
                     }
                 }
 
