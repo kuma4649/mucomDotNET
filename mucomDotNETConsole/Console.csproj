@@ -3,7 +3,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>mucomDotNET.Console</RootNamespace>
     <AssemblyName>mucomDotNETConsole</AssemblyName>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -37,14 +37,12 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.0" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="musicDriverInterface">
       <HintPath>..\lib\musicDriverInterface.dll</HintPath>
     </Reference>
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Net.Http" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\mucomDotNETCommon\Common.csproj" />
     <ProjectReference Include="..\mucomDotNETCompiler\Compiler.csproj" />
   </ItemGroup>

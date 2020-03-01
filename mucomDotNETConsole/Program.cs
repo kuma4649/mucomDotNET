@@ -25,6 +25,9 @@ namespace mucomDotNET.Console
 
             try
             {
+#if NETCOREAPP
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+#endif
                 foreach (string arg in args)
                 {
                     iCompiler compiler = new Compiler.Compiler();
