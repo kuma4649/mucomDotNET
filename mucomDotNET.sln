@@ -15,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "document", "document", "{A1
 		playOnGIMIC.bat = playOnGIMIC.bat
 		playOnSCCI.bat = playOnSCCI.bat
 		README.md = README.md
+		toWav.bat = toWav.bat
 		usage.txt = usage.txt
 	EndProjectSection
 EndProject
