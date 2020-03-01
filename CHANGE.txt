@@ -1,5 +1,5 @@
 更新履歴
-TAG027 2020/03/xx
+TAG027 2020/03/01
   Wave
   ・.wav出力向けmucomDotNETを作成
    
