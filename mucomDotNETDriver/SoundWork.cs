@@ -282,6 +282,7 @@ namespace mucomDotNET.Driver
         public byte TLlfoSlot { get; internal set; }
         public bool SSGTremoloFlg { get; internal set; }
         public int SSGTremoloVol { get; internal set; }
+        public int loopCounter { get; internal set; }
 
         public bool KeyOnDelayFlag = false;
         public byte keyOnSlot = 0xf0;

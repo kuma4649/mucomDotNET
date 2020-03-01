@@ -11,7 +11,6 @@ namespace mucomDotNET.Driver
     public class Music2
     {
         public const int MAXCH = 11;
-        public long[] loopCounter = null;
         // **	FM CONTROL COMMAND(s)   **
         public Action[] FMCOM = null;
         public Action[] FMCOM2 = null;
@@ -122,8 +121,6 @@ namespace mucomDotNET.Driver
             SetPSGCOM();
             SetSoundWork();
 
-            loopCounter = new long[MAXCH];
-            for (int i = 0; i < loopCounter.Length; i++) loopCounter[i] = -1;// ulong.MaxValue;
         }
 
         public void SetFMCOMTable()
@@ -492,23 +489,49 @@ namespace mucomDotNET.Driver
 
         public void DRIVE()
         {
+            int n = 0;
+
             work.soundWork.FMPORT = 0;
 
             //Log.WriteLine(LogLevel.TRACE, string.Format("----- -----{0}", loopC++));
             Log.WriteLine(LogLevel.TRACE, "----- FM 1");
             FMENT(0);
+            if ((work.soundWork.CHDAT[0].dataTopAddress == -1 && work.soundWork.CHDAT[0].loopEndFlg)
+                || work.soundWork.CHDAT[0].loopCounter >= work.maxLoopCount)
+                n++;
+
             Log.WriteLine(LogLevel.TRACE, "----- FM 2");
             FMENT(1);
+            if ((work.soundWork.CHDAT[1].dataTopAddress == -1 && work.soundWork.CHDAT[1].loopEndFlg)
+                || work.soundWork.CHDAT[1].loopCounter >= work.maxLoopCount)
+                n++;
+
             Log.WriteLine(LogLevel.TRACE, "----- FM 3");
             FMENT(2);
+            if ((work.soundWork.CHDAT[2].dataTopAddress == -1 && work.soundWork.CHDAT[2].loopEndFlg)
+                || work.soundWork.CHDAT[2].loopCounter >= work.maxLoopCount)
+                n++;
+
 
             work.soundWork.SSGF1 = 0xff;
             Log.WriteLine(LogLevel.TRACE, "----- SSG1");
             SSGENT(3);
+            if ((work.soundWork.CHDAT[3].dataTopAddress == -1 && work.soundWork.CHDAT[3].loopEndFlg)
+                || work.soundWork.CHDAT[3].loopCounter >= work.maxLoopCount)
+                n++;
+
             Log.WriteLine(LogLevel.TRACE, "----- SSG2");
             SSGENT(4);
+            if ((work.soundWork.CHDAT[4].dataTopAddress == -1 && work.soundWork.CHDAT[4].loopEndFlg)
+                || work.soundWork.CHDAT[4].loopCounter >= work.maxLoopCount)
+                n++;
+
             Log.WriteLine(LogLevel.TRACE, "----- SSG3");
             SSGENT(5);
+            if ((work.soundWork.CHDAT[5].dataTopAddress == -1 && work.soundWork.CHDAT[5].loopEndFlg)
+                || work.soundWork.CHDAT[5].loopCounter >= work.maxLoopCount)
+                n++;
+
             work.soundWork.SSGF1 = 0;
 
 
@@ -517,21 +540,44 @@ namespace mucomDotNET.Driver
             work.soundWork.DRMF1 = 1;
             Log.WriteLine(LogLevel.TRACE, "----- Ryhthm");
             FMENT(6);
+            if( (work.soundWork.CHDAT[6].dataTopAddress == -1 && work.soundWork.CHDAT[6].loopEndFlg)
+                || work.soundWork.CHDAT[6].loopCounter >= work.maxLoopCount)
+                n++;
+
             work.soundWork.DRMF1 = 0;
 
             work.soundWork.FMPORT = 4;
             Log.WriteLine(LogLevel.TRACE, "----- FM 4");
             FMENT(7);
+            if( (work.soundWork.CHDAT[7].dataTopAddress == -1 && work.soundWork.CHDAT[7].loopEndFlg)
+                || work.soundWork.CHDAT[7].loopCounter >= work.maxLoopCount)
+                n++;
+
             Log.WriteLine(LogLevel.TRACE, "----- FM 5");
             FMENT(8);
+            if ((work.soundWork.CHDAT[8].dataTopAddress == -1 && work.soundWork.CHDAT[8].loopEndFlg)
+                || work.soundWork.CHDAT[8].loopCounter >= work.maxLoopCount)
+                n++;
+
             Log.WriteLine(LogLevel.TRACE, "----- FM 6");
             FMENT(9);
+            if ((work.soundWork.CHDAT[9].dataTopAddress == -1 && work.soundWork.CHDAT[9].loopEndFlg)
+                || work.soundWork.CHDAT[9].loopCounter >= work.maxLoopCount)
+                n++;
+
 
             work.soundWork.PCMFLG = 0xff;
             Log.WriteLine(LogLevel.TRACE, "----- ADPCM");
             FMENT(10);
+            if ((work.soundWork.CHDAT[10].dataTopAddress == -1 && work.soundWork.CHDAT[10].loopEndFlg)
+                || work.soundWork.CHDAT[10].loopCounter >= work.maxLoopCount)
+                n++;
+
             work.soundWork.PCMFLG = 0;
 
+            if (work.maxLoopCount == -1) n = 0;
+            if (n == MAXCH)
+                MSTOP();
         }
 
         public void FMENT(int ix)
@@ -697,6 +743,7 @@ namespace mucomDotNET.Driver
 
         public void FMSUBC(uint hl)
         {
+
             byte a;
             do
             {
@@ -712,9 +759,9 @@ namespace mucomDotNET.Driver
                         FMEND(hl);//* DATA TOP ADRESS ｶﾞ 0000H ﾃﾞ BGM
                         return; // ﾉ ｼｭｳﾘｮｳ ｦ ｹｯﾃｲ ｿﾚ ｲｶﾞｲﾊ ｸﾘｶｴｼ
                     }
-                    //loopCounter[currentCh]++;
                     hl = (uint)work.cd.dataTopAddress;
                     a = (byte)work.cd.mData[hl].dat;// GET FLAG & LENGTH
+                    work.cd.loopCounter++;
                 }
                 // **	SET LENGTH	**
                 hl++;
@@ -729,12 +776,13 @@ namespace mucomDotNET.Driver
                 hl = work.hl;
             } while (true);
 
+            work.crntMmlDatum = work.cd.mData[hl];
             work.cd.lengthCounter = a & 0x7f;// SET WAIT COUNTER
 
-            work.crntMmlDatum = work.cd.mData[work.cd.dataAddressWork];
 
             if ((a & 0x80) != 0) //BIT7(ｷｭｳﾌ ﾌﾗｸﾞ)
             {
+                work.crntMmlDatum = work.cd.mData[hl - 1];
                 // **	SET F-NUMBER**
                 work.cd.dataAddressWork = hl;// SET NEXT SOUND DATA ADD
 
@@ -2295,6 +2343,8 @@ namespace mucomDotNET.Driver
 
         public void SSSUBB()
         {
+            work.crntMmlDatum = work.cd.mData[work.hl];
+
             byte a;
             do
             {
@@ -2308,6 +2358,7 @@ namespace mucomDotNET.Driver
                         return;
                     }
                     work.hl = (uint)work.cd.dataTopAddress;
+                    work.cd.loopCounter++;
                 }
                 //SSSUB1:
                 //SSSUB2:
@@ -2327,6 +2378,7 @@ namespace mucomDotNET.Driver
                                       //  ｷｭｳﾌ ﾅﾗ SSSUBA
             if (carry)
             {
+                work.crntMmlDatum = work.cd.mData[work.hl-1];
                 SSSUBA();
                 SETPT();
                 return;

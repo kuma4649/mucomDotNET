@@ -515,6 +515,17 @@ namespace mucomDotNET.Player
 
         private static void OPNAWrite(ChipDatum dat)
         {
+            if (dat != null && dat.addtionalData != null)
+            {
+                MmlDatum md = (MmlDatum)dat.addtionalData;
+                if (md.linePos != null)
+                {
+                    Log.WriteLine(LogLevel.TRACE, string.Format("! r{0} c{1}"
+                        , md.linePos.row
+                        , md.linePos.col
+                        ));
+                }
+            }
             //Log.WriteLine(LogLevel.TRACE, string.Format("FM P{2} Out:Adr[{0:x02}] val[{1:x02}]", (int)dat.address, (int)dat.data,dat.port));
             switch(device)
             {

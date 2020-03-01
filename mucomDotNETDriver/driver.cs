@@ -344,5 +344,10 @@ namespace mucomDotNET.Driver
             }
         }
 
+        public int SetLoopCount(int loopCounter)
+        {
+            work.maxLoopCount = loopCounter;
+            return 0;
+        }
     }
 }
