@@ -3,7 +3,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>mucomDotNET.Player</RootNamespace>
     <AssemblyName>mucomDotNETPlayer</AssemblyName>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -46,8 +46,6 @@
   </Target>
   <ItemGroup>
     <PackageReference Include="NAudio" Version="1.9.0" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MDSound, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
