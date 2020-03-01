@@ -73,6 +73,9 @@ namespace Wav
                 mds = new MDSound.MDSound((uint)SamplingRate, (uint)samplingBuffer, new MDSound.MDSound.Chip[] { chip });
 
 
+#if NETCOREAPP
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+#endif
                 drv = new Driver();
                 ((Driver)drv).Init(
                     args[fnIndex]
