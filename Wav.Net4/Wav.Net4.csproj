@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <ProjectGuid>{70F58570-BDA0-4B4B-A5DD-A12D055389E3}</ProjectGuid>
+    <ProjectGuid>{5C27B24F-A5B2-4BEE-85E8-A80F1F6B5FF7}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>mucomDotNET2wav</RootNamespace>
     <AssemblyName>mucomDotNET2wav</AssemblyName>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <AssemblyTitle>Wav</AssemblyTitle>
     <Product>Wav</Product>
@@ -21,7 +21,8 @@
     <StartupObject>Wav.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.0" />
+    <Compile Include="..\Wav\Properties\*.cs" />
+    <Compile Include="..\Wav\*.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MDSound">
