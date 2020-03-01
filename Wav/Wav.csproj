@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>mucomDotNET2wav</RootNamespace>
     <AssemblyName>mucomDotNET2wav</AssemblyName>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <AssemblyTitle>Wav</AssemblyTitle>
     <Product>Wav</Product>
@@ -21,15 +21,15 @@
     <StartupObject>Wav.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.0" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="MDSound">
-      <HintPath>..\..\mml2vgm\mml2vgm\Core\MDSound.dll</HintPath>
+      <HintPath>..\mucomDotNETPlayer\lib\MDSound.dll</HintPath>
     </Reference>
     <Reference Include="musicDriverInterface">
       <HintPath>..\lib\musicDriverInterface.dll</HintPath>
     </Reference>
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\mucomDotNETCommon\Common.csproj" />
