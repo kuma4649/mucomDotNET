@@ -89,10 +89,13 @@ namespace Wav
                 drv.SetLoopCount(loop);
 
                 List<Tuple<string, string>> tags = drv.GetTags();
-                foreach (Tuple<string, string> tag in tags)
+                if (tags != null)
                 {
-                    if (tag.Item1 == "") continue;
-                    Log.WriteLine(LogLevel.INFO, string.Format("{0,-16} : {1}", tag.Item1, tag.Item2));
+                    foreach (Tuple<string, string> tag in tags)
+                    {
+                        if (tag.Item1 == "") continue;
+                        Log.WriteLine(LogLevel.INFO, string.Format("{0,-16} : {1}", tag.Item1, tag.Item2));
+                    }
                 }
 
                 drv.StartRendering((int)SamplingRate, (int)opnaMasterClock);
