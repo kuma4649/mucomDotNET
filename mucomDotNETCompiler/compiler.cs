@@ -217,7 +217,8 @@ namespace mucomDotNET.Compiler
             var text = enc.GetStringFromSjisArray(buf)  // Encoding.GetEncoding("shift_jis").GetString(buf)
                 .Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => x.IndexOf("#") == 0);
-            tags.Clear();
+            if (tags != null) tags.Clear();
+            else tags = new List<Tuple<string, string>>();
 
             foreach (string v in text)
             {

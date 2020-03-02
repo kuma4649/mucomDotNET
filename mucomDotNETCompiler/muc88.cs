@@ -2748,7 +2748,7 @@ namespace mucomDotNET.Compiler
                 //mucomDotNET 独自
                 if (bufVoi == null)
                 {
-                    throw new MucException(msg.get("E0491"), -1, -1);
+                    throw new MucException(msg.get("E0519"), -1, -1);
                 }
 
                 ////
