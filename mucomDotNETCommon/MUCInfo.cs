@@ -14,6 +14,11 @@ namespace mucomDotNET.Common
         public string date { get; set; }
         public string voice { get; set; }
         public string pcm { get; set; }
+        public string driver { get; set; }
+
+        public const string DotNET = "DotNET";
+
+
         public int lines { get; set; }
         /// <summary>
         /// mml中で定義した音色データ
@@ -72,6 +77,8 @@ namespace mucomDotNET.Common
         public int col { get; set; }
         public int VM { get; set; }
 
+        public bool isDotNET = false;//mucomDotNET独自機能を使用したか否か
+
         public void Clear()
         {
             title = "";
@@ -98,6 +105,7 @@ namespace mucomDotNET.Common
             bufDefVoice = new AutoExtendList<int>();
             bufTitle = new AutoExtendList<int>();
             mmlVoiceDataWork = new AutoExtendList<byte>();
+            isDotNET = false;
         }
 
     }

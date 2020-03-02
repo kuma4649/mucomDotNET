@@ -5,18 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Wav
+namespace Vgm
 {
     class Program
     {
-        private static readonly int SamplingRate = 55467;//44100;
-        private static readonly int samplingBuffer = 1024;
-        private static short[] frames = new short[samplingBuffer * 4];
-        private static MDSound.MDSound mds = null;
-        private static short[] emuRenderBuf = new short[2];
-        private static iDriver drv = null;
+        private static readonly int SamplingRate = 44100;//vgm format freq
         private static readonly uint opnaMasterClock = 7987200;
-        private static WaveWriter ww = null;
+
+        private static iDriver drv = null;
+        private static VgmWriter vw = null;
         private static int loop = 2;
 
         static int Main(string[] args)
@@ -43,34 +40,17 @@ namespace Wav
 
             try
             {
-                ww = new WaveWriter(SamplingRate);
-                ww.Open(
+                vw = new VgmWriter();
+                vw.Open(
                     Path.Combine(
                         Path.GetDirectoryName(args[fnIndex])
-                        , Path.GetFileNameWithoutExtension(args[fnIndex]) + ".wav")
+                        , Path.GetFileNameWithoutExtension(args[fnIndex]) + ".vgm")
                     );
-
-                MDSound.ym2608 ym2608 = new MDSound.ym2608();
-                MDSound.MDSound.Chip chip = new MDSound.MDSound.Chip
-                {
-                    type = MDSound.MDSound.enmInstrumentType.YM2608,
-                    ID = 0,
-                    Instrument = ym2608,
-                    Update = ym2608.Update,
-                    Start = ym2608.Start,
-                    Stop = ym2608.Stop,
-                    Reset = ym2608.Reset,
-                    SamplingRate = (uint)SamplingRate,
-                    Clock = opnaMasterClock,
-                    Volume = 0,
-                    Option = new object[] { GetApplicationFolder() }
-                };
-                mds = new MDSound.MDSound((uint)SamplingRate, (uint)samplingBuffer, new MDSound.MDSound.Chip[] { chip });
-
 
 #if NETCOREAPP
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 #endif
+
                 drv = new Driver();
                 ((Driver)drv).Init(
                     args[fnIndex]
@@ -100,15 +80,14 @@ namespace Wav
                 while (true)
                 {
 
-                    EmuCallback(frames, 0, samplingBuffer);
+                    drv.Rendering();
+
                     //ステータスが0(終了)又は0未満(エラー)の場合はループを抜けて終了
                     if (drv.GetStatus() <= 0)
                     {
                         break;
                     }
 
-                    //Log.writeLine(LogLevel.TRACE, string.Format("{0}  {1}",frames[0],frames[1]));
-                    ww.Write(frames, 0, samplingBuffer);
                 }
 
                 drv.MusicSTOP();
@@ -119,9 +98,9 @@ namespace Wav
             }
             finally
             {
-                if (ww != null)
+                if (vw != null)
                 {
-                    ww.Close();
+                    vw.Close();
                 }
             }
 
@@ -178,36 +157,13 @@ namespace Wav
                         ));
                 }
             }
-            //Log.WriteLine(LogLevel.TRACE, string.Format("FM P{2} Out:Adr[{0:x02}] val[{1:x02}]", (int)dat.address, (int)dat.data,dat.port));
-            mds.WriteYM2608(0, (byte)dat.port, (byte)dat.address, (byte)dat.data);
+
+            vw.WriteYM2608(0, (byte)dat.port, (byte)dat.address, (byte)dat.data);
         }
 
         private static void OPNAWaitSend(long elapsed, int size)
         {
             return;
-        }
-
-        private static int EmuCallback(short[] buffer, int offset, int count)
-        {
-            try
-            {
-                long bufCnt = count / 2;
-
-                for (int i = 0; i < bufCnt; i++)
-                {
-                    mds.Update(emuRenderBuf, 0, 2, drv.Rendering);
-
-                    buffer[offset + i * 2 + 0] = emuRenderBuf[0];
-                    buffer[offset + i * 2 + 1] = emuRenderBuf[1];
-
-                }
-            }
-            catch//(Exception ex)
-            {
-                //Log.WriteLine(LogLevel.FATAL, string.Format("{0} {1}", ex.Message, ex.StackTrace));
-            }
-
-            return count;
         }
 
     }

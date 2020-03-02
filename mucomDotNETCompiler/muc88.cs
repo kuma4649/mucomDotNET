@@ -74,7 +74,13 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETHE()
         {
-            msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xf1));
+            if (CHCHK() != ChannelType.SSG)
+            {
+                throw new MucException(
+                    msg.get("E0521")
+                    , mucInfo.row, mucInfo.col);
+            }
+
             int ptr = mucInfo.srcCPtr;
             int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0504"));
             mucInfo.srcCPtr = ptr;
@@ -83,6 +89,8 @@ namespace mucomDotNET.Compiler
                     msg.get("E0505")
                     , mucInfo.row, mucInfo.col);
 
+            mucInfo.isDotNET = true;
+            msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xf1));
             msub.MWRIT2(new MmlDatum((byte)(n + 8)));
 
             return EnmFCOMPNextRtn.fcomp1;
@@ -90,7 +98,13 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETHEP()
         {
-            msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xf2));
+            if (CHCHK() != ChannelType.SSG)
+            {
+                throw new MucException(
+                    msg.get("E0520")
+                    , mucInfo.row, mucInfo.col);
+            }
+
             int ptr = mucInfo.srcCPtr;
             int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0506"));
             mucInfo.srcCPtr = ptr;
@@ -99,6 +113,8 @@ namespace mucomDotNET.Compiler
                     msg.get("E0507")
                     , mucInfo.row, mucInfo.col);
 
+            mucInfo.isDotNET = true;
+            msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xf2));
             msub.MWRITE(new MmlDatum((byte)n), new MmlDatum((byte)(n >> 8)));
 
             return EnmFCOMPNextRtn.fcomp1;
@@ -430,6 +446,7 @@ namespace mucomDotNET.Compiler
                     WriteWarning(msg.get("W0415"), mucInfo.row, mucInfo.col);
                 }
 
+                mucInfo.isDotNET = true;
                 mucInfo.srcCPtr++;
                 ptr = mucInfo.srcCPtr;
                 n = msub.REDATA(mucInfo.lin, ref ptr);
@@ -631,6 +648,11 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETKeyOnDelay()
         {
+            if (CHCHK() != ChannelType.FM)
+            {
+                throw new MucException(msg.get("E0518"), mucInfo.row, mucInfo.col);
+            }
+
             int ptr = mucInfo.srcCPtr + 1;
             int[] n = new int[4];
 
@@ -642,7 +664,7 @@ namespace mucomDotNET.Compiler
             }
 
             mucInfo.srcCPtr = ptr;
-
+            mucInfo.isDotNET = true;
             msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xf6));
             msub.MWRITE(new MmlDatum((byte)n[0]), new MmlDatum((byte)n[1]));
             msub.MWRITE(new MmlDatum((byte)n[2]), new MmlDatum((byte)n[3]));
@@ -1343,6 +1365,9 @@ namespace mucomDotNET.Compiler
             }
 
             ChannelType tp = CHCHK();
+
+            //MT はFMではTL LFO , SSGでは音量LFOスイッチ
+
             //if (tp == ChannelType.SSG)
             //{
             //    throw new MucException(
@@ -1350,6 +1375,7 @@ namespace mucomDotNET.Compiler
             //        , mucInfo.row, mucInfo.col);
             //}
 
+            mucInfo.isDotNET = true;
             ptr = mucInfo.srcCPtr;
             n = msub.REDATA(mucInfo.lin, ref ptr);
             mucInfo.srcCPtr = ptr;
@@ -2089,6 +2115,7 @@ namespace mucomDotNET.Compiler
                     , mucInfo.row, mucInfo.col);
             }
 
+            mucInfo.isDotNET = true;
             msub.MWRIT2(new MmlDatum((byte)n));//一つ目のパラメータをセット
 
             return SETSE1(5, "E0510", "E0511");

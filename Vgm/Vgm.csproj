@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>mucomDotNET2vgm</AssemblyName>
+    <RootNamespace>mucomDotNET2vgm</RootNamespace>
+    <StartupObject>Vgm.Program</StartupObject>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>bin\Debug\</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\mucomDotNETCommon\Common.csproj" />
+    <ProjectReference Include="..\mucomDotNETDriver\Driver.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="musicDriverInterface">
+      <HintPath>..\lib\musicDriverInterface.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

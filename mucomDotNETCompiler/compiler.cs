@@ -164,6 +164,9 @@ namespace mucomDotNET.Compiler
                     case "pcm":
                         mucInfo.pcm = tag.Item2;
                         break;
+                    case "driver":
+                        mucInfo.driver = tag.Item2;
+                        break;
                 }
             }
 
@@ -503,35 +506,55 @@ namespace mucomDotNET.Compiler
             dat[dataOffset + 4] = new MmlDatum((byte)(work.ENDADR >> 8));
             //dat[dataOffset + 5] = 0xff; //たぶん　テンポコマンド(タイマーB)設定時に更新される
 
+            footsize = 0;
+
+            bool useDriverTAG = false;
             if (tags != null)
             {
-                footsize = 0;
+                foreach (Tuple<string, string> tag in tags)
+                {
+                    if (tag.Item1 == "driver") useDriverTAG = true;
+                }
+            }
 
+            //データサイズが64k超えていたらdotnet確定
+            if (work.ENDADR - work.MU_NUM > 0xffff)
+            {
+                mucInfo.isDotNET = true;
+            }
+
+            if(!useDriverTAG && mucInfo.isDotNET)
+            {
+                if (tags == null) tags = new List<Tuple<string, string>>();
+                tags.Add(new Tuple<string, string>("driver", "DotNET"));
+            }
+
+            if (tags != null)
+            {
                 foreach (Tuple<string, string> tag in tags)
                 {
                     byte[] b = enc.GetSjisArrayFromString(string.Format("#{0} {1}\r\n", tag.Item1, tag.Item2));
-                    //Encoding.GetEncoding("shift_jis").GetBytes(string.Format("#{0} {1}\r\n", tag.Item1, tag.Item2));
                     footsize += b.Length;
                     foreach (byte bd in b) dat.Add(new MmlDatum(bd));
                 }
+            }
 
-                if (footsize > 0)
-                {
-                    dat.Add(new MmlDatum(0));
-                    dat.Add(new MmlDatum(0));
-                    dat.Add(new MmlDatum(0));
-                    dat.Add(new MmlDatum(0));
-                    footsize += 4;
+            if (footsize > 0)
+            {
+                dat.Add(new MmlDatum(0));
+                dat.Add(new MmlDatum(0));
+                dat.Add(new MmlDatum(0));
+                dat.Add(new MmlDatum(0));
+                footsize += 4;
 
-                    dat[16] = new MmlDatum((byte)footsize);//tagdata size(32bit)
-                    dat[17] = new MmlDatum((byte)(footsize >> 8));
-                    dat[18] = new MmlDatum((byte)(footsize >> 16));
-                    dat[19] = new MmlDatum((byte)(footsize >> 24));
-                }
-                else
-                {
-                    tags = null;
-                }
+                dat[16] = new MmlDatum((byte)footsize);//tagdata size(32bit)
+                dat[17] = new MmlDatum((byte)(footsize >> 8));
+                dat[18] = new MmlDatum((byte)(footsize >> 16));
+                dat[19] = new MmlDatum((byte)(footsize >> 24));
+            }
+            else
+            {
+                tags = null;
             }
 
             if (tags == null)
