@@ -1,4 +1,9 @@
 更新履歴
+TAG032 2020/03/04
+  Compiler
+  ・stream化
+  ・TAN-Yさんのunity対応分をマージ
+
 TAG031 2020/03/03
   Compiler
   ・エラーチェック強化
