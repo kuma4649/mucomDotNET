@@ -9,6 +9,17 @@ namespace mucomDotNET.Compiler
 {
     public class Compiler : iCompiler
     {
+        private byte[] srcBuf = null;
+        private MUCInfo mucInfo = new MUCInfo();
+        private Muc88 muc88 = null;
+        private Msub msub = null;
+        private expand expand = null;
+        private smon smon = null;
+        private byte[] voice;
+        private byte[] pcmdata;
+        private readonly List<Tuple<int, string>> basSrc = new List<Tuple<int, string>>();
+        private readonly List<MmlDatum> dat = new List<MmlDatum>();
+
         public string OutFileName { get; set; }
         private iEncoding enc = null;
 
@@ -38,54 +49,28 @@ namespace mucomDotNET.Compiler
             expand.muc88 = muc88;
         }
 
-        public byte[] Start(string arg, Action<string> dispMessage)
-        {
-            MmlDatum[] ma = StartToMmlData(arg, dispMessage);
-            if (ma == null || ma.Length < 1) return null;
-
-            List<byte> ba = new List<byte>();
-            foreach (MmlDatum d in dat)
-            {
-                ba.Add((byte)d.dat);
-            }
-            return ba.ToArray();
-        }
-
-        public MmlDatum[] StartToMmlData(string srcFn, Action<string> dispMessage)
-        {
-            workPath = Path.GetDirectoryName(srcFn);
-            return StartToMmlData(srcFn, workPath, dispMessage);
-        }
-
-        public MmlDatum[] StartToMmlData(string srcPath, string wrkPath, Action<string> dispMessage)
+        public MmlDatum[] Compile(Stream sourceMML, Func<string, Stream> appendFileReaderCallback)
         {
             try
             {
-                Log.writeMethod = dispMessage;
-                srcFn = srcPath;
-                srcBuf = File.ReadAllBytes(srcFn);
-                workPath = wrkPath;
+                srcBuf = ReadAllBytes(sourceMML);
                 mucInfo = GetMUCInfo(srcBuf);
-                fnVoicedat = string.IsNullOrEmpty(mucInfo.voice) ? "voice.dat" : System.IO.Path.Combine(workPath, mucInfo.voice);
-                LoadFMVoice(fnVoicedat);
-                fnPcm = string.IsNullOrEmpty(mucInfo.pcm) ? "mucompcm.bin" : System.IO.Path.Combine(workPath, mucInfo.pcm);
-                LoadPCM(fnPcm);
+
+                Stream vd = appendFileReaderCallback(string.IsNullOrEmpty(mucInfo.voice) ? "voice.dat" : mucInfo.voice);
+                voice = ReadAllBytes(vd);
+
+                Stream pd = appendFileReaderCallback(string.IsNullOrEmpty(mucInfo.pcm) ? "mucompcm.bin" : mucInfo.pcm);
+                pcmdata = ReadAllBytes(pd);
 
                 mucInfo.lines = StoreBasicSource(srcBuf);
                 mucInfo.voiceData = voice;
                 mucInfo.pcmData = pcmdata;
                 mucInfo.basSrc = basSrc;
-                mucInfo.fnSrc = srcFn;
-                mucInfo.fnDst = Path.ChangeExtension(srcFn, ".mub");
-                mucInfo.workPath = workPath;
                 mucInfo.srcCPtr = 0;
                 mucInfo.srcLinPtr = -1;
 
                 //MUCOM88 初期化
                 int ret = muc88.COMPIL();//vector 0xeea8
-
-                //work.compilerInfo.bin = null;
-                //work.compilerInfo.mucInfo = null;
 
                 //コンパイルエラー発生時は0以外が返る
                 if (ret != 0)
@@ -99,14 +84,6 @@ namespace mucomDotNET.Compiler
                 ret = SaveMub();
                 if (ret == 0)
                 {
-                    List<byte> ba = new List<byte>();
-                    foreach (MmlDatum d in dat)
-                    {
-                        ba.Add((byte)d.dat);
-                    }
-                    //work.compilerInfo.bin = ba.ToArray();
-                    //work.compilerInfo.mucInfo = mucInfo;
-
                     return dat.ToArray();
                 }
             }
@@ -125,6 +102,29 @@ namespace mucomDotNET.Compiler
             }
 
             return null;
+        }
+
+        /// <summary>
+		/// ストリームから一括でバイナリを読み込む
+		/// </summary>
+		private byte[] ReadAllBytes(Stream stream)
+        {
+            if (stream == null) return null;
+
+            var buf = new byte[8192];
+            using (var ms = new MemoryStream())
+            {
+                while (true)
+                {
+                    var r = stream.Read(buf, 0, buf.Length);
+                    if (r < 1)
+                    {
+                        break;
+                    }
+                    ms.Write(buf, 0, r);
+                }
+                return ms.ToArray();
+            }
         }
 
         public MUCInfo GetMUCInfo(byte[] buf)
@@ -180,21 +180,6 @@ namespace mucomDotNET.Compiler
 
 
 
-        private string srcFn = "";
-        private byte[] srcBuf = null;
-        private string workPath = "";
-        private MUCInfo mucInfo = new MUCInfo();
-        private Muc88 muc88 = null;
-        private Msub msub = null;
-        private expand expand = null;
-        private smon smon = null;
-        private string fnVoicedat = "";
-        private string fnPcm = "";
-        private byte[] voice;
-        private byte[] pcmdata;
-        private readonly List<Tuple<int, string>> basSrc = new List<Tuple<int, string>>();
-        private readonly List<MmlDatum> dat = new List<MmlDatum>();
-
         private EnmMUCOMFileType CheckFileType(byte[] buf)
         {
             if (buf == null || buf.Length < 4)
@@ -242,52 +227,6 @@ namespace mucomDotNET.Compiler
             }
 
             return tags;
-        }
-
-        private void LoadFMVoice(string fn)
-        {
-            string mucPathVoice = fn;
-            string mdpPathVoice = Path.Combine(Path.GetDirectoryName(Environment.CurrentDirectory), fn);
-            string decideVoice = mucPathVoice;
-            voice = null;
-
-            if (!File.Exists(mucPathVoice))
-            {
-                if (!File.Exists(mdpPathVoice)) return;
-                decideVoice = mdpPathVoice;
-            }
-
-            try
-            {
-                voice = File.ReadAllBytes(decideVoice);
-            }
-            catch
-            {
-                //失敗しても特に何もしない
-            }
-        }
-
-        private void LoadPCM(string fn)
-        {
-            string mucPathPCM = fn;
-            string mdpPathPCM = Path.Combine(Path.GetDirectoryName(Environment.CurrentDirectory), fn);
-            string decidePCM = mucPathPCM;
-            pcmdata = null;
-
-            if (!File.Exists(mucPathPCM))
-            {
-                if (!File.Exists(mdpPathPCM)) return;
-                decidePCM = mdpPathPCM;
-            }
-
-            try
-            {
-                pcmdata= File.ReadAllBytes(decidePCM);
-            }
-            catch
-            {
-                //失敗しても特に何もしない
-            }
         }
 
         private int StoreBasicSource(byte[] buf)
@@ -367,12 +306,7 @@ namespace mucomDotNET.Compiler
                 Log.WriteLine(LogLevel.INFO, string.Format("#MML Lines    : {0}", mucInfo.lines));
                 Log.WriteLine(LogLevel.INFO, string.Format("#Data         : {0}", mubsize));
 
-                return SaveMusic(
-                    Path.Combine(mucInfo.workPath
-                    , mucInfo.fnDst)
-                    //, (ushort)start
-                    , length
-                    , pcmflag);
+                return SaveMusic(length, pcmflag);
             }
             catch (MucException me)
             {
@@ -387,16 +321,13 @@ namespace mucomDotNET.Compiler
         }
 
         //private int SaveMusic(string fname, ushort start, ushort length, int option)
-        private int SaveMusic(string fname, int length, int option)
+        private int SaveMusic(int length, int option)
         {
             //		音楽データファイルを出力(コンパイルが必要)
-            //		filename     = 出力される音楽データファイル
             //		option : 1   = #タグによるvoice設定を無視
             //		         2   = PCM埋め込みをスキップ
             //		(戻り値が0以外の場合はエラー)
             //
-
-            if (string.IsNullOrEmpty(fname)) return -1;
 
             int footsize;
             footsize = 1;//かならず1以上
@@ -578,9 +509,6 @@ namespace mucomDotNET.Compiler
                     dat[23] = new MmlDatum((byte)(pcmptr >> 24));
                 }
             }
-
-            OutFileName = fname;
-            Log.WriteLine(LogLevel.INFO, string.Format("#Saved [{0}].\r\n", fname));
 
             return 0;
         }

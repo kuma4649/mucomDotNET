@@ -3,14 +3,18 @@ using mucomDotNET.Common;
 using musicDriverInterface;
 using System;
 using System.IO;
+using System.Collections.Generic;
 
 namespace mucomDotNET.Console
 {
     class Program
     {
+        private static List<Stream> appendStream = null;
+        private static string srcFile;
+
         static void Main(string[] args)
         {
-            //Log.writeLine = WriteLine;
+            Log.writeLine = WriteLine;
 #if DEBUG
             Log.level = LogLevel.INFO;//.INFO;
 #else
@@ -30,17 +34,11 @@ namespace mucomDotNET.Console
 #endif
                 foreach (string arg in args)
                 {
-                    iCompiler compiler = new Compiler.Compiler();
-                    compiler.Init();
-                    byte[] dat = ((Compiler.Compiler)compiler).Start(arg, WriteLine);
-                    if (dat != null)
-                    {
-                        File.WriteAllBytes(compiler.OutFileName, dat);
-                    }
+                    Compile(arg);
                 }
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Log.WriteLine(LogLevel.FATAL, ex.Message);
                 Log.WriteLine(LogLevel.FATAL, ex.StackTrace);
@@ -56,6 +54,88 @@ namespace mucomDotNET.Console
         {
             System.Console.WriteLine(msg);
         }
+
+        static void Compile(string srcFile)
+        {
+            try
+            {
+
+                MmlDatum[] ret = null;
+                Program.srcFile = srcFile;
+
+                iCompiler compiler = new Compiler.Compiler();
+                compiler.Init();
+                using (FileStream sourceMML = new FileStream(srcFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    ret = compiler.Compile(sourceMML, appendFileReaderCallback);
+                }
+
+                if (ret != null) WriteMUBFile(srcFile, ret);
+
+            }
+            catch (Exception ex)
+            {
+                WriteLine(string.Format(
+                    "Message\r\n{0}\r\nStackTrace\r\n{1}\r\n"
+                    , ex.Message
+                    , ex.StackTrace
+                    ));
+            }
+            finally
+            {
+                if (appendStream != null)
+                {
+                    foreach (Stream strm in appendStream)
+                    {
+                        if (strm != null) strm.Close();
+                    }
+                }
+
+            }
+
+        }
+
+
+        private static Stream appendFileReaderCallback(string arg)
+        {
+
+            string fn = Path.Combine(
+                Path.GetDirectoryName(srcFile)
+                , arg
+                );
+
+            FileStream strm;
+            try
+            {
+                strm = new FileStream(fn, FileMode.Open, FileAccess.Read, FileShare.Read);
+            }
+            catch (IOException)
+            {
+                strm = null;
+            }
+
+            if (appendStream == null) appendStream = new List<Stream>();
+            appendStream.Add(strm);
+
+            return strm;
+        }
+
+        private static void WriteMUBFile(string srcFile, MmlDatum[] aryMd)
+        {
+            List<byte> dat = new List<byte>();
+            foreach (MmlDatum md in aryMd)
+            {
+                dat.Add((byte)md.dat);
+            }
+
+            string fn = Path.Combine(
+                Path.GetDirectoryName(srcFile)
+                , Path.GetFileNameWithoutExtension(srcFile) + ".mub"
+                );
+
+            File.WriteAllBytes(fn, dat.ToArray());
+        }
+
 
     }
 }
