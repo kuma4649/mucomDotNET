@@ -11,14 +11,14 @@ namespace mucomDotNET.Common
 
         static msg()
         {
-            Assembly myAssembly = Assembly.GetEntryAssembly();
-            string path = Path.GetDirectoryName(myAssembly.Location);
-            string lang = System.Globalization.CultureInfo.CurrentCulture.Name;
-            string file = Path.Combine(path, "lang", string.Format("mucomDotNETmessage.{0}.txt", lang));
-            file = file.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
             string[] lines = null;
             try
             {
+                Assembly myAssembly = Assembly.GetEntryAssembly();
+                string path = Path.GetDirectoryName(myAssembly.Location);
+                string lang = System.Globalization.CultureInfo.CurrentCulture.Name;
+                string file = Path.Combine(path, "lang", string.Format("mucomDotNETmessage.{0}.txt", lang));
+                file = file.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
                 if (!File.Exists(file))
                 {
                     file = Path.Combine(path, "lang", "mucomDotNETmessage.txt");
