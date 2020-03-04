@@ -56,11 +56,15 @@ namespace mucomDotNET.Compiler
                 srcBuf = ReadAllBytes(sourceMML);
                 mucInfo = GetMUCInfo(srcBuf);
 
-                Stream vd = appendFileReaderCallback(string.IsNullOrEmpty(mucInfo.voice) ? "voice.dat" : mucInfo.voice);
-                voice = ReadAllBytes(vd);
+                using (Stream vd = appendFileReaderCallback?.Invoke(string.IsNullOrEmpty(mucInfo.voice) ? "voice.dat" : mucInfo.voice))
+                {
+                    voice = ReadAllBytes(vd);
+                }
 
-                Stream pd = appendFileReaderCallback(string.IsNullOrEmpty(mucInfo.pcm) ? "mucompcm.bin" : mucInfo.pcm);
-                pcmdata = ReadAllBytes(pd);
+                using (Stream pd = appendFileReaderCallback?.Invoke(string.IsNullOrEmpty(mucInfo.pcm) ? "mucompcm.bin" : mucInfo.pcm))
+                {
+                    pcmdata = ReadAllBytes(pd);
+                }
 
                 mucInfo.lines = StoreBasicSource(srcBuf);
                 mucInfo.voiceData = voice;
@@ -102,6 +106,20 @@ namespace mucomDotNET.Compiler
             }
 
             return null;
+        }
+
+        public bool Compile(Stream sourceMML, Stream destCompiledBin, Func<string, Stream> appendFileReaderCallback)
+        {
+            var dat = Compile(sourceMML, appendFileReaderCallback);
+            if (dat == null)
+            {
+                return false;
+            }
+            foreach (MmlDatum md in dat)
+            {
+                destCompiledBin.WriteByte((byte)md.dat);
+            }
+            return true;
         }
 
         /// <summary>
