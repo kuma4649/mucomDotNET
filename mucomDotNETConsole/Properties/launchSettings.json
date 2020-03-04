@@ -2,7 +2,7 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
-      "commandLineArgs": "D:\\bootcamp\\FM音源\\data\\MUC\\mucom88win_yk2mml181225\\ACTRAISER_MML\\stg001.muc"
+      "commandLineArgs": "\"C:\\Programs\\mucom88win\\sampl1.muc\""
     }
   }
 }

@@ -59,19 +59,18 @@ namespace mucomDotNET.Console
         {
             try
             {
-
-                MmlDatum[] ret = null;
                 Program.srcFile = srcFile;
 
-                iCompiler compiler = new Compiler.Compiler();
+                Compiler.Compiler compiler = new Compiler.Compiler();
                 compiler.Init();
+
+                string destFileName = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(srcFile)), string.Format("{0}.mub", Path.GetFileNameWithoutExtension(srcFile)));
                 using (FileStream sourceMML = new FileStream(srcFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (FileStream destCompiledBin = new FileStream(destFileName, FileMode.Create, FileAccess.Write))
+                using (Stream bufferedDestStream = new BufferedStream(destCompiledBin))
                 {
-                    ret = compiler.Compile(sourceMML, appendFileReaderCallback);
+                    compiler.Compile(sourceMML, bufferedDestStream, appendFileReaderCallback);
                 }
-
-                if (ret != null) WriteMUBFile(srcFile, ret);
-
             }
             catch (Exception ex)
             {
