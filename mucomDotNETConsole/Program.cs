@@ -9,7 +9,6 @@ namespace mucomDotNET.Console
 {
     class Program
     {
-        private static List<Stream> appendStream = null;
         private static string srcFile;
 
         static void Main(string[] args)
@@ -74,22 +73,11 @@ namespace mucomDotNET.Console
             }
             catch (Exception ex)
             {
-                WriteLine(string.Format(
-                    "Message\r\n{0}\r\nStackTrace\r\n{1}\r\n"
-                    , ex.Message
-                    , ex.StackTrace
-                    ));
+                Log.WriteLine(LogLevel.FATAL, ex.Message);
+                Log.WriteLine(LogLevel.FATAL, ex.StackTrace);
             }
             finally
             {
-                if (appendStream != null)
-                {
-                    foreach (Stream strm in appendStream)
-                    {
-                        if (strm != null) strm.Close();
-                    }
-                }
-
             }
 
         }
@@ -113,27 +101,9 @@ namespace mucomDotNET.Console
                 strm = null;
             }
 
-            if (appendStream == null) appendStream = new List<Stream>();
-            appendStream.Add(strm);
-
             return strm;
         }
 
-        private static void WriteMUBFile(string srcFile, MmlDatum[] aryMd)
-        {
-            List<byte> dat = new List<byte>();
-            foreach (MmlDatum md in aryMd)
-            {
-                dat.Add((byte)md.dat);
-            }
-
-            string fn = Path.Combine(
-                Path.GetDirectoryName(srcFile)
-                , Path.GetFileNameWithoutExtension(srcFile) + ".mub"
-                );
-
-            File.WriteAllBytes(fn, dat.ToArray());
-        }
 
 
     }

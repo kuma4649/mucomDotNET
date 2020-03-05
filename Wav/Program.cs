@@ -138,7 +138,11 @@ namespace Wav
             int i = 0;
             loop = 2;
 
-            while (args[i] != null && args[i].Length > 0 && args[i][0] == '-')
+            while (args != null 
+                && args.Length > 0 
+                && args[i].Length > 0 
+                && args[i] != null 
+                && args[i][0] == '-')
             {
                 string op = args[i].Substring(1).ToUpper();
                 if (op.Length > 2 && op.Substring(0, 2) == "L=")

@@ -1,26 +1,151 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace Vgm
 {
-    internal class VgmWriter
+    public class VgmWriter
     {
+        private FileStream dest = null;
+        private int len = 0;
+        private long waitCounter = 0;
+        //header
+        readonly public static byte[] hDat = new byte[] {
+            //00 'Vgm '          Eof offset           Version number
+            0x56,0x67,0x6d,0x20, 0x00,0x00,0x00,0x00, 0x71,0x01,0x00,0x00, 0x00,0x00,0x00,0x00,
+            //10                 GD3 offset(no use)   Total # samples
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            //20                 Rate(NTSC 60Hz)
+            0x00,0x00,0x00,0x00, 0x3c,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            //30                 VGMdataofs(0x100~)
+            0x00,0x00,0x00,0x00, 0xcc,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            //40                                      YM2608 clock(7987200 0x79e000)
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0xe0,0x79,0x00, 0x00,0x00,0x00,0x00,
+            //50
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            //50
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            //60
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            //70
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            //80
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            //90
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            //A0
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            //B0
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            //C0
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            //D0
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            //E0
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            //F0
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00
+        };
+
+        public long totalSample { get; private set; }
+
         public VgmWriter()
         {
         }
 
-        internal void WriteYM2608(int v, byte port, byte address, byte data)
+        public void WriteYM2608(int v, byte port, byte address, byte data)
         {
-            throw new NotImplementedException();
+            if (dest == null) return;
+
+            if (waitCounter != 0)
+            {
+                totalSample += waitCounter;
+
+                //waitコマンド出力
+                mucomDotNET.Common.Log.WriteLine(mucomDotNET.Common.LogLevel.INFO
+                    , string.Format("wait:{0}", waitCounter)
+                    );
+
+                if (waitCounter <= 882 * 3)
+                {
+                    while (waitCounter > 882)
+                    {
+                        dest.WriteByte(0x63);
+                        waitCounter -= 882;
+                    }
+                    while (waitCounter > 735)
+                    {
+                        dest.WriteByte(0x62);
+                        waitCounter -= 735;
+                    }
+                }
+
+                while (waitCounter > 0xffff)
+                {
+                    dest.WriteByte(0x61);
+                    dest.WriteByte((byte)waitCounter);
+                    dest.WriteByte((byte)(waitCounter >> 8));
+                    waitCounter -= (waitCounter & 0xffff);
+                }
+
+                waitCounter = 0;
+            }
+
+            mucomDotNET.Common.Log.WriteLine(mucomDotNET.Common.LogLevel.TRACE
+                , string.Format("p:{0} a:{1} d:{2}", port, address, data)
+                );
+
+            dest.WriteByte((byte)(0x56 + (port & 1)));
+            dest.WriteByte(address);
+            dest.WriteByte(data);
+
         }
 
-        internal void Close()
+        public void Close()
         {
-            throw new NotImplementedException();
+            if (dest == null) return;
+
+            //ヘッダ、フッタの調整
+
+            //end of data
+            dest.WriteByte(0x66);
+
+            //Total # samples
+            dest.Position = 0x18;
+            dest.WriteByte((byte)totalSample);
+            dest.WriteByte((byte)(totalSample >> 8));
+            dest.WriteByte((byte)(totalSample >> 16));
+            dest.WriteByte((byte)(totalSample >> 24));
+
+            //EOF offset
+            dest.Position = 0x4;
+            dest.WriteByte((byte)(dest.Length - 4));
+            dest.WriteByte((byte)((dest.Length - 4) >> 8));
+            dest.WriteByte((byte)((dest.Length - 4) >> 16));
+            dest.WriteByte((byte)((dest.Length - 4) >> 24));
+
+            dest.Close();
+            dest = null;
         }
 
-        internal void Open(string v)
+        public void Open(string fullPath)
         {
-            throw new NotImplementedException();
+            if (dest != null) Close();
+            dest = new FileStream(fullPath, FileMode.Create, FileAccess.Write);
+
+            List<byte> des = new List<byte>();
+            len = 0;
+
+            //ヘッダの出力
+            foreach (byte d in hDat) des.Add(d);
+
+            //出力
+            dest.Write(des.ToArray(), 0, des.Count);
+        }
+
+        public void IncrementWaitCOunter()
+        {
+            waitCounter++;
         }
     }
 }
