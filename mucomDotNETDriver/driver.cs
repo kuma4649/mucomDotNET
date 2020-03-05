@@ -160,6 +160,7 @@ namespace mucomDotNET.Driver
             int startAddress = 0;
             List<ChipDatum> dat = new List<ChipDatum>
             {
+                new ChipDatum(0, 0x29, 0x83),// CH 4-6 ENABLE
                 new ChipDatum(0x1, 0x00, 0x20),
                 new ChipDatum(0x1, 0x00, 0x21),
                 new ChipDatum(0x1, 0x00, 0x00),
@@ -240,7 +241,7 @@ namespace mucomDotNET.Driver
         {
             lock (lockObjWriteReg)
             {
-                if (reg.port == 0) { work.timer.WriteReg((byte)reg.address, (byte)reg.data); }
+                if (reg.port == 0) { work.timer?.WriteReg((byte)reg.address, (byte)reg.data); }
                 WriteOPNA?.Invoke(reg);
             }
         }

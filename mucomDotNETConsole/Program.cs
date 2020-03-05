@@ -31,9 +31,16 @@ namespace mucomDotNET.Console
 #if NETCOREAPP
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 #endif
-                foreach (string arg in args)
+                if (args.Length > 2)
                 {
-                    Compile(arg);
+                    //foreach (string arg in args)
+                    //{
+                        //Compile(arg);
+                    //}
+                }
+                else
+                {
+                    Compile(args[0], (args.Length > 1 ? args[1] : null));
                 }
 
             }
@@ -64,6 +71,39 @@ namespace mucomDotNET.Console
                 compiler.Init();
 
                 string destFileName = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(srcFile)), string.Format("{0}.mub", Path.GetFileNameWithoutExtension(srcFile)));
+                using (FileStream sourceMML = new FileStream(srcFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (FileStream destCompiledBin = new FileStream(destFileName, FileMode.Create, FileAccess.Write))
+                using (Stream bufferedDestStream = new BufferedStream(destCompiledBin))
+                {
+                    compiler.Compile(sourceMML, bufferedDestStream, appendFileReaderCallback);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.WriteLine(LogLevel.FATAL, ex.Message);
+                Log.WriteLine(LogLevel.FATAL, ex.StackTrace);
+            }
+            finally
+            {
+            }
+
+        }
+
+        static void Compile(string srcFile, string destFile = null)
+        {
+            try
+            {
+                Program.srcFile = srcFile;
+
+                Compiler.Compiler compiler = new Compiler.Compiler();
+                compiler.Init();
+
+                string destFileName = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(srcFile)), string.Format("{0}.mub", Path.GetFileNameWithoutExtension(srcFile)));
+                if (destFile != null)
+                {
+                    destFileName = destFile;
+                }
+
                 using (FileStream sourceMML = new FileStream(srcFile, FileMode.Open, FileAccess.Read, FileShare.Read))
                 using (FileStream destCompiledBin = new FileStream(destFileName, FileMode.Create, FileAccess.Write))
                 using (Stream bufferedDestStream = new BufferedStream(destCompiledBin))
