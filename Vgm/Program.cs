@@ -15,6 +15,7 @@ namespace Vgm
         private static iDriver drv = null;
         private static VgmWriter vw = null;
         private static int loop = 2;
+        private static List<Tuple<string, string>> tags = null;
 
         static int Main(string[] args)
         {
@@ -57,13 +58,13 @@ namespace Vgm
                     , OPNAWrite
                     , OPNAWaitSend
                     , false
-                    , true
+                    , false
                     , false
                     );
 
                 drv.SetLoopCount(loop);
 
-                List<Tuple<string, string>> tags = drv.GetTags();
+                tags = drv.GetTags();
                 if (tags != null)
                 {
                     foreach (Tuple<string, string> tag in tags)
@@ -72,6 +73,9 @@ namespace Vgm
                         Log.WriteLine(LogLevel.INFO, string.Format("{0,-16} : {1}", tag.Item1, tag.Item2));
                     }
                 }
+
+                byte[] pcmdata = drv.GetPCMFromSrcBuf();
+                if (pcmdata != null && pcmdata.Length > 0) vw.WriteAdpcm(pcmdata);
 
                 drv.StartRendering((int)SamplingRate, (int)opnaMasterClock);
 
@@ -101,7 +105,7 @@ namespace Vgm
             {
                 if (vw != null)
                 {
-                    vw.Close();
+                    vw.Close(tags);
                 }
             }
 

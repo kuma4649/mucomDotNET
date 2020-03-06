@@ -59,7 +59,7 @@ namespace Vgm
                 totalSample += waitCounter;
 
                 //waitコマンド出力
-                mucomDotNET.Common.Log.WriteLine(mucomDotNET.Common.LogLevel.INFO
+                mucomDotNET.Common.Log.WriteLine(mucomDotNET.Common.LogLevel.TRACE
                     , string.Format("wait:{0}", waitCounter)
                     );
 
@@ -77,7 +77,7 @@ namespace Vgm
                     }
                 }
 
-                while (waitCounter > 0xffff)
+                while (waitCounter > 0)
                 {
                     dest.WriteByte(0x61);
                     dest.WriteByte((byte)waitCounter);
@@ -98,7 +98,7 @@ namespace Vgm
 
         }
 
-        public void Close()
+        public void Close(List<Tuple<string, string>> tags)
         {
             if (dest == null) return;
 
@@ -114,6 +114,54 @@ namespace Vgm
             dest.WriteByte((byte)(totalSample >> 16));
             dest.WriteByte((byte)(totalSample >> 24));
 
+            //tag
+            if (tags != null)
+            {
+                GD3 gd3 = new GD3();
+                foreach (Tuple<string, string> tag in tags)
+                {
+                    switch (tag.Item1)
+                    {
+                        case "title":
+                            gd3.TrackName = tag.Item2;
+                            gd3.TrackNameJ = tag.Item2;
+                            break;
+                        case "composer":
+                            gd3.Composer = tag.Item2;
+                            gd3.ComposerJ = tag.Item2;
+                            break;
+                        case "author":
+                            gd3.VGMBy = tag.Item2;
+                            break;
+                        case "comment":
+                            gd3.Notes = tag.Item2;
+                            break;
+                        case "mucom88":
+                            gd3.Version = tag.Item2;
+                            gd3.Notes = tag.Item2;
+                            break;
+                        case "date":
+                            gd3.Converted = tag.Item2;
+                            break;
+                    }
+                }
+
+                byte[] tagary = gd3.make();
+                dest.Seek(0, SeekOrigin.End);
+                long gd3ofs = dest.Length - 0x14;
+                foreach (byte b in tagary) dest.WriteByte(b);
+
+                //Tag offset
+                if (tagary != null && tagary.Length > 0)
+                {
+                    dest.Position = 0x14;
+                    dest.WriteByte((byte)gd3ofs);
+                    dest.WriteByte((byte)(gd3ofs >> 8));
+                    dest.WriteByte((byte)(gd3ofs >> 16));
+                    dest.WriteByte((byte)(gd3ofs >> 24));
+                }
+            }
+
             //EOF offset
             dest.Position = 0x4;
             dest.WriteByte((byte)(dest.Length - 4));
@@ -127,7 +175,7 @@ namespace Vgm
 
         public void Open(string fullPath)
         {
-            if (dest != null) Close();
+            if (dest != null) Close(null);
             dest = new FileStream(fullPath, FileMode.Create, FileAccess.Write);
 
             List<byte> des = new List<byte>();
@@ -140,6 +188,36 @@ namespace Vgm
         public void IncrementWaitCOunter()
         {
             waitCounter++;
+        }
+
+        public void WriteAdpcm(byte[] AdpcmData)
+        {
+            dest.WriteByte(0x67);
+            dest.WriteByte(0x66);
+            dest.WriteByte(0x81);
+
+            int size = AdpcmData.Length - 0x400;//0x400 pcm table
+
+            dest.WriteByte((byte)((size + 8) >> 0));
+            dest.WriteByte((byte)((size + 8) >> 8));
+            dest.WriteByte((byte)((size + 8) >> 16));
+            dest.WriteByte((byte)((size + 8) >> 24));
+
+            dest.WriteByte((byte)(size >> 0));
+            dest.WriteByte((byte)(size >> 8));
+            dest.WriteByte((byte)(size >> 16));
+            dest.WriteByte((byte)(size >> 24));
+
+            dest.WriteByte((byte)((0) >> 0));
+            dest.WriteByte((byte)((0) >> 8));
+            dest.WriteByte((byte)((0) >> 16));
+            dest.WriteByte((byte)((0) >> 24));
+
+            for (int i = 0x400; i < AdpcmData.Length; i++)
+            {
+                dest.WriteByte(AdpcmData[i]);
+            }
+
         }
     }
 }
