@@ -117,7 +117,14 @@ namespace mucomDotNET.Compiler
             }
             foreach (MmlDatum md in dat)
             {
-                destCompiledBin.WriteByte((byte)md.dat);
+                if (md == null)
+                {
+                    destCompiledBin.WriteByte(0);
+                }
+                else
+                {
+                    destCompiledBin.WriteByte((byte)md.dat);
+                }
             }
             return true;
         }
@@ -475,7 +482,7 @@ namespace mucomDotNET.Compiler
             if(!useDriverTAG && mucInfo.isDotNET)
             {
                 if (tags == null) tags = new List<Tuple<string, string>>();
-                tags.Add(new Tuple<string, string>("driver", "DotNET"));
+                tags.Add(new Tuple<string, string>("driver", MUCInfo.DotNET));
             }
 
             if (tags != null)

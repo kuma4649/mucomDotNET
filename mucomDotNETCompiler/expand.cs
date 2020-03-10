@@ -143,6 +143,88 @@ namespace mucomDotNET.Compiler
         // IN:	HL<={CG}ﾀﾞｯﾀﾗ GﾉﾃｷｽﾄADR
         // EXIT:	DE<=Mｺﾏﾝﾄﾞﾉ 3ﾊﾞﾝﾒ ﾉ ﾍﾝｶﾘｮｳ
         //	Zﾌﾗｸﾞ=1 ﾅﾗ ﾍﾝｶｼﾅｲ
+        public int CULPTM(byte startNote, byte endNote, byte clk)
+        {
+            int depth = CULP2Ex(startNote, endNote) / (byte)(clk >> 0);
+            //int depth = CULP2(note) / (byte)(work.BEFCO >> 0);//Mem.LD_8(BEFCO + 1); ?
+
+            if (!mucInfo.Carry) return depth;
+            mucInfo.Carry = false;
+            return -depth;//    RET
+        }
+
+        public byte GetEndNote()
+        {
+            int DE = work.MDATA;
+            byte endNote = msub.STTONE();
+            work.MDATA = DE;
+            if (mucInfo.Carry)
+            {
+                mucInfo.Carry = true;//  SCF
+                return 0;//    RET
+            }
+            return endNote;
+        }
+
+        public int GetDiffNote(byte startNote, byte endNote)
+        {
+            return CTONE(endNote) - CTONE(startNote);
+        }
+
+        private int CULP2Ex(byte startNote, byte endNote)
+        {
+            int HL;
+            bool up;
+
+            //EXIT:	HL<=ﾍﾝｶﾊﾝｲ
+            //	CY ﾅﾗ ｻｶﾞﾘﾊｹｲ
+            //	Z ﾅﾗ ﾍﾝｶｾｽﾞ
+
+            bool CULP2_Ptn = false;
+            Muc88.ChannelType tp = muc88.CHCHK();
+            if (tp == Muc88.ChannelType.SSG)
+            {
+                CULP2_Ptn = true;
+            }
+
+            int C = startNote & 0x0F;//KEY
+            if (!CULP2_Ptn) work.FRQBEF = FNUMB[C];
+            else work.FRQBEF = SNUMB[C];
+
+            int noteNum = CTONE(endNote) - CTONE(startNote);
+            if (noteNum == 0) return 0;//変化なし
+            if (noteNum >= 0)
+            {
+                up = !CULP2_Ptn;
+            }
+            else
+            {
+                noteNum = (byte)-noteNum;
+                up = CULP2_Ptn;
+            }
+
+            if (up)
+            {
+                //	BEFTONE<NOWTONE (ｱｶﾞﾘ)
+                //HL = CULC(1.059463f, 33031, noteNum) - work.FRQBEF;//FACC=629C0781(1.05946)  33031(0x8107)
+                HL = CULC(1.059463f, work.FRQBEF, noteNum) - work.FRQBEF;//FACC=629C0781(1.05946)  33031(0x8107)
+                mucInfo.Carry = false;
+                return HL;
+            }
+
+            // BEFTONE>NOWTONE(ｻｶﾞﾘ)
+            //HL = work.FRQBEF - CULC(0.943874f, 32881, noteNum);//FACC=BBA17180(0.943874)  32881(0x8071)
+            HL = work.FRQBEF - CULC(0.943874f, work.FRQBEF, noteNum);//FACC=BBA17180(0.943874)  32881(0x8071)
+            mucInfo.Carry = true;
+            return HL;
+        }
+
+
+
+        // **	ﾎﾟﾙﾀﾒﾝﾄ ｹｲｻﾝ	**
+        // IN:	HL<={CG}ﾀﾞｯﾀﾗ GﾉﾃｷｽﾄADR
+        // EXIT:	DE<=Mｺﾏﾝﾄﾞﾉ 3ﾊﾞﾝﾒ ﾉ ﾍﾝｶﾘｮｳ
+        //	Zﾌﾗｸﾞ=1 ﾅﾗ ﾍﾝｶｼﾅｲ
         public int CULPTM()
         {
             int DE = work.MDATA;
@@ -154,7 +236,7 @@ namespace mucomDotNET.Compiler
                 return 0;//    RET
             }
 
-            int depth = CULP2(note) / (byte)(work.BEFCO >> 0);//Mem.LD_8(BEFCO + 1); ?
+            int depth = CULP2(note) / work.BEFCO;//Mem.LD_8(BEFCO + 1); ?
 
             if (!mucInfo.Carry) return depth;
             mucInfo.Carry = false;

@@ -113,6 +113,24 @@ namespace mucomDotNET.Driver
             }
         }
 
+        public void SkipCount(int count)
+        {
+            lock (work.SystemInterrupt)
+            {
+                //work.SystemInterrupt = true;
+                for (int i = 0; i < work.soundWork.CHDAT.Length; i++) work.soundWork.CHDAT[i].muteFlg = true;
+
+                while (count > 0)
+                {
+                    PL_SND();
+                    count--;
+                }
+
+                for (int i = 0; i < work.soundWork.CHDAT.Length; i++) work.soundWork.CHDAT[i].muteFlg = false;
+                //work.SystemInterrupt = false;
+            }
+        }
+
 
         public void initMusic2()
         {
@@ -2108,12 +2126,39 @@ namespace mucomDotNET.Driver
                 return;
             }
 
-            int de = work.cd.fnum;// GET FNUM1
-            // GET B/FNUM2
-            hl += de;//  HL= NEW F-NUMBER
-            hl = (ushort)hl;
+            int num = work.cd.fnum & 0x7ff;
+            int blk = work.cd.fnum >> 11;
+            short dlt = (short)(ushort)hl;
+            //Console.Write("b:{0} num:{1:x} -> +{2}", blk, num, dlt);
+
+            num += dlt;
+
+            if (dlt > 0)
+            {
+                //0x26a == Note C
+                while (num > 0x26a * 2 && blk<7)
+                {
+                    blk++;
+                    num -= 0x26a;
+                }
+            }
+            else
+            {
+                while (num < 0x26a && blk > 0)
+                {
+                    blk--;
+                    num += 0x26a;
+                }
+            }
+
+            //Console.WriteLine(" -> b:{0} num:{1:x}",blk,num);
+
+            hl = (blk << 11) | num;
+            //// GET B/FNUM2
+            //hl += de;//  HL= NEW F-NUMBER
+            //hl = (ushort)hl;
             work.cd.fnum = hl;// SET NEW F-NUM1
-            // SET NEW F-NUM2
+                              // SET NEW F-NUM2
 
             if (work.soundWork.SSGF1 == 0)
             {

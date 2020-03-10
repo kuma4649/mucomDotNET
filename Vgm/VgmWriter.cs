@@ -1,4 +1,5 @@
-﻿using System;
+﻿using musicDriverInterface;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -59,7 +60,7 @@ namespace Vgm
                 totalSample += waitCounter;
 
                 //waitコマンド出力
-                mucomDotNET.Common.Log.WriteLine(mucomDotNET.Common.LogLevel.TRACE
+                Log.WriteLine(LogLevel.TRACE
                     , string.Format("wait:{0}", waitCounter)
                     );
 
@@ -88,7 +89,7 @@ namespace Vgm
                 waitCounter = 0;
             }
 
-            mucomDotNET.Common.Log.WriteLine(mucomDotNET.Common.LogLevel.TRACE
+            Log.WriteLine(LogLevel.TRACE
                 , string.Format("p:{0} a:{1} d:{2}", port, address, data)
                 );
 

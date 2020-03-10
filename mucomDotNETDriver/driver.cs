@@ -255,6 +255,7 @@ namespace mucomDotNET.Driver
         {
             Log.WriteLine(LogLevel.TRACE, "演奏開始");
             music2.MSTART(musicNumber);
+            music2.SkipCount((int)header.jumpcount);
         }
 
         public void MusicSTOP()

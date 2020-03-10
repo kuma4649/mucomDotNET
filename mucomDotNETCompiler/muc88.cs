@@ -2,6 +2,7 @@
 using System;
 using System.Text;
 using musicDriverInterface;
+using System.Collections.Generic;
 
 namespace mucomDotNET.Compiler
 {
@@ -184,7 +185,222 @@ namespace mucomDotNET.Compiler
             return EnmFCOMPNextRtn.fcomp1;
         }
 
+        private void skipSpaceAndTab()
+        {
+            char c = getMoji();
+
+            while (c == ' ' || c == 0x9)
+            {
+                mucInfo.srcCPtr++;
+                c = getMoji();
+            }
+        }
+
+        private char getMoji()
+        {
+            return mucInfo.srcCPtr < mucInfo.lin.Item2.Length ?
+                mucInfo.lin.Item2[mucInfo.srcCPtr]
+                : (char)0;
+        }
+
         private EnmFCOMPNextRtn SETPTM()
+        {
+            LinePos lp = new LinePos(mucInfo.fnSrc, mucInfo.row, mucInfo.col, mucInfo.srcCPtr);
+
+            mucInfo.srcCPtr++;
+            byte before_note = msub.STTONE();//KUMA:オクターブ情報などを含めた音符情報に変換
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    msg.get("E0403")
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            mucInfo.srcCPtr++;
+            int befco=FC162p_clock(before_note);//SET TONE&LIZ
+
+            skipSpaceAndTab();
+
+            char c = getMoji();
+            if (c == 0)
+            {
+                throw new MucException(
+                    msg.get("E0404")
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            if (c == '}')//0x7d
+            {
+                //到達点を指定することなくポルタメント終了している場合はエラー
+                throw new MucException(
+                    msg.get("E0405")
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            bool pflg = false;
+            while (c == '>' || c == '<' || c == ' ' || c == 0x9)
+            {
+                if (c == '>')//0x3e
+                {
+                    if (pflg) mucInfo.isDotNET = true;
+                    pflg = true;
+                    SOU1();
+                }
+                else if (c == '<')//0x3c
+                {
+                    if (pflg) mucInfo.isDotNET = true;
+                    pflg = true;
+                    SOD1();
+                }
+                else
+                    mucInfo.srcCPtr++;
+
+                c = getMoji();
+            }
+
+            byte after_note = msub.STTONE();//KUMA:オクターブ情報などを含めた音符情報に変換
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    msg.get("E0404")
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            mucInfo.srcCPtr++;
+
+            skipSpaceAndTab();
+
+            c = getMoji();//KUMA:次のコマンドを取得
+
+            if (c != '}')//0x7d
+            {
+                throw new MucException(
+                    msg.get("E0407")
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            mucInfo.srcCPtr++;
+            lp.length = mucInfo.srcCPtr - lp.length;
+
+            int beftone = expand.CTONE(before_note);
+            int noteNum = expand.CTONE(after_note) - beftone;
+            int sign = Math.Sign(noteNum);
+            noteNum = Math.Abs(noteNum);// +1;
+
+            //26を超えたら分割が必要?
+
+            int noteDiv = noteNum / 2 + 1; //2おんずつ
+            if (noteDiv > befco) noteDiv = befco;
+            int noteStep = noteNum / noteDiv * sign;
+            int noteMod = (noteNum % noteDiv) * sign;
+            int clock = befco / noteDiv;
+            int clockMod = befco % noteDiv;
+
+            List<Tuple<int, int, int>> lstPrt = new List<Tuple<int, int, int>>();
+            int stNote = 0;
+            for (int i = 0; i < noteDiv; i++)
+            {
+                int edNote = stNote + noteStep + ((noteMod > 0 ? 1 : 0)) * sign;
+                if (clock + (clockMod > 0 ? 1 : 0) != 0)
+                {
+                    Tuple<int, int, int> p = new Tuple<int, int, int>(
+                        stNote + beftone
+                        , edNote + beftone
+                        , clock + (clockMod > 0 ? 1 : 0)
+                        );
+                    lstPrt.Add(p);
+                }
+                else
+                {
+                    Tuple<int, int, int> p = new Tuple<int, int, int>(
+                        lstPrt[lstPrt.Count-1].Item1
+                        , edNote + beftone
+                        , lstPrt[lstPrt.Count - 1].Item3
+                        );
+                    lstPrt[lstPrt.Count - 1] = p;
+                }
+
+                stNote = edNote;// + sign;
+                noteMod--;
+                clockMod--;
+            }
+
+            bool tie = false;
+            foreach (Tuple<int, int, int> it in lstPrt)
+            {
+                byte st = (byte)(((it.Item1 / 12) << 4) | ((it.Item1 % 12) & 0xf));
+                byte ed = (byte)(((it.Item2 / 12) << 4) | ((it.Item2 % 12) & 0xf));
+                WritePortament(st, ed, (byte)it.Item3, tie);
+                tie = true;
+            }
+
+            PortamentEnd();
+
+            return EnmFCOMPNextRtn.fcomp1;
+
+        }
+
+        private void WritePortament(byte note, byte endNote, byte clk, bool tie)
+        {
+            int depth = expand.CULPTM(note, endNote, clk);//KUMA:DEPTHを計算
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    msg.get("E0406")
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            PortamentStart(depth);
+            FC162p_write(note, clk, tie);
+        }
+
+        private void PortamentStart(int depth)
+        {
+            msub.MWRIT2(new MmlDatum(0xf4));// PTMDAT;
+            msub.MWRIT2(new MmlDatum(0x00));
+            msub.MWRIT2(new MmlDatum(0x01));
+            msub.MWRIT2(new MmlDatum(0x01));
+            work.BEFMD = work.MDATA;//KUMA:DEPTHの書き込み位置を退避
+            //work.MDATA += 2;
+            msub.MWRIT2(new MmlDatum((byte)(depth & 0xff)));
+            msub.MWRIT2(new MmlDatum((byte)(depth >> 8)));
+
+            msub.MWRIT2(new MmlDatum(0xff));//KUMA:回数(255回)を書き込む
+        }
+
+        private void PortamentEnd()
+        {
+            msub.MWRIT2(new MmlDatum(0xf4));//KUMA:2個目のMコマンド作成開始
+            byte a = work.LFODAT[0];//KUMA:現在のLFOのスイッチを取得
+            a--;
+            if (a == 0)//KUMA:OFF(1)の場合はSTP1で2個めのMコマンドへOFF(1)を書き込む
+            {
+                msub.MWRIT2(new MmlDatum(0x01));
+            }
+            else
+            {
+                msub.MWRIT2(new MmlDatum(0x00));//KUMA:ON(0)の場合は2個めのMコマンドへON(0)を書き込む
+                msub.MWRIT2(new MmlDatum(work.LFODAT[1]));//KUMA:残りの現在のLFOの設定5byteをそのまま２個目のMコマンドへコピー
+                msub.MWRIT2(new MmlDatum(work.LFODAT[2]));
+                msub.MWRIT2(new MmlDatum(work.LFODAT[3]));
+                msub.MWRIT2(new MmlDatum(work.LFODAT[4]));
+                msub.MWRIT2(new MmlDatum(work.LFODAT[5]));
+            }
+        }
+
+        private void FC162p_write(int note, byte clk, bool tie)
+        {
+            if (tie)
+            {
+                msub.MWRIT2(new MmlDatum(0xfd));
+            }
+            TCLKSUB(clk);// ﾄｰﾀﾙｸﾛｯｸ ｶｻﾝ
+            FCOMP17(note, clk);
+        }
+
+
+
+        private EnmFCOMPNextRtn SETPTM2()
         {
             msub.MWRIT2(new MmlDatum(0xf4));// PTMDAT;
             msub.MWRIT2(new MmlDatum(0x00));
@@ -240,13 +456,28 @@ namespace mucomDotNET.Compiler
                     msg.get("E0405")
                     , mucInfo.row, mucInfo.col);
             }
-            if (c == '>')//0x3e
+
+            bool pflg = false;
+            while (c == '>' || c == '<' || c == ' ' || c == 0x9)
             {
-                SOU1();
-            }
-            if (c == '<')//0x3c
-            {
-                SOD1();
+                if (c == '>')//0x3e
+                {
+                    if (pflg) mucInfo.isDotNET = true;
+                    pflg = true;
+                    SOU1();
+                }
+                else if (c == '<')//0x3c
+                {
+                    if (pflg) mucInfo.isDotNET = true;
+                    pflg = true;
+                    SOD1();
+                }
+                else
+                    mucInfo.srcCPtr++;
+
+                c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ?
+                    mucInfo.lin.Item2[mucInfo.srcCPtr]
+                    : (char)0;
             }
 
             int depth = expand.CULPTM();//KUMA:DEPTHを計算
@@ -271,8 +502,8 @@ namespace mucomDotNET.Compiler
                     msg.get("E0407")
                     , mucInfo.row, mucInfo.col);
             }
-            mucInfo.srcCPtr++;
 
+            mucInfo.srcCPtr++;
             return EnmFCOMPNextRtn.fcomp1;
         }
 
@@ -3008,6 +3239,27 @@ namespace mucomDotNET.Compiler
             FCOMP17(note, clk);
 
         }
+
+        private byte FC162p_clock(int note)
+        {
+            int ptr = mucInfo.srcCPtr;
+            byte clk;
+            int ret = msub.STLIZM(mucInfo.lin, ref ptr, out clk);// LIZM SET
+            if (ret < 0)
+            {
+                WriteWarning(msg.get("W0405"), mucInfo.row, mucInfo.col);
+            }
+            if (clk > 128)
+            {
+                WriteWarning(string.Format(msg.get("W0414"), clk), mucInfo.row, mucInfo.col);
+            }
+            mucInfo.srcCPtr = ptr;
+            clk = FCOMP1X(clk);
+            //TCLKSUB(clk);// ﾄｰﾀﾙｸﾛｯｸ ｶｻﾝ
+            //FCOMP17(note, clk);
+            return clk;
+        }
+
 
         private EnmFCOMPNextRtn FCOMP13(int note)
         {

@@ -16,7 +16,7 @@ namespace mucomDotNET.Common
         public string pcm { get; set; }
         public string driver { get; set; }
 
-        public const string DotNET = "DotNET";
+        public const string DotNET = "mucomDotNET";
 
 
         public int lines { get; set; }
