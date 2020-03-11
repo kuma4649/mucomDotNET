@@ -35,10 +35,10 @@ namespace mucomDotNET.Common
                 ;//握りつぶす
             }
 
-            LoadMessage(lines);
+            MakeMessageDic(lines);
         }
 
-        public static void LoadMessage(string[] lines)
+        public static void MakeMessageDic(string[] lines)
         { 
             dicMsg = new Dictionary<string, string>();
             if (lines == null) return;
