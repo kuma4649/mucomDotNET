@@ -7,9 +7,13 @@ namespace mucomDotNET.Common
     public static class msg
     {
 
-        private static Dictionary<string, string> dicMsg = new Dictionary<string, string>();
+        private static Dictionary<string, string> dicMsg = null;
 
         static msg()
+        {
+        }
+
+        static void LoadDefaultMessage()
         {
             string[] lines = null;
             try
@@ -28,38 +32,49 @@ namespace mucomDotNET.Common
             }
             catch
             {
-
+                ;//握りつぶす
             }
 
-            if (lines != null)
-            {
-                foreach (string line in lines)
-                {
-                    try
-                    {
-                        if (line == null) continue;
-                        if (line == "") continue;
-                        string str = line.Trim();
-                        if (str == "") continue;
-                        if (str[0] == ';') continue;
-                        string code = str.Substring(0, str.IndexOf("=")).Trim();
-                        string msg = str.Substring(str.IndexOf("=") + 1, str.Length - str.IndexOf("=") - 1);
-                        if (dicMsg.ContainsKey(code)) continue;
+            LoadMessage(lines);
+        }
 
-                        dicMsg.Add(code, msg);
-                    }
-                    catch { }
+        public static void LoadMessage(string[] lines)
+        { 
+            dicMsg = new Dictionary<string, string>();
+            if (lines == null) return;
+
+            foreach (string line in lines)
+            {
+                try
+                {
+                    if (line == null) continue;
+                    if (line == "") continue;
+                    string str = line.Trim();
+                    if (str == "") continue;
+                    if (str[0] == ';') continue;
+                    string code = str.Substring(0, str.IndexOf("=")).Trim();
+                    string msg = str.Substring(str.IndexOf("=") + 1, str.Length - str.IndexOf("=") - 1);
+                    if (dicMsg.ContainsKey(code)) continue;
+
+                    dicMsg.Add(code, msg);
+                }
+                catch
+                {
+                    ;//握りつぶす
                 }
             }
         }
 
         public static string get(string code)
         {
+            if (dicMsg == null) LoadDefaultMessage();
+
             if (dicMsg.ContainsKey(code))
             {
                 return dicMsg[code].Replace("\\r", "\r").Replace("\\n", "\n");
             }
-            return "<no message>";
+
+            return string.Format("<no message>({0})", code);
         }
 
     }
