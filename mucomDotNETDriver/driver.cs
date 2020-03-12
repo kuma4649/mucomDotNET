@@ -16,8 +16,6 @@ namespace mucomDotNET.Driver
         private byte[] pcm = null;
         private Action<ChipDatum> WriteOPNA;
         private Action<long,int> WaitSendOPNA;
-        private string pathWork = "";
-        private string fnMUB = "";
         private string fnVoicedat="";
         private string fnPcm="";
 
@@ -42,34 +40,41 @@ namespace mucomDotNET.Driver
             this.enc = enc ?? myEncoding.Default;
         }
 
-        public void Init(string fileName, Action<ChipDatum> opnaWrite, Action<long, int> opnaWaitSend, bool notSoundBoard2, bool isLoadADPCM, bool loadADPCMOnly)
+        public void Init(string fileName, Action<ChipDatum> opnaWrite, Action<long, int> opnaWaitSend, bool notSoundBoard2, bool isLoadADPCM, bool loadADPCMOnly, Func<string, Stream> appendFileReaderCallback = null)
         {
             byte[] srcBuf = File.ReadAllBytes(fileName);
-            Init(fileName, opnaWrite, opnaWaitSend, notSoundBoard2, srcBuf, isLoadADPCM, loadADPCMOnly);
+            Init(opnaWrite, opnaWaitSend, notSoundBoard2, srcBuf, isLoadADPCM, loadADPCMOnly, appendFileReaderCallback ?? CreateAppendFileReaderCallback(Path.GetDirectoryName(fileName)));
         }
 
         public void Init(string fileName, Action<ChipDatum> opnaWrite, Action<long, int> opnaWaitSend, bool notSoundBoard2, byte[] srcBuf, bool isLoadADPCM, bool loadADPCMOnly)
         {
+            Init(opnaWrite, opnaWaitSend, notSoundBoard2, srcBuf, isLoadADPCM, loadADPCMOnly, CreateAppendFileReaderCallback(Path.GetDirectoryName(fileName)));
+        }
+
+        public void Init(Action<ChipDatum> opnaWrite, Action<long, int> opnaWaitSend, bool notSoundBoard2, byte[] srcBuf, bool isLoadADPCM, bool loadADPCMOnly, Func<string, Stream> appendFileReaderCallback)
+        {
             List<MmlDatum> bl = new List<MmlDatum>();
             foreach (byte b in srcBuf) bl.Add(new MmlDatum(b));
-            Init(fileName, opnaWrite, opnaWaitSend, bl.ToArray(), new object[] { notSoundBoard2, isLoadADPCM, loadADPCMOnly });
+            Init(opnaWrite, opnaWaitSend, bl.ToArray(), new object[] { notSoundBoard2, isLoadADPCM, loadADPCMOnly }, appendFileReaderCallback);
         }
 
         public void Init(string fileName, Action<ChipDatum> chipWriteRegister, Action<long, int> chipWaitSend, MmlDatum[] srcBuf, object addtionalOption)
+        {
+            Init(chipWriteRegister, chipWaitSend, srcBuf, addtionalOption, CreateAppendFileReaderCallback(Path.GetDirectoryName(fileName)));
+        }
+
+        public void Init(Action<ChipDatum> chipWriteRegister, Action<long, int> chipWaitSend, MmlDatum[] srcBuf, object addtionalOption, Func<string, Stream> appendFileReaderCallback)
         {
             bool notSoundBoard2 = (bool)((object[])addtionalOption)[0];
             bool isLoadADPCM = (bool)((object[])addtionalOption)[1];
             bool loadADPCMOnly = (bool)((object[])addtionalOption)[2];
 
-            pathWork = Path.GetDirectoryName(fileName);
-            fnMUB = fileName;
             header = new MUBHeader(srcBuf, enc);
             work.mData = GetDATA();
             tags = GetTags();
             GetFileNameFromTag();
-            work.fmVoice = GetFMVoiceFromFile();
-            pcm = GetPCMFromSrcBuf();
-            if (pcm == null) GetPCMDataFromFile();
+            work.fmVoice = GetFMVoiceFromFile(appendFileReaderCallback);
+            pcm = GetPCMFromSrcBuf() ?? GetPCMDataFromFile(appendFileReaderCallback);
             work.pcmTables = GetPCMTable();
 
             WriteOPNA = chipWriteRegister;
@@ -95,6 +100,26 @@ namespace mucomDotNET.Driver
 
             music2 = new Music2(work, WriteRegister);
             music2.notSoundBoard2 = notSoundBoard2;
+        }
+
+        private static Func<string, Stream> CreateAppendFileReaderCallback(string dir)
+        {
+            return fname =>
+            {
+                if (!string.IsNullOrEmpty(dir))
+                {
+                    var path = Path.Combine(dir, fname);
+                    if (File.Exists(path))
+                    {
+                        return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    }
+                }
+                if (File.Exists(fname))
+                {
+                    return new FileStream(fname, FileMode.Open, FileAccess.Read, FileShare.Read);
+                }
+                return null;
+            };
         }
 
 
@@ -310,17 +335,16 @@ namespace mucomDotNET.Driver
             return;
         }
 
-        private byte[] GetFMVoiceFromFile()
+        private byte[] GetFMVoiceFromFile(Func<string, Stream> appendFileReaderCallback)
         {
             try
             {
                 fnVoicedat = string.IsNullOrEmpty(fnVoicedat) ? "voice.dat" : fnVoicedat;
-                if (!File.Exists(Path.Combine(pathWork, fnVoicedat)))
-                {
-                    return null;
-                }
 
-                return File.ReadAllBytes(Path.Combine(pathWork, fnVoicedat));
+                using (Stream vd = appendFileReaderCallback?.Invoke(fnVoicedat))
+                {
+                    return ReadAllBytes(vd);
+                }
             }
             catch
             {
@@ -328,21 +352,43 @@ namespace mucomDotNET.Driver
             }
         }
 
-        private byte[] GetPCMDataFromFile()
+        private byte[] GetPCMDataFromFile(Func<string, Stream> appendFileReaderCallback)
         {
             try
             {
                 fnPcm = string.IsNullOrEmpty(fnPcm) ? "mucompcm.bin" : fnPcm;
-                if (!File.Exists(Path.Combine(pathWork, fnPcm)))
-                {
-                    return null;
-                }
 
-                return File.ReadAllBytes(Path.Combine(pathWork, fnPcm));
+                using (Stream pd = appendFileReaderCallback?.Invoke(fnPcm))
+                {
+                    return ReadAllBytes(pd);
+                }
             }
             catch
             {
                 return null;
+            }
+        }
+
+        /// <summary>
+		/// ストリームから一括でバイナリを読み込む
+		/// </summary>
+		private byte[] ReadAllBytes(Stream stream)
+        {
+            if (stream == null) return null;
+
+            var buf = new byte[8192];
+            using (var ms = new MemoryStream())
+            {
+                while (true)
+                {
+                    var r = stream.Read(buf, 0, buf.Length);
+                    if (r < 1)
+                    {
+                        break;
+                    }
+                    ms.Write(buf, 0, r);
+                }
+                return ms.ToArray();
             }
         }
 
