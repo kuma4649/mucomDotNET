@@ -2,7 +2,7 @@
   "profiles": {
     "Player": {
       "commandName": "Project",
-      "commandLineArgs": "c:\\temp\\tes.mub"
+      "commandLineArgs": "D:\\bootcamp\\FM音源\\data\\MUC\\mucom88win_yk2mml181225\\ACTRAISER_MML\\gh002.mub"
     }
   }
 }

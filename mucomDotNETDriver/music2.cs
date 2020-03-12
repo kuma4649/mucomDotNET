@@ -1143,8 +1143,11 @@ namespace mucomDotNET.Driver
             a--;
             work.cd.instrumentNumber = a;
 
-            work.soundWork.STTADR = work.pcmTables[a].Item2[0];//start address
-            work.soundWork.ENDADR = work.pcmTables[a].Item2[1];//end address
+            if (work.pcmTables != null && work.pcmTables.Length > a)
+            {
+                work.soundWork.STTADR = work.pcmTables[a].Item2[0];//start address
+                work.soundWork.ENDADR = work.pcmTables[a].Item2[1];//end address
+            }
 
             if (work.soundWork.PVMODE == 0) return;
 
