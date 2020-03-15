@@ -1859,7 +1859,7 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETVUP()
         {
-            if (work.UDFLG != 0)
+            if (work.VolumeUDFLG != 0)
             {
                 return SVD2();
             }
@@ -1868,7 +1868,7 @@ namespace mucomDotNET.Compiler
 
         public EnmFCOMPNextRtn SETVDW()
         {
-            if (work.UDFLG != 0)
+            if (work.VolumeUDFLG != 0)
             {
                 return SVU2();
             }
@@ -1957,7 +1957,7 @@ namespace mucomDotNET.Compiler
         {
             mucInfo.srcCPtr++;
 
-            if (work.UDFLG != 0)
+            if (work.OctaveUDFLG != 0)
             {
                 SOD2();
                 return;
@@ -1981,7 +1981,7 @@ namespace mucomDotNET.Compiler
         {
             mucInfo.srcCPtr++;
 
-            if (work.UDFLG != 0)
+            if (work.OctaveUDFLG != 0)
             {
                 SOU2();
                 return;
@@ -2939,6 +2939,15 @@ namespace mucomDotNET.Compiler
             work.VOLUME = 0;
             work.OCTINT = 0;// 検証結果による値。おそらく実機では不定
             work.compilerInfo = new CompilerInfo();
+
+            work.OctaveUDFLG = 0;
+            work.VolumeUDFLG = 0;
+            if (mucInfo.invert.ToLower() == "on")
+            {
+                work.OctaveUDFLG = 1;
+                work.VolumeUDFLG = 1;
+            }
+
         }
 
         public void CMPEN1()

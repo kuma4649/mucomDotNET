@@ -2129,37 +2129,49 @@ namespace mucomDotNET.Driver
                 return;
             }
 
-            int num = work.cd.fnum & 0x7ff;
-            int blk = work.cd.fnum >> 11;
-            short dlt = (short)(ushort)hl;
-            //Console.Write("b:{0} num:{1:x} -> +{2}", blk, num, dlt);
-
-            num += dlt;
-
-            if (dlt > 0)
+            if (work.soundWork.SSGF1 == 0)
             {
-                //0x26a == Note C
-                while (num > 0x26a * 2 && blk<7)
+                //KUMA:FMの時はリミットチェック処理
+
+                int num = work.cd.fnum & 0x7ff;
+                int blk = work.cd.fnum >> 11;
+                short dlt = (short)(ushort)hl;
+                //Console.Write("b:{0} num:{1:x} -> +{2}", blk, num, dlt);
+
+                num += dlt;
+
+                if (dlt > 0)
                 {
-                    blk++;
-                    num -= 0x26a;
+                    //0x26a == Note C
+                    while (num > 0x26a * 2 && blk < 7)
+                    {
+                        blk++;
+                        num -= 0x26a;
+                    }
                 }
+                else
+                {
+                    while (num < 0x26a && blk > 0)
+                    {
+                        blk--;
+                        num += 0x26a;
+                    }
+                }
+
+                //Console.WriteLine(" -> b:{0} num:{1:x}",blk,num);
+
+                hl = (blk << 11) | num;
             }
             else
             {
-                while (num < 0x26a && blk > 0)
-                {
-                    blk--;
-                    num += 0x26a;
-                }
+                //KUMA:SSGの時は既存の処理
+
+                int de = work.cd.fnum;// GET FNUM1
+                // GET B/FNUM2
+                hl += de;//  HL= NEW F-NUMBER
+                hl = (ushort)hl;
             }
 
-            //Console.WriteLine(" -> b:{0} num:{1:x}",blk,num);
-
-            hl = (blk << 11) | num;
-            //// GET B/FNUM2
-            //hl += de;//  HL= NEW F-NUMBER
-            //hl = (ushort)hl;
             work.cd.fnum = hl;// SET NEW F-NUM1
                               // SET NEW F-NUM2
 

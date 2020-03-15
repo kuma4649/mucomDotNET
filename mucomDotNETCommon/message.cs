@@ -8,60 +8,25 @@ namespace mucomDotNET.Common
     {
 
         private static Dictionary<string, string> dicMsg = null;
-
-        static msg()
-        {
-        }
-
-        static void LoadDefaultMessage()
-        {
-            string[] lines = null;
-            try
-            {
-                Assembly myAssembly = Assembly.GetEntryAssembly();
-                string path = Path.GetDirectoryName(myAssembly.Location);
-                string lang = System.Globalization.CultureInfo.CurrentCulture.Name;
-                string file = Path.Combine(path, "lang", string.Format("mucomDotNETmessage.{0}.txt", lang));
-                file = file.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
-                if (!File.Exists(file))
-                {
-                    file = Path.Combine(path, "lang", "mucomDotNETmessage.txt");
-                    file = file.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
-                }
-                lines = File.ReadAllLines(file);
-            }
-            catch
-            {
-                ;//握りつぶす
-            }
-
-            MakeMessageDic(lines);
-        }
+        private static string otherLangFilename = Path.Combine("lang", "mucomDotNETmessage.{0}.txt");
+        private static string englishFilename = Path.Combine("lang", "mucomDotNETmessage.txt");
 
         public static void MakeMessageDic(string[] lines)
-        { 
-            dicMsg = new Dictionary<string, string>();
+        {
             if (lines == null) return;
+            MakeMessageDic(ParseMesseageDicDatas(lines));
+        }
 
-            foreach (string line in lines)
+        public static void MakeMessageDic(IEnumerable<KeyValuePair<string, string>> datas)
+        {
+            dicMsg = dicMsg ?? new Dictionary<string, string>();
+            if (datas == null) return;
+            dicMsg.Clear();
+
+            foreach (var data in datas)
             {
-                try
-                {
-                    if (line == null) continue;
-                    if (line == "") continue;
-                    string str = line.Trim();
-                    if (str == "") continue;
-                    if (str[0] == ';') continue;
-                    string code = str.Substring(0, str.IndexOf("=")).Trim();
-                    string msg = str.Substring(str.IndexOf("=") + 1, str.Length - str.IndexOf("=") - 1);
-                    if (dicMsg.ContainsKey(code)) continue;
-
-                    dicMsg.Add(code, msg);
-                }
-                catch
-                {
-                    ;//握りつぶす
-                }
+                if (dicMsg.ContainsKey(data.Key)) continue;
+                dicMsg.Add(data.Key, data.Value);
             }
         }
 
@@ -75,6 +40,69 @@ namespace mucomDotNET.Common
             }
 
             return string.Format("<no message>({0})", code);
+        }
+
+        /// <summary>
+        /// デフォルトで読み込むメッセージファイル名を変更する
+        /// </summary>
+        /// <param name="engFilename">ex)lang\mucomDotNETmessage.txt</param>
+        /// <param name="otherFilename">ex)lang\mucomDotNETmessage.{0}.txt</param>
+        public static void changeFilename(string engFilename, string otherFilename)
+        {
+            otherLangFilename = otherFilename;
+            englishFilename = engFilename;
+        }
+
+
+        private static IEnumerable<KeyValuePair<string, string>> ParseMesseageDicDatas(string[] lines)
+        {
+            foreach (string line in lines)
+            {
+                string code;
+                string msg;
+                try
+                {
+                    if (line == null) continue;
+                    if (line == "") continue;
+                    string str = line.Trim();
+                    if (str == "") continue;
+                    if (str[0] == ';') continue;
+                    code = str.Substring(0, str.IndexOf("=")).Trim();
+                    msg = str.Substring(str.IndexOf("=") + 1, str.Length - str.IndexOf("=") - 1);
+
+                }
+                catch
+                {
+                    ;//握りつぶす
+                    continue;
+                }
+                yield return new KeyValuePair<string, string>(code, msg);
+            }
+        }
+
+        private static void LoadDefaultMessage()
+        {
+            string[] lines = null;
+            try
+            {
+                Assembly myAssembly = Assembly.GetEntryAssembly();
+                string path = Path.GetDirectoryName(myAssembly.Location);
+                string lang = System.Globalization.CultureInfo.CurrentCulture.Name;
+                string file = Path.Combine(path, string.Format(otherLangFilename, lang));
+                file = file.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
+                if (!File.Exists(file))
+                {
+                    file = Path.Combine(path, englishFilename);
+                    file = file.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
+                }
+                lines = File.ReadAllLines(file);
+            }
+            catch
+            {
+                ;//握りつぶす
+            }
+
+            MakeMessageDic(lines);
         }
 
     }

@@ -64,7 +64,8 @@ namespace mucomDotNET.Compiler
         public static byte LINCFG = 0;
         public static int ADRSTC = 0;
         public static byte VPCO=1;//dummyで1としている
-        public static byte UDFLG = 0;
+        public static byte OctaveUDFLG = 0;
+        public static byte VolumeUDFLG = 0;
         public static int REPCOUNT = 0;
         public static int TV_OFS = 0;
         public static int POINTC = 0;// LOOPSTART ADR ｶﾞ ｾｯﾃｲｻﾚﾃｲﾙ ADR

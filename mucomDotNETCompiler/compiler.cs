@@ -192,6 +192,9 @@ namespace mucomDotNET.Compiler
                     case "driver":
                         mucInfo.driver = tag.Item2;
                         break;
+                    case "invert":
+                        mucInfo.invert = tag.Item2;
+                        break;
                 }
             }
 
@@ -225,6 +228,15 @@ namespace mucomDotNET.Compiler
 
         private List<Tuple<string, string>> tags=new List<Tuple<string, string>>();
 
+        /// <summary>
+        /// mucからタグのリストを抽出する
+        /// </summary>
+        /// <param name="buf">muc(バイト配列、実態はsjisのテキスト)</param>
+        /// <returns>
+        /// tupleのリスト。
+        /// item1がタグ名。トリム、小文字化済み。
+        /// item2が値。トリム済み。
+        /// </returns>
         private List<Tuple<string, string>> GetTagsFromMUC(byte[] buf)
         {
             var text = enc.GetStringFromSjisArray(buf)  // Encoding.GetEncoding("shift_jis").GetString(buf)
