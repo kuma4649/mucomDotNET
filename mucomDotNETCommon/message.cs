@@ -34,12 +34,8 @@ namespace mucomDotNET.Common
         {
             if (dicMsg == null) LoadDefaultMessage();
 
-            if (dicMsg.ContainsKey(code))
-            {
-                return dicMsg[code].Replace("\\r", "\r").Replace("\\n", "\n");
-            }
-
-            return string.Format("<no message>({0})", code);
+            string ret;
+            return dicMsg.TryGetValue(code, out ret) ? ret : string.Format("<no message>({0})", code);
         }
 
         /// <summary>
@@ -69,7 +65,7 @@ namespace mucomDotNET.Common
                     if (str[0] == ';') continue;
                     code = str.Substring(0, str.IndexOf("=")).Trim();
                     msg = str.Substring(str.IndexOf("=") + 1, str.Length - str.IndexOf("=") - 1);
-
+                    msg = msg.Replace("\\r", "\r").Replace("\\n", "\n");
                 }
                 catch
                 {
