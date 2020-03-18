@@ -13,8 +13,7 @@ namespace mucomDotNET.Common
 
         public static void MakeMessageDic(string[] lines)
         {
-            if (lines == null) return;
-            MakeMessageDic(ParseMesseageDicDatas(lines));
+            MakeMessageDic(lines != null ? ParseMesseageDicDatas(lines) : null);
         }
 
         public static void MakeMessageDic(IEnumerable<KeyValuePair<string, string>> datas)
