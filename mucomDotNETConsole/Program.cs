@@ -15,10 +15,12 @@ namespace mucomDotNET.Console
         {
             Log.writeLine = WriteLine;
 #if DEBUG
-            Log.level = LogLevel.INFO;//.INFO;
+            Log.level = LogLevel.TRACE;//.INFO;
+            Log.off = 0;
 #else
             Log.level = LogLevel.INFO;
 #endif
+            int fnIndex = AnalyzeOption(args);
 
             if (args == null || args.Length < 1)
             {
@@ -31,17 +33,8 @@ namespace mucomDotNET.Console
 #if NETCOREAPP
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 #endif
-                if (args.Length > 2)
-                {
-                    //foreach (string arg in args)
-                    //{
-                        //Compile(arg);
-                    //}
-                }
-                else
-                {
-                    Compile(args[0], (args.Length > 1 ? args[1] : null));
-                }
+
+                Compile(args[fnIndex], (args.Length > fnIndex + 1 ? args[fnIndex + 1] : null));
 
             }
             catch (Exception ex)
@@ -145,6 +138,48 @@ namespace mucomDotNET.Console
         }
 
 
+        private static int AnalyzeOption(string[] args)
+        {
+            int i = 0;
+
+            while (args[i] != null && args[i].Length > 0 && args[i][0] == '-')
+            {
+                string op = args[i].Substring(1).ToUpper();
+                if (op == "LOGLEVEL=FATAL")
+                {
+                    Log.level = LogLevel.FATAL;
+                }
+                else if (op == "LOGLEVEL=ERROR")
+                {
+                    Log.level = LogLevel.ERROR;
+                }
+                else if (op == "LOGLEVEL=WARNING")
+                {
+                    Log.level = LogLevel.WARNING;
+                }
+                else if (op == "LOGLEVEL=INFO")
+                {
+                    Log.level = LogLevel.INFO;
+                }
+                else if (op == "LOGLEVEL=DEBUG")
+                {
+                    Log.level = LogLevel.DEBUG;
+                }
+                else if (op == "LOGLEVEL=TRACE")
+                {
+                    Log.level = LogLevel.TRACE;
+                }
+
+                if (op == "OFFLOG=WARNING")
+                {
+                    Log.off = (int)LogLevel.WARNING;
+                }
+
+                i++;
+            }
+
+            return i;
+        }
 
     }
 }

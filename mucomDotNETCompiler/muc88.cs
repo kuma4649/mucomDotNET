@@ -609,7 +609,8 @@ namespace mucomDotNET.Compiler
         private EnmFCOMPNextRtn SETTAG()
         {
             work.JCLOCK = work.tcnt[work.COMNOW];
-            work.JPLINE = work.LINE;
+            work.JPLINE = mucInfo.row;
+            work.JPCOL = mucInfo.col;
 
             mucInfo.srcCPtr++;
 
@@ -659,31 +660,62 @@ namespace mucomDotNET.Compiler
             //Ryhthm の内訳
             // bit0～3 rythmType R:5 T:4 H:3 C:2 S:1 B:0
             // bit4～7 パン 1:右, 2:左, 3:中央 4:右オート 5:左オート 6:ランダム
-            int n = (byte)msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0414"));
+
+            int v = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0414"));
+            int n = (byte)v;
+            int rn = (byte)((tp == ChannelType.RHYTHM) ? (n >> 4) : n);
             mucInfo.srcCPtr = ptr;
+            char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+
+            //1-6の範囲外の時 -> エラー
+            if (rn < 1 || rn > 6)
+            {
+                //使用可能な値の範囲外
+                throw new MucException(string.Format(msg.get("E0524"), v), mucInfo.row, mucInfo.col);
+            }
+
+            //4-6なのに,が無いとき -> エラー
+            if (c != ',' && rn > 3 && rn < 7)
+            {
+                //4～6の場合は値2が必須
+                throw new MucException(msg.get("E0525"), mucInfo.row, mucInfo.col);
+            }
+
+            //1-3なのに,がある時 -> 警告扱い
+            if (c == ',' && rn > 0 && rn < 4)
+            {
+                WriteWarning(msg.get("W0415"), mucInfo.row, mucInfo.col);
+            }
+
+            //
 
             msub.MWRITE(new MmlDatum(0xf8), new MmlDatum((byte)n));// COM OF 'p'
 
             ////
             //AMD98
-            char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
             if (c == ',')//0x2c
             {
-                if (
-                    ((tp == ChannelType.FM||tp== ChannelType.ADPCM) && n < 4)
-                    || (tp == ChannelType.RHYTHM && (n >> 4) < 4)
-                    )
-                {
-                    WriteWarning(msg.get("W0415"), mucInfo.row, mucInfo.col);
-                }
-
+                //1-6の範囲内ならwait値を取得する
                 mucInfo.isDotNET = true;
                 mucInfo.srcCPtr++;
                 ptr = mucInfo.srcCPtr;
-                n = msub.REDATA(mucInfo.lin, ref ptr);
+                int n2 = msub.REDATA(mucInfo.lin, ref ptr);
                 mucInfo.srcCPtr = ptr;
-                msub.MWRIT2(new MmlDatum((byte)n));// ２こめ
+
+                //4-6の範囲内の場合のみwait値を出力する
+                if (rn > 3 && rn < 7)
+                {
+
+                    //wait値が範囲外の時 ->エラー
+                    if (n2 < 1 || n2 > work.CLOCK || (byte)n2 < 1)
+                    {
+                        throw new MucException(string.Format(msg.get("E0526"), work.CLOCK, v), mucInfo.row, mucInfo.col);
+                    }
+
+                    msub.MWRIT2(new MmlDatum((byte)n2));// ２こめ
+                }
             }
+
             ////
 
             return EnmFCOMPNextRtn.fcomp1;
@@ -812,6 +844,13 @@ namespace mucomDotNET.Compiler
             msub.MWRIT2(new MmlDatum(0xfe));
 
             int HL = work.POINTC + 4;
+            if (HL < 0)
+            {
+                throw new MucException(
+                    msg.get("E0523")
+                    , mucInfo.row, mucInfo.col);
+            }
+
             if ((mucInfo.bufLoopStack.Get(HL) | mucInfo.bufLoopStack.Get(HL + 1)) != 0)
             {
                 throw new MucException(
@@ -1143,6 +1182,10 @@ namespace mucomDotNET.Compiler
             ptr = mucInfo.srcCPtr;
             int rep = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0436"));
             mucInfo.srcCPtr = ptr;
+            if (rep < 0 || rep > 255)
+            {
+                WriteWarning(string.Format(msg.get("W0416"), rep), mucInfo.row, mucInfo.col);
+            }
 
             msub.MWRIT2(new MmlDatum(0xf6));	// WRITE COM OF LOOP
             msub.MWRIT2(new MmlDatum((byte)rep)); // WRITE LOOP Co.
@@ -2633,6 +2676,10 @@ namespace mucomDotNET.Compiler
             work.MAXCH = 11;
             work.ADRSTC = 0;
             work.VPCO = 0;
+
+            work.JPLINE = -1;
+            work.JPCOL = -1;
+
             INIT();
             if (work.LINCFG != 0)
             {
@@ -2930,6 +2977,9 @@ namespace mucomDotNET.Compiler
 
         }
 
+        /// <summary>
+        /// パートごとに呼ばれる初期化処理
+        /// </summary>
         public void INIT()
         {
             work.LFODAT[0] = 1;

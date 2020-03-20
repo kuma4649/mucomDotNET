@@ -429,8 +429,8 @@ namespace mucomDotNET.Compiler
             dat.Add(new MmlDatum((byte)work.JCLOCK));// JCLOCKの値(Jコマンドのタグ位置)
             dat.Add(new MmlDatum((byte)(work.JCLOCK >> 8)));
 
-            dat.Add(new MmlDatum(0));//jump line number(dummy)
-            dat.Add(new MmlDatum(0));
+            dat.Add(new MmlDatum((byte)work.JPLINE));//jump line number
+            dat.Add(new MmlDatum((byte)(work.JPLINE >> 8)));
 
             dat.Add(new MmlDatum(0));//ext_flags(?)
             dat.Add(new MmlDatum(0));
@@ -460,9 +460,10 @@ namespace mucomDotNET.Compiler
                 dat.Add(new MmlDatum((byte)mucInfo.bufDefVoice.Get(i)));
             }
 
-            if (work.JCLOCK > 0)
+            if (work.JPLINE >= 0)
             {
-                Log.WriteLine(LogLevel.INFO, string.Format("#Jump count [{0}].\r\n", work.JCLOCK));
+                Log.WriteLine(LogLevel.INFO, string.Format("#Jump count [{0}].", work.JCLOCK));
+                Log.WriteLine(LogLevel.INFO, string.Format("#Jump line [row:{0} col:{1}].", work.JPLINE, work.JPCOL));
             }
 
             for (int i = 0; i < length; i++) dat.Add(mucInfo.bufDst.Get(i));

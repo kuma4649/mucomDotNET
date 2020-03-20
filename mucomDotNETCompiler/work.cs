@@ -82,13 +82,14 @@ namespace mucomDotNET.Compiler
         public static byte BFDAT { get; internal set; }
         public static byte VDDAT { get; internal set; }
         public static int LINE { get; internal set; }
-        public static int JPLINE { get; internal set; }
+        public static int JPLINE { get; internal set; } = -1;
         public static int BEFMD { get; internal set; }
         public static int FRQBEF { get; internal set; }
         public static int PSGMD { get; internal set; }
         public static int KEYONR { get; internal set; }
         public static int bufStartPtr { get; internal set; }
         public static int[] bufCount { get; internal set; } = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        public static int JPCOL { get; internal set; }
 
         public static int MU_NUM = 0;// 0xC200 b ｺﾝﾊﾟｲﾙﾁｭｳ ﾉ MUSICﾅﾝﾊﾞｰ
         public static int OTODAT = 1;// 0xc201 w FMｵﾝｼｮｸ ｶﾞ ｶｸﾉｳｻﾚﾙ ｱﾄﾞﾚｽﾄｯﾌﾟ ｶﾞ ﾊｲｯﾃｲﾙ
