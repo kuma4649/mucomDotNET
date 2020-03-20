@@ -1124,14 +1124,61 @@ namespace mucomDotNET.Compiler
             }
 
             int ptr;
+            string errCode_Fmt = "E0434";
+            string errCode_Val = "E0435";
+            int[] n = new int[4];
 
             ptr = mucInfo.srcCPtr;
-            int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0433"));
+            n[0] = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0433"));
             mucInfo.srcCPtr = ptr;
+            if (mucInfo.Carry) throw new MucException(msg.get(errCode_Fmt), mucInfo.row, mucInfo.col);
+            if (mucInfo.ErrSign) throw new MucException(msg.get(errCode_Val), mucInfo.row, mucInfo.col);
 
-            msub.MWRIT2(new MmlDatum(0xf7));// COM OF 'S'
-            msub.MWRIT2(new MmlDatum((byte)n));
-            return SETSE1(3, "E0434", "E0435");// ﾉｺﾘ 3 PARAMETER
+            for (int i = 1; i < 4; i++)
+            {
+                char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+                if (c != ',') throw new MucException(msg.get(errCode_Fmt), mucInfo.row, mucInfo.col);
+                mucInfo.srcCPtr++;
+                ptr = mucInfo.srcCPtr;
+                n[i] = msub.REDATA(mucInfo.lin, ref ptr);
+                mucInfo.srcCPtr = ptr;
+                if (mucInfo.Carry) throw new MucException(msg.get(errCode_Fmt), mucInfo.row, mucInfo.col);
+                if (mucInfo.ErrSign) throw new MucException(msg.get(errCode_Val), mucInfo.row, mucInfo.col);
+            }
+
+            //値の範囲をチェック
+            bool is16bit = false;
+            for (int i = 0; i < 4; i++)
+            {
+                if (n[i] == (sbyte)n[i]) continue;
+                is16bit = true;
+                break;
+            }
+
+            if (!mucInfo.isDotNET && !is16bit)
+            {
+                msub.MWRIT2(new MmlDatum(0xf7));// COM OF 'S'
+                for (int i = 0; i < 4; i++)
+                    msub.MWRIT2(new MmlDatum((byte)n[i]));
+                mucInfo.needNormalMucom = true;//既存のmucomであることを求めるフラグ
+            }
+            else
+            {
+                //既存のフォーマットを既に使っている時はエラーとする
+                if (!mucInfo.isDotNET && mucInfo.needNormalMucom)
+                    throw new MucException(msg.get("E0527"), mucInfo.row, mucInfo.col);
+
+                mucInfo.isDotNET = true;
+                msub.MWRIT2(new MmlDatum(0xf7));// COM OF 'S'
+                for (int i = 0; i < 4; i++)
+                {
+                    msub.MWRIT2(new MmlDatum((byte)n[i]));
+                    msub.MWRIT2(new MmlDatum((byte)(n[i] >> 8)));
+                }
+                mucInfo.needNormalMucom = true;
+            }
+
+            return EnmFCOMPNextRtn.fcomp1;
         }
 
         private EnmFCOMPNextRtn SETSE1(int b ,string errCode_Fmt,string errCode_Val)

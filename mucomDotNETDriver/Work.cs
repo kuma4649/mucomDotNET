@@ -37,6 +37,7 @@ namespace mucomDotNET.Driver
         public MmlDatum[] mData = null;
         public SoundWork soundWork = null;
         public byte[] fmVoiceAtMusData = null;
+        public bool isDotNET = false;
 
         public Work()
         {

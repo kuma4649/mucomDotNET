@@ -76,6 +76,7 @@ namespace mucomDotNET.Driver
             work.fmVoice = GetFMVoiceFromFile(appendFileReaderCallback);
             pcm = GetPCMFromSrcBuf() ?? GetPCMDataFromFile(appendFileReaderCallback);
             work.pcmTables = GetPCMTable();
+            work.isDotNET = IsDotNETFromTAG();
 
             WriteOPNA = chipWriteRegister;
             WaitSendOPNA = chipWaitSend;
@@ -100,6 +101,23 @@ namespace mucomDotNET.Driver
 
             music2 = new Music2(work, WriteRegister);
             music2.notSoundBoard2 = notSoundBoard2;
+        }
+
+        private bool IsDotNETFromTAG()
+        {
+            if (tags == null) return false;
+            foreach (Tuple<string, string> tag in tags)
+            {
+                if (tag.Item1== "driver")
+                {
+                    if(tag.Item2.ToLower()== "mucomdotnet")
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private static Func<string, Stream> CreateAppendFileReaderCallback(string dir)

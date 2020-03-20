@@ -21,6 +21,9 @@ namespace mucomDotNET.Driver
         private Work work;
         private Action<ChipDatum> WriteOPNARegister = null;
 
+        private byte[] autoPantable = new byte[] { 2, 3, 1, 3 };
+
+
         public Music2(Work work, Action<ChipDatum> WriteOPNARegister)
         {
             this.work = work;
@@ -46,7 +49,6 @@ namespace mucomDotNET.Driver
                 TO_NML();
 
                 work.Status = 1;
-
             }
         }
 
@@ -151,7 +153,7 @@ namespace mucomDotNET.Driver
                 ,LFOON // 0xF4 - LFO SET
                 ,REPSTF// 0xF5 - REPEAT START SET  '['
                 ,REPENF// 0xF6 - REPEAT END SET    ']'
-                ,MDSET // 0xF7 - FMｵﾝｹﾞﾝ ﾓｰﾄﾞｾｯﾄ
+                ,MDSET // 0xF7 - FMｵﾝｹﾞﾝ ﾓｰﾄﾞｾｯﾄ  KUMA:'S'スロットディチューンコマンド
                 // ,STEREO// 0xF8 - STEREO MODE
                 ,STEREO_AMD98 // 0xF8 - STEREO MODE
                 ,FLGSET// 0xF9 - FLAG SET
@@ -937,7 +939,15 @@ namespace mucomDotNET.Driver
 
         public void FMSUB6(uint hl, uint bc)
         {
-            hl += bc;// BLOCK/FNUM1&2 DETUNE PLUS(for SE MODE)
+            if (work.isDotNET)
+            {
+                hl = AddDetuneToFNum((ushort)hl, (short)(ushort)bc);
+            }
+            else
+            {
+                hl += bc;// BLOCK/FNUM1&2 DETUNE PLUS(for SE MODE)
+            }
+
             byte e = (byte)(hl >> 8);// BLOCK/F-NUMBER2 DATA
                                      //FPORT:
             byte d = work.soundWork.FPORT_VAL;// 0x0A4;// PORT A4H
@@ -952,11 +962,47 @@ namespace mucomDotNET.Driver
             work.carry = false;
         }
 
+        private ushort AddDetuneToFNum(ushort fnum, short detune)
+        {
+            int block = (byte)((fnum >> 11) & 7);
+            int fnum11b = fnum & 0x7ff;
+
+            fnum11b += detune;
+            if (detune < 0)
+            {
+                while (fnum11b < 0x26a)
+                {
+                    if (block == 0)
+                    {
+                        if (fnum11b < 0) fnum11b = 0;
+                        break;
+                    }
+                    fnum11b += 0x26a;
+                    block--;
+                }
+            }
+            else
+            {
+                while (fnum11b > 0x26a * 2)
+                {
+                    if (block == 7)
+                    {
+                        if (fnum11b > 0x7ff) fnum11b = 0x7ff;
+                        break;
+                    }
+                    fnum11b -= 0x26a;
+                    block++;
+                }
+            }
+
+            return (ushort)(((block & 7) << 11) | (fnum11b & 0x7ff));
+        }
+
         // **	SE MODE ﾉ DETUNE ｾｯﾃｲ**
 
         public void EXMODE(uint hl)
         {
-            work.soundWork.FMSUB8_VAL = (byte)work.soundWork.DETDAT[0];
+            work.soundWork.FMSUB8_VAL = (ushort)work.soundWork.DETDAT[0];
             FMSUB4(hl);// SET OP1
             if (work.carry)
             {
@@ -971,7 +1017,7 @@ namespace mucomDotNET.Driver
                 work.soundWork.FPORT_VAL = a;
                 a++;
                 //HLSTC0:
-                FMSUB6(work.soundWork.FNUM, (byte)work.soundWork.DETDAT[hl++]);// SET OP2-OP4
+                FMSUB6(work.soundWork.FNUM, (ushort)work.soundWork.DETDAT[hl++]);// SET OP2-OP4
             }
 
             work.soundWork.FPORT_VAL = 0xa4;
@@ -1458,10 +1504,22 @@ namespace mucomDotNET.Driver
         {
             TO_EFC();
 
-            for (int bc = 0; bc < 4; bc++)
+            if (work.isDotNET)
             {
-                byte a = (byte)work.cd.mData[work.hl++].dat;
-                work.soundWork.DETDAT[bc] = a;
+                for (int bc = 0; bc < 4; bc++)
+                {
+                    byte l = (byte)work.cd.mData[work.hl++].dat;
+                    byte m = (byte)work.cd.mData[work.hl++].dat;
+                    work.soundWork.DETDAT[bc] = (ushort)(l + m * 0x100);
+                }
+            }
+            else
+            {
+                for (int bc = 0; bc < 4; bc++)
+                {
+                    byte a = (byte)work.cd.mData[work.hl++].dat;
+                    work.soundWork.DETDAT[bc] = a;
+                }
             }
         }
 
@@ -1557,17 +1615,19 @@ namespace mucomDotNET.Driver
             switch (a)
             {
                 case 4:
-                    work.cd.panValue = a = 2;
+                    work.cd.panValue = a = 2; //LEFT index
                     break;
                 case 5:
-                    work.cd.panValue = a = 1;
+                    work.cd.panValue = a = 0; //RIGHT index
                     break;
                 default:
-                    work.cd.panValue = a = 3;
+                    work.cd.panValue = a = 1; //CENTER index
                     break;
             }
 
-            c = (byte)(((a >> 2) & 0x3f) | (a << 6));//右ローテート2回(左6回のほうがC#的にはシンプル)
+            a = (byte)autoPantable[a];
+
+            c = (byte)(a << 6);
             d = work.soundWork.PALDAT[work.soundWork.FMPORT + work.cd.channelNumber];
             d = (byte)((d & 0b0011_1111) | c);
             work.soundWork.PALDAT[work.soundWork.FMPORT + work.cd.channelNumber] = d;
@@ -1609,13 +1669,14 @@ namespace mucomDotNET.Driver
                     work.soundWork.DrmPanValue[b] = a = 2;
                     break;
                 case 5:
-                    work.soundWork.DrmPanValue[b] = a = 1;
+                    work.soundWork.DrmPanValue[b] = a = 0;
                     break;
                 default:
-                    work.soundWork.DrmPanValue[b] = a = 3;
+                    work.soundWork.DrmPanValue[b] = a = 1;
                     break;
             }
 
+            a = (byte)autoPantable[a];
             c = work.soundWork.DRMVOL[b];
             a = (byte)(((a << 6) & 0b1100_0000) | (c & 0b0001_1111));
             work.soundWork.DRMVOL[b] = a;
@@ -1646,13 +1707,14 @@ namespace mucomDotNET.Driver
                     work.cd.panValue = a = 2;
                     break;
                 case 5:
-                    work.cd.panValue = a = 1;
+                    work.cd.panValue = a = 0;
                     break;
                 default:
-                    work.cd.panValue = a = 3;
+                    work.cd.panValue = a = 1;
                     break;
             }
 
+            a = (byte)autoPantable[a];
             work.soundWork.PCMLR = a;
             PCMOUT(0x01, (byte)(a << 6));
         }
@@ -1670,27 +1732,16 @@ namespace mucomDotNET.Driver
 
             work.cd.panCounterWork = work.cd.panCounter;//; カウンター再設定
 
-            if (work.cd.panMode == 4)
+            if (work.cd.panMode == 4 || work.cd.panMode == 5)
             {
-                //LEFT
+                //LEFT / RIGHT
                 byte ah = work.cd.panValue;
-                if (ah >= 3)
+                ah++;
+                if (ah == autoPantable.Length)
                 {
                     ah = 0;
                 }
-                ah++;
-                work.cd.panValue = ah;//ah : 1～3
-            }
-            else if (work.cd.panMode == 5)
-            {
-                //RIGHT
-                byte ah = work.cd.panValue;
-                ah--;
-                if (ah == 0)
-                {
-                    ah = 3;
-                }
-                work.cd.panValue = ah;//ah : 1～3
+                work.cd.panValue = ah;//ah : 0～
             }
             else
             {
@@ -1708,9 +1759,10 @@ namespace mucomDotNET.Driver
             }
 
             byte a, c, d;
+            a = (work.cd.panMode == 4 || work.cd.panMode == 5) ? autoPantable[work.cd.panValue] : work.cd.panValue;
+
             if (work.soundWork.PCMFLG == 0)
             {
-                a = work.cd.panValue;
                 c = (byte)(((a >> 2) & 0x3f) | (a << 6));//右ローテート2回(左6回のほうがC#的にはシンプル)
                 d = work.soundWork.PALDAT[work.soundWork.FMPORT + work.cd.channelNumber];
                 d = (byte)((d & 0b0011_1111) | c);
@@ -1720,7 +1772,6 @@ namespace mucomDotNET.Driver
                 return;
             }
 
-            a = work.cd.panValue;
             work.soundWork.PCMLR = a;
             c = (byte)((a << 6) & 0xc0);
             PCMOUT(0x01, c);
@@ -1735,27 +1786,16 @@ namespace mucomDotNET.Driver
 
                 work.soundWork.DrmPanCounterWork[n] = work.soundWork.DrmPanCounter[n];//; カウンター再設定
 
-                if (work.soundWork.DrmPanMode[n] == 4)
+                if (work.soundWork.DrmPanMode[n] == 4|| work.soundWork.DrmPanMode[n] == 5)
                 {
-                    //LEFT
+                    //LEFT / RIGHT
                     byte ah = work.soundWork.DrmPanValue[n];
-                    if (ah >= 3)
+                    ah++;
+                    if (ah == autoPantable.Length)
                     {
                         ah = 0;
                     }
-                    ah++;
-                    work.soundWork.DrmPanValue[n] = ah;//ah : 1～3
-                }
-                else if (work.soundWork.DrmPanMode[n] == 5)
-                {
-                    //RIGHT
-                    byte ah = work.soundWork.DrmPanValue[n];
-                    ah--;
-                    if (ah == 0)
-                    {
-                        ah = 3;
-                    }
-                    work.soundWork.DrmPanValue[n] = ah;//ah : 1～3
+                    work.soundWork.DrmPanValue[n] = ah;//ah : 0～
                 }
                 else
                 {
@@ -1772,8 +1812,12 @@ namespace mucomDotNET.Driver
                     work.soundWork.DrmPanValue[n] = (byte)(ax >> 8);//ah : 1～3
                 }
 
+                byte a = (work.soundWork.DrmPanMode[n] == 4 || work.soundWork.DrmPanMode[n] == 5) 
+                    ? autoPantable[work.soundWork.DrmPanValue[n]] 
+                    : work.soundWork.DrmPanValue[n];
+
                 byte c = work.soundWork.DRMVOL[n];
-                byte a = (byte)(((work.soundWork.DrmPanValue[n] << 6) & 0b1100_0000) | (c & 0b0001_1111));
+                a = (byte)(((work.soundWork.DrmPanValue[n] << 6) & 0b1100_0000) | (c & 0b0001_1111));
                 work.soundWork.DRMVOL[n] = a;
                 PSGOUT((byte)(n + 0x18), a);
 

@@ -78,6 +78,7 @@ namespace mucomDotNET.Common
         public int row { get; set; }
         public int col { get; set; }
         public int VM { get; set; }
+        public bool needNormalMucom { get; set; } = false;
 
         public bool isDotNET = false;//mucomDotNET独自機能を使用したか否か
 
@@ -110,6 +111,7 @@ namespace mucomDotNET.Common
             bufTitle = new AutoExtendList<int>();
             mmlVoiceDataWork = new AutoExtendList<byte>();
             isDotNET = false;
+            needNormalMucom = false;
         }
 
     }

@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace mucomDotNET.Driver
 {
+    /// <summary>
+    /// オリジナルに存在するワークはここに定義する
+    /// </summary>
     public class SoundWork
     {
         public CHDAT[] CHDAT = new CHDAT[]
