@@ -80,7 +80,23 @@ namespace mucomDotNET.Common
         public int VM { get; set; }
         public bool needNormalMucom { get; set; } = false;
 
-        public bool isDotNET = false;//mucomDotNET独自機能を使用したか否か
+        private bool _isDotNET = false;
+
+        public bool isDotNET
+        {
+            get
+            {
+                return _isDotNET;
+            }
+            set
+            {
+                if(!_isDotNET && value && needNormalMucom)
+                {
+                    throw new MucException(msg.get("E0001"), row, col);
+                }
+                _isDotNET = value;
+            }
+        }//mucomDotNET独自機能を使用したか否か
 
         public void Clear()
         {

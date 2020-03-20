@@ -1150,7 +1150,7 @@ namespace mucomDotNET.Compiler
             bool is16bit = false;
             for (int i = 0; i < 4; i++)
             {
-                if (n[i] == (sbyte)n[i]) continue;
+                if (n[i] == (byte)n[i]) continue;
                 is16bit = true;
                 break;
             }

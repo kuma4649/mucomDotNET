@@ -2,7 +2,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace mucomDotNET.Compiler
+namespace mucomDotNET.Common
 {
     [Serializable]
     public class MucException : Exception

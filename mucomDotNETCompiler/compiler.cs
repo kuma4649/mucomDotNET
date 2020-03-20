@@ -191,6 +191,10 @@ namespace mucomDotNET.Compiler
                         break;
                     case "driver":
                         mucInfo.driver = tag.Item2;
+                        if (mucInfo.driver == "mucomDotNET")
+                        {
+                            mucInfo.isDotNET = true;
+                        }
                         break;
                     case "invert":
                         mucInfo.invert = tag.Item2;
