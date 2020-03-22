@@ -2,7 +2,7 @@
   "profiles": {
     "Player": {
       "commandName": "Project",
-      "commandLineArgs": "C:\\temp\\tes.mub"
+      "commandLineArgs": "C:\\Users\\kuma\\Desktop\\M98DotNET_Samples\\F_Penta.xml"
     }
   }
 }

@@ -1,4 +1,13 @@
 更新履歴
+TAG040 2020/03/22
+  Compiler&Driver
+  ・xmlで出力、入力する機能を追加(ほぼDEBUGむけ)
+  Compiler
+  ・エラー時に桁も出るように修正
+  ・pコマンドをSSGで使用したときの挙動をできるだけmucom88に合わせるよう修正
+  Driver
+  ・TIMER-Bを200で初期化
+
 TAG039 2020/03/20 2nd
   Compiler&Driver
   ・pコマンドのオートパンの動きを修正。LCRCLCRCという感じでCenterを経由するように修正

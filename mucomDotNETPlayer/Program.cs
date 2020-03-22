@@ -185,9 +185,11 @@ namespace mucomDotNET.Player
                 drv.MusicSTOP();
                 drv.StopRendering();
             }
-            catch
+            catch(Exception ex)
             {
-
+                Log.WriteLine(LogLevel.FATAL, "演奏失敗");
+                Log.WriteLine(LogLevel.FATAL, string.Format("message:{0}", ex.Message));
+                Log.WriteLine(LogLevel.FATAL, string.Format("stackTrace:{0}", ex.StackTrace));
             }
             finally
             {

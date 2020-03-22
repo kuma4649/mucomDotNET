@@ -688,8 +688,18 @@ namespace mucomDotNET.Compiler
             }
 
             //
+            List<object> args = new List<object>();
+            args.Add(n);
+            LinePos lp = new LinePos(
+                mucInfo.fnSrcOnlyFile
+                , mucInfo.row, mucInfo.col
+                , mucInfo.srcCPtr - mucInfo.col + 1
+                , tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM"))
+                , "YM2608", 0, 0, work.COMNOW); ;
 
-            msub.MWRITE(new MmlDatum(0xf8), new MmlDatum((byte)n));// COM OF 'p'
+            msub.MWRITE(
+                new MmlDatum(enmMMLType.Pan, args, lp, 0xf8)
+                , new MmlDatum((byte)n));// COM OF 'p'
 
             ////
             //AMD98
@@ -711,6 +721,8 @@ namespace mucomDotNET.Compiler
                     {
                         throw new MucException(string.Format(msg.get("E0526"), work.CLOCK, v), mucInfo.row, mucInfo.col);
                     }
+
+                    if (tp == ChannelType.SSG) return EnmFCOMPNextRtn.fcomp1;//KUMA:互換の為。。。(SSGパートではnoise周波数設定コマンドとして動作)
 
                     msub.MWRIT2(new MmlDatum((byte)n2));// ２こめ
                 }
@@ -1438,21 +1450,34 @@ namespace mucomDotNET.Compiler
                 kotae = (byte)kotae;
                 work.MDATA--;
             }
+
+            List<object> args = new List<object>();
+            args.Add(kotae);
+            LinePos lp = new LinePos(
+                mucInfo.fnSrcOnlyFile
+                , mucInfo.row
+                , mucInfo.col
+                , mucInfo.srcCPtr - mucInfo.col + 1
+                , ""
+                , "YM2608", 0, 0
+                , work.COMNOW);
+
+
             while (kotae > 0x6f)
             {
                 kotae -= 0x6f;
                 msub.MWRIT2(new MmlDatum(
                     enmMMLType.Rest
-                    , null
-                    , new LinePos(mucInfo.fnSrcOnlyFile, mucInfo.row, mucInfo.col, mucInfo.srcCPtr - mucInfo.col + 1, "", "YM2608", 0, 0, work.COMNOW)
+                    , args
+                    , lp
                     , (byte)(0b1110_1111)
                     ));
             }
             work.BEFRST = kotae;
             msub.MWRIT2(new MmlDatum(
                     enmMMLType.Rest
-                    , null
-                    , new LinePos(mucInfo.fnSrcOnlyFile, mucInfo.row, mucInfo.col, mucInfo.srcCPtr - mucInfo.col + 1, "", "YM2608", 0, 0, work.COMNOW)
+                    , args
+                    , lp
                     , (byte)(kotae | 0b1000_0000)
                     ));// SET REST FLAG
 
@@ -2117,6 +2142,16 @@ namespace mucomDotNET.Compiler
             work.VOLUME = n;
             work.VOLINT = n;
 
+            ChannelType tp = CHCHK();
+            List<object> args = new List<object>();
+            args.Add(n);
+            LinePos lp = new LinePos(
+                mucInfo.fnSrcOnlyFile
+                , mucInfo.row, mucInfo.col
+                , mucInfo.srcCPtr - mucInfo.col + 1
+                , tp == ChannelType.FM ? "FM" : "SSG"
+                , "YM2608", 0, 0, work.COMNOW);
+
             if (work.COMNOW != 6)
             {
                 n += work.TV_OFS;
@@ -2125,7 +2160,9 @@ namespace mucomDotNET.Compiler
                     n += 4;
                 }
 
-                msub.MWRITE(new MmlDatum(0xf1), new MmlDatum((byte)n));// COM OF 'v'
+                msub.MWRITE(
+                    new MmlDatum(enmMMLType.Volume, args, lp, 0xf1)
+                    , new MmlDatum((byte)n));// COM OF 'v'
                 return EnmFCOMPNextRtn.fcomp1;
             }
 
@@ -2134,9 +2171,18 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETVOL_Rhythm(int n)
         {
+            List<object> args = new List<object>();
+            args.Add(n);
+            LinePos lp = new LinePos(
+                mucInfo.fnSrcOnlyFile
+                , mucInfo.row, mucInfo.col
+                , mucInfo.srcCPtr - mucInfo.col + 1
+                , "RHYTHM"
+                , "YM2608", 0, 0, work.COMNOW);
+
             // -	DRAM V. -
             n += work.TV_OFS;
-            msub.MWRITE(new MmlDatum(0xf1), new MmlDatum((byte)n));
+            msub.MWRITE(new MmlDatum(enmMMLType.Volume, args, lp, 0xf1), new MmlDatum((byte)n));
 
             for (int i = 0; i < 6; i++)
             {
@@ -2184,6 +2230,15 @@ namespace mucomDotNET.Compiler
                         , mucInfo.row, mucInfo.col);
                 }
 
+                List<object> args = new List<object>();
+                args.Add(n);
+                LinePos lp = new LinePos(
+                    mucInfo.fnSrcOnlyFile
+                    , mucInfo.row, mucInfo.col
+                    , mucInfo.srcCPtr - mucInfo.col + 1
+                    , "ADPCM"
+                    , "YM2608", 0, 0, work.COMNOW);
+
                 n = (byte)n;
                 work.VOLUME = n;
                 work.VOLINT = n;
@@ -2192,7 +2247,7 @@ namespace mucomDotNET.Compiler
                 {
                     WriteWarning(msg.get("W0411"), mucInfo.row, mucInfo.col);
                 }
-                msub.MWRITE(new MmlDatum(0xf1), new MmlDatum((byte)n));
+                msub.MWRITE(new MmlDatum(enmMMLType.Volume, args, lp, 0xf1), new MmlDatum((byte)n));
                 return EnmFCOMPNextRtn.fcomp1;
             }
 
@@ -2514,17 +2569,34 @@ namespace mucomDotNET.Compiler
         {
             num++;
 
+            List<object> args = new List<object>();
+            args.Add(0);//dummy
+            args.Add(num - 1);
+            LinePos lp = new LinePos(
+                mucInfo.fnSrcOnlyFile
+                , mucInfo.row, mucInfo.col
+                , mucInfo.srcCPtr - mucInfo.col + 1
+                , "FM"
+                , "YM2608", 0, 0, work.COMNOW);
+
             int voiceIndex = CCVC(num, mucInfo.bufDefVoice);// --	VOICE ｶﾞ ﾄｳﾛｸｽﾞﾐｶ?	--
             if (voiceIndex != -1)
             {
-                msub.MWRITE(new MmlDatum(0xf0), new MmlDatum((byte)(voiceIndex - 1)));
+                msub.MWRITE(
+                    new MmlDatum(enmMMLType.Instrument, args, lp, 0xf0)
+                    , new MmlDatum((byte)(voiceIndex - 1))
+                    );
                 return;
             }
 
             voiceIndex = CWVC(num, mucInfo.bufDefVoice);// --	WORK ﾆ ｱｷ ｶﾞ ｱﾙｶ?	--
             if (voiceIndex != -1)
             {
-                msub.MWRITE(new MmlDatum(0xf0), new MmlDatum((byte)(voiceIndex - 1)));
+
+                msub.MWRITE(
+                    new MmlDatum(enmMMLType.Instrument, args, lp, 0xf0)
+                    , new MmlDatum((byte)(voiceIndex - 1))
+                    );
                 return;
             }
 
@@ -2536,7 +2608,19 @@ namespace mucomDotNET.Compiler
         public EnmFCOMPNextRtn STCL5(int num)
         {
 
-            msub.MWRITE(new MmlDatum(0xf0), new MmlDatum((byte)num));
+            List<object> args = new List<object>();
+            args.Add(0);//dummy
+            args.Add(num);
+            LinePos lp = new LinePos(
+                mucInfo.fnSrcOnlyFile
+                , mucInfo.row, mucInfo.col
+                , mucInfo.srcCPtr - mucInfo.col + 1
+                , "SSG"
+                , "YM2608", 0, 0, work.COMNOW);
+
+            msub.MWRITE(
+                new MmlDatum(enmMMLType.Instrument, args, lp, 0xf0)
+                , new MmlDatum((byte)num));
 
             if (work.PSGMD != 0)
             {
@@ -2567,9 +2651,20 @@ namespace mucomDotNET.Compiler
 
         public EnmFCOMPNextRtn STCL72(int num)
         {
-            msub.MWRITE(new MmlDatum(0xf0), new MmlDatum((byte)num));
-
             ChannelType tp = CHCHK();
+
+            List<object> args = new List<object>();
+            args.Add(0);//dummy
+            args.Add(num);
+            LinePos lp = new LinePos(
+                mucInfo.fnSrcOnlyFile
+                , mucInfo.row, mucInfo.col
+                , mucInfo.srcCPtr - mucInfo.col + 1
+                , tp == ChannelType.ADPCM ? "ADPCM" : "RHYTHM"
+                , "YM2608", 0, 0, work.COMNOW);
+
+            msub.MWRITE(new MmlDatum(enmMMLType.Instrument, args, lp, 0xf0), new MmlDatum((byte)num));
+
             if (tp == ChannelType.ADPCM) work.pcmFlag = 1;
 
             return EnmFCOMPNextRtn.fcomp1;
@@ -2706,7 +2801,34 @@ namespace mucomDotNET.Compiler
                 throw new MucException(
                     msg.get("E0494")
                     , mucInfo.row, mucInfo.col);
+
+            int len = ptr - mucInfo.srcCPtr;
             mucInfo.srcCPtr = ptr;
+
+            if (mucInfo.isIDE)
+            {
+                mucInfo.isDotNET = true;
+                List<object> args = new List<object>();
+                args.Add(n);
+                LinePos lp = new LinePos(
+                    mucInfo.fnSrcOnlyFile
+                    ,mucInfo.row
+                    ,mucInfo.col
+                    ,len
+                    ,""
+                    ,"YM2608"
+                    ,0,0
+                    ,work.COMNOW
+                    );
+                msub.MWRITE(
+                    new MmlDatum(
+                        enmMMLType.ClockCounter
+                        , args
+                        , lp
+                        , 0xff
+                        )
+                    , new MmlDatum(0xff));
+            }
 
             work.CLOCK = n;
             return EnmFCOMPNextRtn.fcomp1;
@@ -3322,6 +3444,7 @@ namespace mucomDotNET.Compiler
             mucInfo.srcCPtr = ptr;
             clk = FCOMP1X(clk);
             TCLKSUB(clk);// ﾄｰﾀﾙｸﾛｯｸ ｶｻﾝ
+
             FCOMP17(note, clk);
 
         }
@@ -3425,63 +3548,70 @@ namespace mucomDotNET.Compiler
                 return;
             }
 
+            List<object> args = new List<object>();
+            args.Add(note);
+            args.Add(clk);
+            ChannelType tp = CHCHK();
+            LinePos lp = new LinePos(
+                mucInfo.fnSrcOnlyFile
+                , mucInfo.row
+                , mucInfo.col
+                , mucInfo.srcCPtr - mucInfo.col + 1
+                , tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM"))
+                , "YM2608"
+                , 0
+                , 0
+                , work.COMNOW
+                );
+
             // --	ｶｳﾝﾄ ｵｰﾊﾞｰ ｼｮﾘ	--
             clk -= 127;
             msub.MWRIT2(new MmlDatum(
                 enmMMLType.Note
-                , null
-                , new LinePos(mucInfo.fnSrcOnlyFile, mucInfo.row, mucInfo.col, mucInfo.srcCPtr - mucInfo.col + 1, "", "YM2608", 0, 0, work.COMNOW)
+                , args
+                , lp
                 , 127
                 ));// FIRST COUNT
-            msub.MWRIT2(new MmlDatum(
-                enmMMLType.Note
-                , null
-                , new LinePos(mucInfo.fnSrcOnlyFile, mucInfo.row, mucInfo.col, mucInfo.srcCPtr - mucInfo.col + 1, "", "YM2608", 0, 0, work.COMNOW)
-                , (byte)note
-                ));// TONE DATA
-            msub.MWRIT2(new MmlDatum(
-                enmMMLType.Note
-                , null
-                , new LinePos(mucInfo.fnSrcOnlyFile, mucInfo.row, mucInfo.col, mucInfo.srcCPtr - mucInfo.col + 1, "", "YM2608", 0, 0, work.COMNOW)
-                , 0xfd
-                ));// COM OF COUNT OVER(SOUND)
+            msub.MWRIT2(new MmlDatum((byte)note));// TONE DATA
+            msub.MWRIT2(new MmlDatum(0xfd));// COM OF COUNT OVER(SOUND)
             work.BEFCO = clk;// RESTORE SECOND COUNT
-            msub.MWRIT2(new MmlDatum(
-                enmMMLType.Note
-                , null
-                , new LinePos(mucInfo.fnSrcOnlyFile, mucInfo.row, mucInfo.col, mucInfo.srcCPtr - mucInfo.col + 1, "", "YM2608", 0, 0, work.COMNOW)
-                , (byte)clk
-                ));
+            msub.MWRIT2(new MmlDatum((byte)clk));
 
             for (int i = 0; i < 8; i++)
                 work.BEFTONE[8 - i] = work.BEFTONE[7 - i];
 
             work.BEFTONE[0] = (byte)note;
-            msub.MWRIT2(new MmlDatum(
-                enmMMLType.Note
-                , null
-                , new LinePos(mucInfo.fnSrcOnlyFile, mucInfo.row, mucInfo.col, mucInfo.srcCPtr - mucInfo.col + 1, "", "YM2608", 0, 0, work.COMNOW)
-                , (byte)note
-                ));
+            msub.MWRIT2(new MmlDatum((byte)note));
         }
 
         // --	ﾉｰﾏﾙ ｼｮﾘ	--
         public void FCOMP2(int note, int clk)
         {
+            List<object> args = new List<object>();
+            args.Add(note);
+            args.Add(clk);
+            ChannelType tp = CHCHK();
+            LinePos lp = new LinePos(
+                mucInfo.fnSrcOnlyFile
+                , mucInfo.row
+                , mucInfo.col
+                , mucInfo.srcCPtr - mucInfo.col + 1
+                , tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM"))
+                , "YM2608"
+                , 0
+                , 0
+                , work.COMNOW
+                );
+
             mucInfo.bufDst.Set(work.MDATA++, new MmlDatum(
                 enmMMLType.Note
-                , null
-                , new LinePos(mucInfo.fnSrcOnlyFile, mucInfo.row, mucInfo.col, mucInfo.srcCPtr - mucInfo.col + 1, "", "YM2608", 0, 0, work.COMNOW)
+                , args
+                , lp
                 , (byte)clk
                 ));// SAVE LIZM
             work.BEFCO = clk;
 
-            mucInfo.bufDst.Set(work.MDATA++, new MmlDatum(
-                enmMMLType.Note
-                , null
-                , new LinePos(mucInfo.fnSrcOnlyFile, mucInfo.row, mucInfo.col, mucInfo.srcCPtr - mucInfo.col + 1, "", "YM2608", 0, 0, work.COMNOW)
-                , (byte)note
-                ));// SAVE TONE
+            mucInfo.bufDst.Set(work.MDATA++, new MmlDatum((byte)note));// SAVE TONE
 
             for (int i = 0; i < 8; i++)
                 work.BEFTONE[8 - i] = work.BEFTONE[7 - i];

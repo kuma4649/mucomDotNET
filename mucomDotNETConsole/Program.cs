@@ -3,19 +3,21 @@ using mucomDotNET.Common;
 using musicDriverInterface;
 using System;
 using System.IO;
-using System.Collections.Generic;
+using System.Xml.Serialization;
+using System.Text;
 
 namespace mucomDotNET.Console
 {
     class Program
     {
         private static string srcFile;
+        private static bool isXml = false;
 
         static void Main(string[] args)
         {
             Log.writeLine = WriteLine;
 #if DEBUG
-            Log.level = LogLevel.TRACE;//.INFO;
+            Log.level = LogLevel.INFO;//.INFO;
             Log.off = 0;
 #else
             Log.level = LogLevel.INFO;
@@ -63,12 +65,37 @@ namespace mucomDotNET.Console
                 Compiler.Compiler compiler = new Compiler.Compiler();
                 compiler.Init();
 
-                string destFileName = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(srcFile)), string.Format("{0}.mub", Path.GetFileNameWithoutExtension(srcFile)));
-                using (FileStream sourceMML = new FileStream(srcFile, FileMode.Open, FileAccess.Read, FileShare.Read))
-                using (FileStream destCompiledBin = new FileStream(destFileName, FileMode.Create, FileAccess.Write))
-                using (Stream bufferedDestStream = new BufferedStream(destCompiledBin))
+                if (!isXml)
                 {
-                    compiler.Compile(sourceMML, bufferedDestStream, appendFileReaderCallback);
+                    string destFileName = Path.Combine(
+                        Path.GetDirectoryName(Path.GetFullPath(srcFile))
+                        , string.Format("{0}.mub", Path.GetFileNameWithoutExtension(srcFile)));
+
+                    using (FileStream sourceMML = new FileStream(srcFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    using (FileStream destCompiledBin = new FileStream(destFileName, FileMode.Create, FileAccess.Write))
+                    using (Stream bufferedDestStream = new BufferedStream(destCompiledBin))
+                    {
+                        compiler.Compile(sourceMML, bufferedDestStream, appendFileReaderCallback);
+                    }
+                }
+                else
+                {
+                    string destFileName = Path.Combine(
+                        Path.GetDirectoryName(Path.GetFullPath(srcFile))
+                        , string.Format("{0}.xml", Path.GetFileNameWithoutExtension(srcFile)));
+                    MmlDatum[] dest = null;
+
+                    using (FileStream sourceMML = new FileStream(srcFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        dest = compiler.Compile(sourceMML, appendFileReaderCallback);
+                    }
+
+                    XmlSerializer serializer = new XmlSerializer(typeof(MmlDatum[]), typeof(MmlDatum[]).GetNestedTypes());
+                    using (StreamWriter sw = new StreamWriter(destFileName, false, Encoding.UTF8))
+                    {
+                        serializer.Serialize(sw, dest);
+                    }
+
                 }
             }
             catch (Exception ex)
@@ -91,17 +118,41 @@ namespace mucomDotNET.Console
                 Compiler.Compiler compiler = new Compiler.Compiler();
                 compiler.Init();
 
-                string destFileName = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(srcFile)), string.Format("{0}.mub", Path.GetFileNameWithoutExtension(srcFile)));
-                if (destFile != null)
+                if (!isXml)
                 {
-                    destFileName = destFile;
-                }
+                    string destFileName = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(srcFile)), string.Format("{0}.mub", Path.GetFileNameWithoutExtension(srcFile)));
+                    if (destFile != null)
+                    {
+                        destFileName = destFile;
+                    }
 
-                using (FileStream sourceMML = new FileStream(srcFile, FileMode.Open, FileAccess.Read, FileShare.Read))
-                using (FileStream destCompiledBin = new FileStream(destFileName, FileMode.Create, FileAccess.Write))
-                using (Stream bufferedDestStream = new BufferedStream(destCompiledBin))
+                    using (FileStream sourceMML = new FileStream(srcFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    using (FileStream destCompiledBin = new FileStream(destFileName, FileMode.Create, FileAccess.Write))
+                    using (Stream bufferedDestStream = new BufferedStream(destCompiledBin))
+                    {
+                        compiler.Compile(sourceMML, bufferedDestStream, appendFileReaderCallback);
+                    }
+                }
+                else
                 {
-                    compiler.Compile(sourceMML, bufferedDestStream, appendFileReaderCallback);
+                    string destFileName = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(srcFile)), string.Format("{0}.xml", Path.GetFileNameWithoutExtension(srcFile)));
+                    if (destFile != null)
+                    {
+                        destFileName = destFile;
+                    }
+                    MmlDatum[] dest = null;
+
+                    using (FileStream sourceMML = new FileStream(srcFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        dest = compiler.Compile(sourceMML, appendFileReaderCallback);
+                    }
+
+                    XmlSerializer serializer = new XmlSerializer(typeof(MmlDatum[]), typeof(MmlDatum[]).GetNestedTypes());
+                    using (StreamWriter sw = new StreamWriter(destFileName, false, Encoding.UTF8))
+                    {
+                        serializer.Serialize(sw, dest);
+                    }
+
                 }
             }
             catch (Exception ex)
@@ -173,6 +224,11 @@ namespace mucomDotNET.Console
                 if (op == "OFFLOG=WARNING")
                 {
                     Log.off = (int)LogLevel.WARNING;
+                }
+
+                if(op=="XML")
+                {
+                    isXml = true;
                 }
 
                 i++;

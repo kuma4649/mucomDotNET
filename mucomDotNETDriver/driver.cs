@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace mucomDotNET.Driver
 {
@@ -42,17 +43,33 @@ namespace mucomDotNET.Driver
 
         public void Init(string fileName, Action<ChipDatum> opnaWrite, Action<long, int> opnaWaitSend, bool notSoundBoard2, bool isLoadADPCM, bool loadADPCMOnly, Func<string, Stream> appendFileReaderCallback = null)
         {
-            byte[] srcBuf = File.ReadAllBytes(fileName);
-            Init(opnaWrite, opnaWaitSend, notSoundBoard2, srcBuf, isLoadADPCM, loadADPCMOnly, appendFileReaderCallback ?? CreateAppendFileReaderCallback(Path.GetDirectoryName(fileName)));
+            if (Path.GetExtension(fileName).ToLower() != ".xml")
+            {
+                byte[] srcBuf = File.ReadAllBytes(fileName);
+                if (srcBuf == null || srcBuf.Length < 1) return;
+                Init(opnaWrite, opnaWaitSend, notSoundBoard2, srcBuf, isLoadADPCM, loadADPCMOnly, appendFileReaderCallback ?? CreateAppendFileReaderCallback(Path.GetDirectoryName(fileName)));
+            }
+            else
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(MmlDatum[]), typeof(MmlDatum[]).GetNestedTypes());
+                using (StreamReader sr = new StreamReader(fileName, new UTF8Encoding(false)))
+                {
+                    MmlDatum[] s = (MmlDatum[])serializer.Deserialize(sr);
+                    Init(opnaWrite, opnaWaitSend, s, new object[] { notSoundBoard2, isLoadADPCM, loadADPCMOnly }, appendFileReaderCallback);
+                }
+
+            }
         }
 
         public void Init(string fileName, Action<ChipDatum> opnaWrite, Action<long, int> opnaWaitSend, bool notSoundBoard2, byte[] srcBuf, bool isLoadADPCM, bool loadADPCMOnly)
         {
+            if (srcBuf == null || srcBuf.Length < 1) return;
             Init(opnaWrite, opnaWaitSend, notSoundBoard2, srcBuf, isLoadADPCM, loadADPCMOnly, CreateAppendFileReaderCallback(Path.GetDirectoryName(fileName)));
         }
 
         public void Init(Action<ChipDatum> opnaWrite, Action<long, int> opnaWaitSend, bool notSoundBoard2, byte[] srcBuf, bool isLoadADPCM, bool loadADPCMOnly, Func<string, Stream> appendFileReaderCallback)
         {
+            if (srcBuf == null || srcBuf.Length < 1) return;
             List<MmlDatum> bl = new List<MmlDatum>();
             foreach (byte b in srcBuf) bl.Add(new MmlDatum(b));
             Init(opnaWrite, opnaWaitSend, bl.ToArray(), new object[] { notSoundBoard2, isLoadADPCM, loadADPCMOnly }, appendFileReaderCallback);
@@ -60,11 +77,14 @@ namespace mucomDotNET.Driver
 
         public void Init(string fileName, Action<ChipDatum> chipWriteRegister, Action<long, int> chipWaitSend, MmlDatum[] srcBuf, object addtionalOption)
         {
+            if (srcBuf == null || srcBuf.Length < 1) return;
             Init(chipWriteRegister, chipWaitSend, srcBuf, addtionalOption, CreateAppendFileReaderCallback(Path.GetDirectoryName(fileName)));
         }
 
         public void Init(Action<ChipDatum> chipWriteRegister, Action<long, int> chipWaitSend, MmlDatum[] srcBuf, object addtionalOption, Func<string, Stream> appendFileReaderCallback)
         {
+            if (srcBuf == null || srcBuf.Length < 1) return;
+
             bool notSoundBoard2 = (bool)((object[])addtionalOption)[0];
             bool isLoadADPCM = (bool)((object[])addtionalOption)[1];
             bool loadADPCMOnly = (bool)((object[])addtionalOption)[2];
@@ -152,6 +172,10 @@ namespace mucomDotNET.Driver
 
         public List<Tuple<string, string>> GetTags()
         {
+            if (header == null)
+            {
+                throw new MubException("Header information not found.");
+            }
             return header.GetTags();
         }
 

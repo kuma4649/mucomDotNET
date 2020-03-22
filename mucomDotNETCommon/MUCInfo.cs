@@ -98,6 +98,8 @@ namespace mucomDotNET.Common
             }
         }//mucomDotNET独自機能を使用したか否か
 
+        public bool isIDE { get; set; }
+
         public void Clear()
         {
             title = "";
@@ -126,8 +128,10 @@ namespace mucomDotNET.Common
             bufDefVoice = new AutoExtendList<int>();
             bufTitle = new AutoExtendList<int>();
             mmlVoiceDataWork = new AutoExtendList<byte>();
+
             isDotNET = false;
             needNormalMucom = false;
+            isIDE = false;
         }
 
     }

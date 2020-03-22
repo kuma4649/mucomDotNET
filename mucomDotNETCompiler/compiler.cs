@@ -22,6 +22,7 @@ namespace mucomDotNET.Compiler
 
         public string OutFileName { get; set; }
         private iEncoding enc = null;
+        private bool isIDE = false;
 
         public enum EnmMUCOMFileType
         {
@@ -55,6 +56,7 @@ namespace mucomDotNET.Compiler
             {
                 srcBuf = ReadAllBytes(sourceMML);
                 mucInfo = GetMUCInfo(srcBuf);
+                mucInfo.isIDE = isIDE;
 
                 using (Stream vd = appendFileReaderCallback?.Invoke(string.IsNullOrEmpty(mucInfo.voice) ? "voice.dat" : mucInfo.voice))
                 {
@@ -80,8 +82,13 @@ namespace mucomDotNET.Compiler
                 if (ret != 0)
                 {
                     int errLine = muc88.GetErrorLine();
-                    work.compilerInfo.errorList.Add(new Tuple<int, int, string>(mucInfo.row, mucInfo.col, string.Format(msg.get("E0100"), errLine)));
-                    Log.WriteLine(LogLevel.ERROR, string.Format(msg.get("E0100"), errLine));
+                    work.compilerInfo.errorList.Add(
+                        new Tuple<int, int, string>(
+                            mucInfo.row
+                            , mucInfo.col
+                            , string.Format(msg.get("E0100"), mucInfo.row, mucInfo.col)
+                            ));
+                    Log.WriteLine(LogLevel.ERROR, string.Format(msg.get("E0100"), mucInfo.row, mucInfo.col));
                     return null;
                 }
 
@@ -555,5 +562,20 @@ namespace mucomDotNET.Compiler
             return 0;
         }
 
+        public void SetCompileSwitch(params object[] param)
+        {
+            if (param == null) return;
+
+            foreach(object prm in param)
+            {
+                if(prm is string)
+                {
+                    if ((string)prm == "IDE")
+                    {
+                        this.isIDE = true;
+                    }
+                }
+            }
+        }
     }
 }

@@ -146,35 +146,48 @@ namespace mucomDotNET.Driver
         public void SetFMCOMTable()
         {
             FMCOM = new Action[] {
-                OTOPST // 0xF0 - ｵﾝｼｮｸ ｾｯﾄ    '@'
-                ,VOLPST// 0xF1 - VOLUME SET   'v'
-                ,FRQ_DF// 0xF2 - DETUNE(ｼｭｳﾊｽｳ ｽﾞﾗｼ) 'D'
-                ,SETQ  // 0xF3 - SET COMMAND 'q'
-                ,LFOON // 0xF4 - LFO SET
-                ,REPSTF// 0xF5 - REPEAT START SET  '['
-                ,REPENF// 0xF6 - REPEAT END SET    ']'
-                ,MDSET // 0xF7 - FMｵﾝｹﾞﾝ ﾓｰﾄﾞｾｯﾄ  KUMA:'S'スロットディチューンコマンド
-                // ,STEREO// 0xF8 - STEREO MODE
-                ,STEREO_AMD98 // 0xF8 - STEREO MODE
-                ,FLGSET// 0xF9 - FLAG SET
-                ,W_REG // 0xFA - COMMAND OF   'y'
-                ,VOLUPF// 0xFB - VOLUME UP    ')'
-                ,HLFOON// 0xFC - HARD LFO
-                ,TIE   // (CANT USE)
-                ,RSKIP // 0xFE - REPEAT JUMP'/'
-                ,SECPRC// 0xFF - to second com
+                OTOPST        // 0xF0 - ｵﾝｼｮｸ ｾｯﾄ    '@'
+                ,VOLPST       // 0xF1 - VOLUME SET   'v'
+                ,FRQ_DF       // 0xF2 - DETUNE(ｼｭｳﾊｽｳ ｽﾞﾗｼ) 'D'
+                ,SETQ         // 0xF3 - SET COMMAND 'q'
+                ,LFOON        // 0xF4 - LFO SET
+                ,REPSTF       // 0xF5 - REPEAT START SET  '['
+                ,REPENF       // 0xF6 - REPEAT END SET    ']'
+                ,MDSET        // 0xF7 - FMｵﾝｹﾞﾝ ﾓｰﾄﾞｾｯﾄ  KUMA:'S'スロットディチューンコマンド
+                // ,STEREO    // 0xF8 - STEREO MODE
+                ,STEREO_AMD98 // 0xF8 - STEREO MODE  'p'
+                ,FLGSET       // 0xF9 - FLAG SET
+                ,W_REG        // 0xFA - COMMAND OF   'y'
+                ,VOLUPF       // 0xFB - VOLUME UP    ')'
+                ,HLFOON       // 0xFC - HARD LFO
+                ,TIE          // (CANT USE)
+                ,RSKIP        // 0xFE - REPEAT JUMP'/'
+                ,SECPRC       // 0xFF - to second com
             };
 
             FMCOM2 = new Action[] {
-                PVMCHG // 0xFF 0xF0 - PCM VOLUME MODE
-                ,HRDENV	// 0xFF 0xF1 - HARD ENVE SET 's'  -> 'S'(kuma)
-                ,ENVPOD // 0xFF 0xF2 - HARD ENVE PERIOD 'm'
-                ,REVERVE// 0xFF 0xF3 - ﾘﾊﾞｰﾌﾞ
-                ,REVMOD	// 0xFF 0xF4 - ﾘﾊﾞｰﾌﾞﾓｰﾄﾞ
-                ,REVSW	// 0xFF 0xF5 - ﾘﾊﾞｰﾌﾞ ｽｲｯﾁ
+                PVMCHG         // 0xFF 0xF0 - PCM VOLUME MODE
+                ,HRDENV	       // 0xFF 0xF1 - HARD ENVE SET 's'  -> 'S'(kuma)
+                ,ENVPOD        // 0xFF 0xF2 - HARD ENVE PERIOD 'm'
+                ,REVERVE       // 0xFF 0xF3 - ﾘﾊﾞｰﾌﾞ
+                ,REVMOD	       // 0xFF 0xF4 - ﾘﾊﾞｰﾌﾞﾓｰﾄﾞ
+                ,REVSW	       // 0xFF 0xF5 - ﾘﾊﾞｰﾌﾞ ｽｲｯﾁ
                 ,SetKeyOnDelay // 0xFF 0xF6
-                ,NTMEAN
+                ,NTMEAN        // 0xFF 0xF7
+                ,NTMEAN        // 0xFF 0xF8
+                ,NTMEAN        // 0xFF 0xF9
+                ,NTMEAN        // 0xFF 0xFA
+                ,NTMEAN        // 0xFF 0xFB
+                ,NTMEAN        // 0xFF 0xFC
+                ,NTMEAN        // 0xFF 0xFD
+                ,NTMEAN        // 0xFF 0xFE
+                ,NOP           // 0xFF 0xFF
             };
+        }
+
+        private void NOP()
+        {
+            DummyOUT();
         }
 
         public void SetLFOTBL()
@@ -259,7 +272,7 @@ namespace mucomDotNET.Driver
                 work.mDataAdr = work.soundWork.MU_TOP + Cmn.getLE16(work.mData, (uint)work.mDataAdr);
             }
 
-            work.soundWork.TIMER_B = (byte)work.mData[work.mDataAdr].dat;
+            work.soundWork.TIMER_B = (work.mData[work.mDataAdr] != null) ? ((byte)work.mData[work.mDataAdr].dat) : (byte)200;
             work.soundWork.TB_TOP = ++work.mDataAdr;
 
             int ch = 0;// (CH1DATのこと)
@@ -705,6 +718,12 @@ namespace mucomDotNET.Driver
             WriteOPNARegister(dat);
         }
 
+        public void DummyOUT()
+        {
+            ChipDatum dat = new ChipDatum(-1,-1,-1, 0, work.crntMmlDatum);
+            WriteOPNARegister(dat);
+        }
+
 
         // **	KEY-OFF ROUTINE		**
 
@@ -783,6 +802,10 @@ namespace mucomDotNET.Driver
                     a = (byte)work.cd.mData[hl].dat;// GET FLAG & LENGTH
                     work.cd.loopCounter++;
                 }
+
+                //演奏情報退避
+                work.crntMmlDatum = work.cd.mData[hl];
+
                 // **	SET LENGTH	**
                 hl++;
                 if (a < 0xf0) break;
@@ -796,7 +819,6 @@ namespace mucomDotNET.Driver
                 hl = work.hl;
             } while (true);
 
-            work.crntMmlDatum = work.cd.mData[hl];
             work.cd.lengthCounter = a & 0x7f;// SET WAIT COUNTER
 
 
@@ -1179,11 +1201,13 @@ namespace mucomDotNET.Driver
 
         public void OTODRM()
         {
+            DummyOUT();
             work.soundWork.RHYTHM = work.cd.mData[work.hl++].dat;// SET RETHM PARA
         }
 
         public void OTOPCM()
         {
+            DummyOUT();
             byte a = (byte)work.cd.mData[work.hl++].dat;
             work.soundWork.PCMNUM = a;
             a--;
@@ -1256,6 +1280,7 @@ namespace mucomDotNET.Driver
 
         public void VOLPST()
         {
+            DummyOUT();
             if (work.soundWork.PCMFLG != 0)
             {
                 PCMVOL();
@@ -1596,6 +1621,8 @@ namespace mucomDotNET.Driver
                 goto STE012;
             }
 
+            DummyOUT();
+
             //既存処理
             c = (byte)(((a >> 2) & 0x3f) | (a << 6));//右ローテート2回(左6回のほうがC#的にはシンプル)
             d = work.soundWork.PALDAT[work.soundWork.FMPORT + work.cd.channelNumber];
@@ -1638,6 +1665,8 @@ namespace mucomDotNET.Driver
 
         public void STEREO_AMD98_RHYTHM()
         {
+            DummyOUT();
+
             // bit0～3 rythmType RTHCSB
             // bit4～7 パン(1:右, 2:左, 3:中央 4:右オート 5:左オート 6:ランダム)を指定する。
             byte a = (byte)(work.cd.mData[work.hl].dat >> 4);
@@ -1685,6 +1714,8 @@ namespace mucomDotNET.Driver
 
         public void STEREO_AMD98_ADPCM()
         {
+            DummyOUT();
+
             byte a = (byte)work.cd.mData[work.hl++].dat;
 
             if (a < 4)
@@ -1760,6 +1791,15 @@ namespace mucomDotNET.Driver
 
             byte a, c, d;
             a = (work.cd.panMode == 4 || work.cd.panMode == 5) ? autoPantable[work.cd.panValue] : work.cd.panValue;
+
+            List<object> args = new List<object>();
+            args.Add((int)a);
+
+            LinePos lp = new LinePos("", -1, -1, -1
+                , work.soundWork.SSGF1 == 0 ? "FM" : "ADPCM"
+                , "YM2608", 0, 0, work.cd.channelNumber);
+            work.crntMmlDatum = new MmlDatum(enmMMLType.Pan, args, lp, 0);
+            DummyOUT();
 
             if (work.soundWork.PCMFLG == 0)
             {
@@ -1964,6 +2004,8 @@ namespace mucomDotNET.Driver
 
         public void OTOSSG()
         {
+            DummyOUT();
+
             byte a = (byte)work.cd.mData[work.hl++].dat;
 
             //OTOCAL
@@ -2009,6 +2051,7 @@ namespace mucomDotNET.Driver
 
         public void PSGVOL()
         {
+            DummyOUT();
             work.cd.hardEnveFlg = false;
             byte e = (byte)(work.cd.volume & 0b1111_0000);
             byte c = (byte)work.cd.mData[work.hl].dat;
@@ -2464,6 +2507,10 @@ namespace mucomDotNET.Driver
                     work.hl = (uint)work.cd.dataTopAddress;
                     work.cd.loopCounter++;
                 }
+
+                //演奏情報退避
+                work.crntMmlDatum = work.cd.mData[work.hl];
+
                 //SSSUB1:
                 //SSSUB2:
                 a = (byte)work.cd.mData[work.hl++].dat;// INPUT FLAG &LENGTH
