@@ -717,9 +717,11 @@ namespace mucomDotNET.Compiler
                 {
 
                     //wait値が範囲外の時 ->エラー
-                    if (n2 < 1 || n2 > work.CLOCK || (byte)n2 < 1)
+                    //if (n2 < 1 || n2 > work.CLOCK || (byte)n2 < 1)
+                    if (n2 < 1 || n2 > 255 || (byte)n2 < 1)
                     {
-                        throw new MucException(string.Format(msg.get("E0526"), work.CLOCK, v), mucInfo.row, mucInfo.col);
+                        //throw new MucException(string.Format(msg.get("E0526"), work.CLOCK, v), mucInfo.row, mucInfo.col);
+                        throw new MucException(string.Format(msg.get("E0526"), 255, v), mucInfo.row, mucInfo.col);
                     }
 
                     if (tp == ChannelType.SSG) return EnmFCOMPNextRtn.fcomp1;//KUMA:互換の為。。。(SSGパートではnoise周波数設定コマンドとして動作)
@@ -2299,13 +2301,28 @@ namespace mucomDotNET.Compiler
                     msg.get("E0481")
                     , mucInfo.row, mucInfo.col);
             mucInfo.srcCPtr = ptr;
+
+            List<object> args = new List<object>();
+            args.Add(n);
+
             ChannelType tp = CHCHK();
             if (tp == ChannelType.SSG)
             {
                 n = -n;
             }
 
-            msub.MWRITE(new MmlDatum(0xf2), new MmlDatum((byte)n));// COM OF 'D'
+            LinePos lp = new LinePos(
+                mucInfo.fnSrcOnlyFile
+                , mucInfo.row, mucInfo.col
+                , mucInfo.srcCPtr - mucInfo.col + 1
+                , tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM"))
+                , "YM2608", 0, 0, work.COMNOW); ;
+            msub.MWRITE(new MmlDatum(
+                 enmMMLType.Detune
+                 , args
+                 , lp
+                 , 0xf2
+                ), new MmlDatum((byte)n));// COM OF 'D'
             msub.MWRIT2(new MmlDatum((byte)(n >> 8)));
 
             char c =
@@ -3552,11 +3569,16 @@ namespace mucomDotNET.Compiler
             args.Add(note);
             args.Add(clk);
             ChannelType tp = CHCHK();
+
+            int ptr = mucInfo.srcCPtr;
+            if (mucInfo.lin.Item2.Length > ptr - 1)
+                while (ptr > 1 && mucInfo.lin.Item2[ptr - 1] == ' ') ptr--;
+
             LinePos lp = new LinePos(
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row
                 , mucInfo.col
-                , mucInfo.srcCPtr - mucInfo.col + 1
+                , ptr - mucInfo.col + 1
                 , tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM"))
                 , "YM2608"
                 , 0
@@ -3591,11 +3613,16 @@ namespace mucomDotNET.Compiler
             args.Add(note);
             args.Add(clk);
             ChannelType tp = CHCHK();
+
+            int ptr = mucInfo.srcCPtr;
+            if (mucInfo.lin.Item2.Length > ptr - 1)
+                while (ptr > 1 && mucInfo.lin.Item2[ptr - 1] == ' ') ptr--;
+
             LinePos lp = new LinePos(
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row
                 , mucInfo.col
-                , mucInfo.srcCPtr - mucInfo.col + 1
+                , ptr - mucInfo.col + 1
                 , tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM"))
                 , "YM2608"
                 , 0

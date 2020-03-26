@@ -1347,6 +1347,7 @@ namespace mucomDotNET.Driver
 
         public void FRQ_DF()
         {
+            DummyOUT();
             work.cd.beforeCode = 0;// DETUNE ﾉ ﾊﾞｱｲﾊ BEFORE CODE ｦ CLEAR
             int de = work.cd.mData[work.hl].dat + work.cd.mData[work.hl + 1].dat * 0x100;
             work.hl += 2;
