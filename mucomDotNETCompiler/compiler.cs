@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using mucomDotNET.Common;
@@ -21,6 +22,8 @@ namespace mucomDotNET.Compiler
         private readonly List<MmlDatum> dat = new List<MmlDatum>();
 
         public string OutFileName { get; set; }
+        private Point skipPoint = Point.Empty;
+
         private iEncoding enc = null;
         private bool isIDE = false;
 
@@ -57,6 +60,7 @@ namespace mucomDotNET.Compiler
                 srcBuf = ReadAllBytes(sourceMML);
                 mucInfo = GetMUCInfo(srcBuf);
                 mucInfo.isIDE = isIDE;
+                mucInfo.skipPoint = skipPoint;
 
                 using (Stream vd = appendFileReaderCallback?.Invoke(string.IsNullOrEmpty(mucInfo.voice) ? "voice.dat" : mucInfo.voice))
                 {
@@ -564,18 +568,43 @@ namespace mucomDotNET.Compiler
 
         public void SetCompileSwitch(params object[] param)
         {
+            this.isIDE = false;
+            this.skipPoint = Point.Empty;
+
             if (param == null) return;
 
-            foreach(object prm in param)
+            foreach (object prm in param)
             {
-                if(prm is string)
+                if (!(prm is string)) continue;
+
+                //IDEフラグオン
+                if ((string)prm == "IDE")
                 {
-                    if ((string)prm == "IDE")
+                    this.isIDE = true;
+                }
+
+                //スキップ再生指定
+                if (((string)prm).IndexOf("SkipPoint=") == 0)
+                {
+                    try
                     {
-                        this.isIDE = true;
+                        string[] p = ((string)prm).Split('=')[1].Split(':');
+                        //if (p.Length != 2) continue;
+                        //if (p[0].Length < 2 || p[1].Length < 2) continue;
+                        //if (p[0][0] != 'R' || p[1][0] != 'C') continue;
+                        int r = int.Parse(p[0].Substring(1));
+                        int c = int.Parse(p[1].Substring(1));
+                        this.skipPoint = new Point(c, r);
+                    }
+                    catch
+                    {
+                        continue;
                     }
                 }
             }
+
         }
+
+
     }
 }

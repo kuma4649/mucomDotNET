@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using musicDriverInterface;
 
 namespace mucomDotNET.Common
@@ -98,7 +99,8 @@ namespace mucomDotNET.Common
             }
         }//mucomDotNET独自機能を使用したか否か
 
-        public bool isIDE { get; set; }
+        public bool isIDE { get; set; } = false;
+        public Point skipPoint { get; set; } = Point.Empty;
 
         public void Clear()
         {

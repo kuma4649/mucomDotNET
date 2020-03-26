@@ -3,6 +3,7 @@ using System;
 using System.Text;
 using musicDriverInterface;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace mucomDotNET.Compiler
 {
@@ -608,7 +609,12 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETTAG()
         {
+
             work.JCLOCK = work.tcnt[work.COMNOW];
+            if (work.POINTC >= 0)
+            {
+                work.JCLOCK += mucInfo.bufLoopStack.Get(work.POINTC + 6) + mucInfo.bufLoopStack.Get(work.POINTC + 7) * 0x100;
+            }
             work.JPLINE = mucInfo.row;
             work.JPCOL = mucInfo.col;
 
@@ -3421,6 +3427,13 @@ namespace mucomDotNET.Compiler
 
             mucInfo.row = mucInfo.lin.Item1;
             mucInfo.col = mucInfo.srcCPtr + 1;
+
+            if (mucInfo.skipPoint != Point.Empty && mucInfo.skipPoint.Y == mucInfo.row && mucInfo.skipPoint.X <= mucInfo.col)
+            {
+                SETTAG();
+                mucInfo.srcCPtr--;
+                mucInfo.skipPoint = Point.Empty;
+            }
 
             if (work.com != 0)
             {

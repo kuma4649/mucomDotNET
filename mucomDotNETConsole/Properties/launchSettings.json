@@ -2,7 +2,7 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
-      "commandLineArgs": "-XML -LOGLEVEL=INFO C:\\temp\\ssgtest.muc"
+      "commandLineArgs": "-XML -LOGLEVEL=INFO D:\\bootcamp\\FM音源\\data\\MUC\\mucom88win_yk2mml181225\\ACTRAISER_MML\\gh002.muc"
     }
   }
 }
