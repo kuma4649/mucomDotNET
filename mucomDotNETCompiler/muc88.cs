@@ -613,7 +613,12 @@ namespace mucomDotNET.Compiler
             work.JCLOCK = work.tcnt[work.COMNOW];
             if (work.POINTC >= 0)
             {
-                work.JCLOCK += mucInfo.bufLoopStack.Get(work.POINTC + 6) + mucInfo.bufLoopStack.Get(work.POINTC + 7) * 0x100;
+                int p = work.POINTC;
+                while (p >= 0)
+                {
+                    work.JCLOCK += mucInfo.bufLoopStack.Get(p + 6) + mucInfo.bufLoopStack.Get(p + 7) * 0x100;
+                    p -= 10;
+                }
             }
             work.JPLINE = mucInfo.row;
             work.JPCOL = mucInfo.col;
@@ -3428,11 +3433,28 @@ namespace mucomDotNET.Compiler
             mucInfo.row = mucInfo.lin.Item1;
             mucInfo.col = mucInfo.srcCPtr + 1;
 
-            if (mucInfo.skipPoint != Point.Empty && mucInfo.skipPoint.Y == mucInfo.row && mucInfo.skipPoint.X <= mucInfo.col)
+            if (mucInfo.skipPoint != Point.Empty)
             {
-                SETTAG();
-                mucInfo.srcCPtr--;
-                mucInfo.skipPoint = Point.Empty;
+                if (mucInfo.skipPoint.Y == mucInfo.row)
+                {
+                    mucInfo.skipChannel = work.COMNOW;
+
+                    if (mucInfo.skipPoint.X <= mucInfo.col)
+                    {
+                        SETTAG();
+                        mucInfo.srcCPtr--;
+                        mucInfo.skipPoint = Point.Empty;
+                        mucInfo.skipChannel = -1;
+                    }
+                }
+
+                if (mucInfo.skipPoint.Y < mucInfo.row && mucInfo.skipChannel == work.COMNOW)
+                {
+                    SETTAG();
+                    mucInfo.srcCPtr--;
+                    mucInfo.skipPoint = Point.Empty;
+                    mucInfo.skipChannel = -1;
+                }
             }
 
             if (work.com != 0)
