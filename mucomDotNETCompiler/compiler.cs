@@ -336,6 +336,7 @@ namespace mucomDotNET.Compiler
                 }
 
                 work.compilerInfo.jumpClock = work.JCLOCK;
+                work.compilerInfo.jumpChannel = work.JCHCOM;
 
                 if (work.pcmFlag == 0) pcmflag = 2;
                 msg = enc.GetStringFromSjisArray(textLineBuf, 31, 4);//Encoding.GetEncoding("Shift_JIS").GetString(textLineBuf, 31, 4);
@@ -477,7 +478,7 @@ namespace mucomDotNET.Compiler
 
             if (work.JPLINE >= 0)
             {
-                Log.WriteLine(LogLevel.INFO, string.Format("#Jump count [{0}].", work.JCLOCK));
+                Log.WriteLine(LogLevel.INFO, string.Format("#Jump count [{0}]. channelNumber[{1}]", work.JCLOCK, work.JCHCOM));
                 Log.WriteLine(LogLevel.INFO, string.Format("#Jump line [row:{0} col:{1}].", work.JPLINE, work.JPCOL));
             }
 

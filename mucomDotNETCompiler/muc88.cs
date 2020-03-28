@@ -611,6 +611,8 @@ namespace mucomDotNET.Compiler
         {
 
             work.JCLOCK = work.tcnt[work.COMNOW];
+            work.JCHCOM = new List<int>();
+            work.JCHCOM.Add(work.COMNOW);
             if (work.POINTC >= 0)
             {
                 int p = work.POINTC;
@@ -2889,6 +2891,7 @@ namespace mucomDotNET.Compiler
             }
             work.pcmFlag = 0;
             work.JCLOCK = 0;
+            work.JCHCOM = null;
 
             return COMPI3();
         }
