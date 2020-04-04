@@ -101,7 +101,7 @@ namespace mucomDotNET.Common
 
         public bool isIDE { get; set; } = false;
         public Point skipPoint { get; set; } = Point.Empty;
-        public int skipChannel { get; set; }
+        public int skipChannel { get; set; } = -1;
 
         public void Clear()
         {

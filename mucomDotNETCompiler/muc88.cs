@@ -218,7 +218,8 @@ namespace mucomDotNET.Compiler
             }
 
             mucInfo.srcCPtr++;
-            int befco=FC162p_clock(before_note);//SET TONE&LIZ
+            int befco = FC162p_clock(before_note);//SET TONE&LIZ
+            int qbefco = befco - work.quantize;
 
             skipSpaceAndTab();
 
@@ -297,27 +298,34 @@ namespace mucomDotNET.Compiler
             int clock = befco / noteDiv;
             int clockMod = befco % noteDiv;
 
-            List<Tuple<int, int, int>> lstPrt = new List<Tuple<int, int, int>>();
+            List<Tuple<int, int, int, int>> lstPrt = new List<Tuple<int, int, int, int>>();
             int stNote = 0;
             for (int i = 0; i < noteDiv; i++)
             {
                 int edNote = stNote + noteStep + ((noteMod > 0 ? 1 : 0)) * sign;
                 if (clock + (clockMod > 0 ? 1 : 0) != 0)
                 {
-                    Tuple<int, int, int> p = new Tuple<int, int, int>(
+                    int n = clock + (clockMod > 0 ? 1 : 0);
+                    Tuple<int, int, int, int> p = new Tuple<int, int, int, int>(
                         stNote + beftone
                         , edNote + beftone
-                        , clock + (clockMod > 0 ? 1 : 0)
+                        , n
+                        , qbefco > n ? n : qbefco
                         );
                     lstPrt.Add(p);
+                    qbefco -= n;
+                    qbefco = Math.Max(qbefco, 0);
                 }
                 else
                 {
-                    Tuple<int, int, int> p = new Tuple<int, int, int>(
-                        lstPrt[lstPrt.Count-1].Item1
+                    Tuple<int, int, int,int> p = new Tuple<int, int, int,int>(
+                        lstPrt[lstPrt.Count - 1].Item1
                         , edNote + beftone
                         , lstPrt[lstPrt.Count - 1].Item3
+                        , qbefco > lstPrt[lstPrt.Count - 1].Item3 ? lstPrt[lstPrt.Count - 1].Item3 : qbefco
                         );
+                    qbefco -= lstPrt[lstPrt.Count - 1].Item3;
+                    qbefco = Math.Max(qbefco, 0);
                     lstPrt[lstPrt.Count - 1] = p;
                 }
 
@@ -326,13 +334,16 @@ namespace mucomDotNET.Compiler
                 clockMod--;
             }
 
-            bool tie = false;
-            foreach (Tuple<int, int, int> it in lstPrt)
+            bool tie = true;
+            work.beforeQuantize = work.quantize;
+
+            for (int i = 0; i < lstPrt.Count; i++)
             {
+                Tuple<int, int, int, int> it = lstPrt[i];
+                if (i == lstPrt.Count - 1) tie = false;
                 byte st = (byte)(((it.Item1 / 12) << 4) | ((it.Item1 % 12) & 0xf));
                 byte ed = (byte)(((it.Item2 / 12) << 4) | ((it.Item2 % 12) & 0xf));
-                WritePortament(st, ed, (byte)it.Item3, tie);
-                tie = true;
+                WritePortament(st, ed, (byte)it.Item3, (byte)(it.Item3 - it.Item4), tie);
             }
 
             PortamentEnd();
@@ -341,7 +352,7 @@ namespace mucomDotNET.Compiler
 
         }
 
-        private void WritePortament(byte note, byte endNote, byte clk, bool tie)
+        private void WritePortament(byte note, byte endNote, byte clk,byte q, bool tie)
         {
             int depth = expand.CULPTM(note, endNote, clk);//KUMA:DEPTHを計算
             if (mucInfo.Carry)
@@ -352,7 +363,7 @@ namespace mucomDotNET.Compiler
             }
 
             PortamentStart(depth);
-            FC162p_write(note, clk, tie);
+            FC162p_write(note, clk,q, tie);
         }
 
         private void PortamentStart(int depth)
@@ -387,16 +398,45 @@ namespace mucomDotNET.Compiler
                 msub.MWRIT2(new MmlDatum(work.LFODAT[4]));
                 msub.MWRIT2(new MmlDatum(work.LFODAT[5]));
             }
+
+            if (work.beforeQuantize != work.quantize)
+                msub.MWRITE(new MmlDatum(0xf3), new MmlDatum((byte)work.quantize));// COM OF 'q'
+
         }
 
-        private void FC162p_write(int note, byte clk, bool tie)
+        private void FC162p_write(int note, byte clk,byte q, bool tie)
         {
-            if (tie)
-            {
-                msub.MWRIT2(new MmlDatum(0xfd));
-            }
+            //if (tie)
+            //{
+            //    msub.MWRIT2(new MmlDatum(0xfd));
+            //}
             TCLKSUB(clk);// ﾄｰﾀﾙｸﾛｯｸ ｶｻﾝ
-            FCOMP17(note, clk);
+
+            if (work.beforeQuantize != q)
+            {
+                msub.MWRITE(new MmlDatum(0xf3), new MmlDatum(q));// COM OF 'q'
+                work.beforeQuantize = q;
+            }
+
+            if (q < clk)
+            {
+                FCOMP17(note, clk);// note
+                if (tie)
+                {
+                    msub.MWRIT2(new MmlDatum(0xfd)); // tie
+                }
+            }
+            else
+            {
+                //rest
+                while (clk > 0x6f)
+                {
+                    clk -= 0x6f;
+                    msub.MWRIT2(new MmlDatum((byte)(0b1110_1111)));
+                }
+                work.BEFRST = clk;
+                msub.MWRIT2(new MmlDatum((byte)(clk | 0b1000_0000)));// SET REST FLAG
+            }
         }
 
 
@@ -1111,7 +1151,7 @@ namespace mucomDotNET.Compiler
             ptr = mucInfo.srcCPtr;
             int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0431"));
             mucInfo.srcCPtr = ptr;
-
+            work.quantize = n;
             msub.MWRITE(new MmlDatum(0xf3), new MmlDatum((byte)n));// COM OF 'q'
 
             return EnmFCOMPNextRtn.fcomp1;
@@ -3197,7 +3237,7 @@ namespace mucomDotNET.Compiler
                 work.OctaveUDFLG = 1;
                 work.VolumeUDFLG = 1;
             }
-
+            work.quantize = 0;//KUMA: ポルタメントむけq値保存
         }
 
         public void CMPEN1()

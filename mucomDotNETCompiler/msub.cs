@@ -241,7 +241,7 @@ namespace mucomDotNET.Compiler
 
         public void MWRIT2(MmlDatum dat)
         {
-            //Common.WriteLine("{0:x2}", dat);
+            //Console.WriteLine("{0:x2}", dat.dat);
             mucInfo.bufDst.Set(work.MDATA++, dat);
 
             if (work.MDATA - work.bufStartPtr > 0xffff)

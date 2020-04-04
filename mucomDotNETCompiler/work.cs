@@ -97,5 +97,7 @@ namespace mucomDotNET.Compiler
         public static int SSGDAT = 3;// 0xc203 w SSG...
         public static int MU_TOP = 5;// 0xc205 w ﾐｭｰｼﾞｯｸ ﾃﾞｰﾀ(ｱﾄﾞﾚｽﾃｰﾌﾞﾙ ﾌｸﾑ) ｽﾀｰﾄ ｱﾄﾞﾚｽ
         public static CompilerInfo compilerInfo = null;
+        public static int quantize=0;
+        public static int beforeQuantize=0;
     }
 }

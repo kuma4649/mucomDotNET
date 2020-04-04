@@ -478,7 +478,7 @@ namespace mucomDotNET.Compiler
 
             if (work.JPLINE >= 0)
             {
-                Log.WriteLine(LogLevel.INFO, string.Format("#Jump count [{0}]. channelNumber[{1}]", work.JCLOCK, work.JCHCOM));
+                Log.WriteLine(LogLevel.INFO, string.Format("#Jump count [{0}]. channelNumber[{1}]", work.JCLOCK, work.JCHCOM[0]));
                 Log.WriteLine(LogLevel.INFO, string.Format("#Jump line [row:{0} col:{1}].", work.JPLINE, work.JPCOL));
             }
 

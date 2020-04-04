@@ -118,6 +118,9 @@ namespace mucomDotNET.Console
                 Compiler.Compiler compiler = new Compiler.Compiler();
                 compiler.Init();
 
+                //compiler.SetCompileSwitch("IDE");
+                //compiler.SetCompileSwitch("SkipPoint=R19:C30");
+
                 if (!isXml)
                 {
                     string destFileName = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(srcFile)), string.Format("{0}.mub", Path.GetFileNameWithoutExtension(srcFile)));
@@ -191,8 +194,9 @@ namespace mucomDotNET.Console
 
         private static int AnalyzeOption(string[] args)
         {
-            int i = 0;
+            if (args.Length < 1) return 0;
 
+            int i = 0;
             while (args[i] != null && args[i].Length > 0 && args[i][0] == '-')
             {
                 string op = args[i].Substring(1).ToUpper();
