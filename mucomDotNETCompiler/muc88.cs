@@ -86,14 +86,14 @@ namespace mucomDotNET.Compiler
             int ptr = mucInfo.srcCPtr;
             int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0504"));
             mucInfo.srcCPtr = ptr;
-            if (mucInfo.ErrSign || n < 0 || n > 7)
+            if (mucInfo.ErrSign || n < 0 || n > 15)
                 throw new MucException(
                     msg.get("E0505")
                     , mucInfo.row, mucInfo.col);
 
             mucInfo.isDotNET = true;
             msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xf1));
-            msub.MWRIT2(new MmlDatum((byte)(n + 8)));
+            msub.MWRIT2(new MmlDatum((byte)n));
 
             return EnmFCOMPNextRtn.fcomp1;
         }
