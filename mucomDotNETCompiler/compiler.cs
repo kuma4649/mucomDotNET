@@ -345,7 +345,7 @@ namespace mucomDotNET.Compiler
                 int length = mucInfo.bufDst.Count;
                 mubsize = length;
 
-                Log.WriteLine(LogLevel.INFO, "- mucom.NET -");
+                Log.WriteLine(LogLevel.INFO, "- mucomW.NET -");
                 Log.WriteLine(LogLevel.INFO, "[ Total count ]");
                 Log.WriteLine(LogLevel.INFO,strTcount);
                 Log.WriteLine(LogLevel.INFO, "[ Loop count  ]");

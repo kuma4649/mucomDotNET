@@ -30,6 +30,24 @@ namespace mucomDotNET.Driver
             ,new CHDAT()//FM Ch6
 
             ,new CHDAT()//ADPCM Ch
+
+            // ２つ目
+            ,new CHDAT()//FM Ch1
+            ,new CHDAT()//FM Ch2
+            ,new CHDAT()//FM Ch3
+
+            ,new CHDAT()//SSG Ch1
+            ,new CHDAT()//SSG Ch2
+            ,new CHDAT()//SSG Ch3
+
+            ,new CHDAT()//Drums Ch
+
+            ,new CHDAT()//FM Ch4
+            ,new CHDAT()//FM Ch5
+            ,new CHDAT()//FM Ch6
+
+            ,new CHDAT()//ADPCM Ch
+
         };
 
         public byte[] PREGBF = null;
@@ -82,6 +100,7 @@ namespace mucomDotNET.Driver
         public int NEWFNM { get; internal set; }
         public ushort RANDUM { get; internal set; } = 0;
         public int KEY_FLAG { get; internal set; } = 0;
+        public int PORTOFS { get; internal set; }
 
         // **	PMS/AMS/LR DATA	**
         public byte[] PALDAT = new byte[] {
@@ -115,63 +134,9 @@ namespace mucomDotNET.Driver
         0x0F
         };
 
-        internal void Init()
-        {
-            CHDAT[0].lengthCounter = 1;
-            CHDAT[0].instrumentNumber = 24;
-            CHDAT[0].volume = 10;
-
-            CHDAT[1].lengthCounter = 1;
-            CHDAT[1].instrumentNumber = 24;
-            CHDAT[1].volume = 10;
-            CHDAT[1].channelNumber = 1;
-
-            CHDAT[2].lengthCounter = 1;
-            CHDAT[2].instrumentNumber = 24;
-            CHDAT[2].volume = 10;
-            CHDAT[2].channelNumber = 2;
-
-
-            CHDAT[3].lengthCounter = 1;
-            CHDAT[3].instrumentNumber = 0;
-            CHDAT[3].volume = 8;
-            CHDAT[3].volReg = 8;
-            CHDAT[3].channelNumber = 0;
-
-            CHDAT[4].lengthCounter = 1;
-            CHDAT[4].instrumentNumber = 0;
-            CHDAT[4].volume = 8;
-            CHDAT[4].volReg = 9;
-            CHDAT[4].channelNumber = 2;
-
-            CHDAT[5].lengthCounter = 1;
-            CHDAT[5].instrumentNumber = 0;
-            CHDAT[5].volume = 8;
-            CHDAT[5].volReg = 10;
-            CHDAT[5].channelNumber = 4;
-
-
-            CHDAT[6].lengthCounter = 1;
-            CHDAT[6].volume = 10;
-            CHDAT[6].channelNumber = 2;
-
-
-            CHDAT[7].lengthCounter = 1;
-            CHDAT[7].volume = 10;
-            CHDAT[7].channelNumber = 2;
-
-            CHDAT[8].lengthCounter = 1;
-            CHDAT[8].volume = 10;
-            CHDAT[8].channelNumber = 2;
-
-            CHDAT[9].lengthCounter = 1;
-            CHDAT[9].volume = 10;
-            CHDAT[9].channelNumber = 2;
-
-
-            CHDAT[10].lengthCounter = 1;
-            CHDAT[10].volume = 10;
-            CHDAT[10].channelNumber = 2;
+        internal void Init() {
+            InitValue(0);
+            InitValue(11);
 
             PREGBF = new byte[9];
             INITPM = new byte[] { 0, 0, 0, 0, 0, 56, 0, 0, 0 };
@@ -220,6 +185,64 @@ namespace mucomDotNET.Driver
                 ,255,255,255,220,0,255 // 6*16
             };
 
+        }
+
+        private void InitValue(int ofs) {
+            CHDAT[ofs + 0].lengthCounter = 1;
+            CHDAT[ofs + 0].instrumentNumber = 24;
+            CHDAT[ofs + 0].volume = 10;
+
+            CHDAT[ofs + 1].lengthCounter = 1;
+            CHDAT[ofs + 1].instrumentNumber = 24;
+            CHDAT[ofs + 1].volume = 10;
+            CHDAT[ofs + 1].channelNumber = 1;
+
+            CHDAT[ofs + 2].lengthCounter = 1;
+            CHDAT[ofs + 2].instrumentNumber = 24;
+            CHDAT[ofs + 2].volume = 10;
+            CHDAT[ofs + 2].channelNumber = 2;
+
+
+            CHDAT[ofs + 3].lengthCounter = 1;
+            CHDAT[ofs + 3].instrumentNumber = 0;
+            CHDAT[ofs + 3].volume = 8;
+            CHDAT[ofs + 3].volReg = 8;
+            CHDAT[ofs + 3].channelNumber = 0;
+
+            CHDAT[ofs + 4].lengthCounter = 1;
+            CHDAT[ofs + 4].instrumentNumber = 0;
+            CHDAT[ofs + 4].volume = 8;
+            CHDAT[ofs + 4].volReg = 9;
+            CHDAT[ofs + 4].channelNumber = 2;
+
+            CHDAT[ofs + 5].lengthCounter = 1;
+            CHDAT[ofs + 5].instrumentNumber = 0;
+            CHDAT[ofs + 5].volume = 8;
+            CHDAT[ofs + 5].volReg = 10;
+            CHDAT[ofs + 5].channelNumber = 4;
+
+
+            CHDAT[ofs + 6].lengthCounter = 1;
+            CHDAT[ofs + 6].volume = 10;
+            CHDAT[ofs + 6].channelNumber = 2;
+
+
+            CHDAT[ofs + 7].lengthCounter = 1;
+            CHDAT[ofs + 7].volume = 10;
+            CHDAT[ofs + 7].channelNumber = 2;
+
+            CHDAT[ofs + 8].lengthCounter = 1;
+            CHDAT[ofs + 8].volume = 10;
+            CHDAT[ofs + 8].channelNumber = 2;
+
+            CHDAT[ofs + 9].lengthCounter = 1;
+            CHDAT[ofs + 9].volume = 10;
+            CHDAT[ofs + 9].channelNumber = 2;
+
+
+            CHDAT[ofs + 10].lengthCounter = 1;
+            CHDAT[ofs + 10].volume = 10;
+            CHDAT[ofs + 10].channelNumber = 2;
         }
     }
 

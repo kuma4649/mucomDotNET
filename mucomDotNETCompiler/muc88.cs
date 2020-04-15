@@ -12,7 +12,10 @@ namespace mucomDotNET.Compiler
         public Msub msub = null;
         public expand expand = null;
 
-        internal static readonly int MAXCH = 11;
+        /// <summary>
+        /// 最大チャンネル数
+        /// </summary>
+        internal static readonly int MAXCH = 22;
         private readonly MUCInfo mucInfo;
         private readonly Func<EnmFCOMPNextRtn>[] COMTBL;
         //private readonly int errLin = 0;
@@ -1981,6 +1984,10 @@ namespace mucomDotNET.Compiler
             n *= 4;
 
             byte ch = (byte)work.COMNOW;
+
+            if (ch >= 11) ch -= 11;
+
+            // 範囲外(0未満、10超過) or SSG
             if (ch < 0 || (ch >= 3 && ch < 7) || ch >= 10)
             {
                 throw new MucException(
@@ -2843,14 +2850,17 @@ namespace mucomDotNET.Compiler
 
         public ChannelType CHCHK()
         {
-            if (work.COMNOW >= 3 && work.COMNOW < 6)
+            var CurrentChannel = work.COMNOW;
+            if (CurrentChannel >= 11) CurrentChannel -= 11;
+
+            if (CurrentChannel >= 3 && CurrentChannel < 6)
             {
                 return ChannelType.SSG;
             }
 
-            if (work.COMNOW == 6) return ChannelType.RHYTHM;
+            if (CurrentChannel == 6) return ChannelType.RHYTHM;
 
-            if (work.COMNOW < 10)
+            if (CurrentChannel < 10)
             {
                 return ChannelType.FM;
             }
@@ -2912,7 +2922,6 @@ namespace mucomDotNET.Compiler
         internal int COMPIL()
         {
             work.COMNOW = 0;
-            work.MAXCH = 11;
             work.ADRSTC = 0;
             work.VPCO = 0;
 
@@ -2939,7 +2948,7 @@ namespace mucomDotNET.Compiler
         public int COMPI3()
         {
             work.DATTBL = work.MU_TOP + 1;
-            work.MDATA = work.MU_TOP + 0x2f;// 11ch * 4byte + 3byte    (DATTBLの大きさ?)
+            work.MDATA = work.MU_TOP + (MAXCH * 4) + 3;// 11ch * 4byte + 3byte    (DATTBLの大きさ?)
             work.REPCOUNT = 0;
             work.title = work.titleFmt;
 

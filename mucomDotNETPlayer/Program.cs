@@ -121,7 +121,24 @@ namespace mucomDotNET.Player
                     Volume = 0,
                     Option = new object[] { GetApplicationFolder() }
                 };
-                mds = new MDSound.MDSound(SamplingRate, samplingBuffer, new MDSound.MDSound.Chip[] { chip });
+
+                // ふたつめだよ 2nd instance here
+                MDSound.ym2608 ym2608_2 = new MDSound.ym2608();
+                MDSound.MDSound.Chip chip2 = new MDSound.MDSound.Chip {
+                    type = MDSound.MDSound.enmInstrumentType.YM2608,
+                    ID = 0,
+                    Instrument = ym2608_2,
+                    Update = ym2608_2.Update,
+                    Start = ym2608_2.Start,
+                    Stop = ym2608_2.Stop,
+                    Reset = ym2608_2.Reset,
+                    SamplingRate = SamplingRate,
+                    Clock = opnaMasterClock,
+                    Volume = 0,
+                    Option = new object[] { GetApplicationFolder() }
+                };
+
+                mds = new MDSound.MDSound(SamplingRate, samplingBuffer, new MDSound.MDSound.Chip[] { chip, chip2 });
 
 #if NETCOREAPP
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
@@ -537,7 +554,14 @@ namespace mucomDotNET.Player
             switch(device)
             {
                 case 0:
-                    mds.WriteYM2608(0, (byte)dat.port, (byte)dat.address, (byte)dat.data);
+                    var portno = (byte)dat.port;
+                    var chipId = (byte)0;
+                    var chipIndex = 0;
+                    if ((portno & 0x02) != 0) {
+                        chipIndex = 1;
+                    }
+                    portno &= 0x01;
+                    mds.WriteYM2608(chipIndex, chipId, portno, (byte)dat.address, (byte)dat.data);
                     break;
                 case 1:
                 case 2:

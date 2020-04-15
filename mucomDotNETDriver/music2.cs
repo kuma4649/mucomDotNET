@@ -10,7 +10,7 @@ namespace mucomDotNET.Driver
 {
     public class Music2
     {
-        public const int MAXCH = 11;
+        public const int MAXCH = 22;
         // **	FM CONTROL COMMAND(s)   **
         public Action[] FMCOM = null;
         public Action[] FMCOM2 = null;
@@ -22,6 +22,14 @@ namespace mucomDotNET.Driver
         private Action<ChipDatum> WriteOPNARegister = null;
 
         private byte[] autoPantable = new byte[] { 2, 3, 1, 3 };
+
+        private void WriteOPNASimultaneousOutput(ChipDatum dat) {
+            var d1 = new ChipDatum(dat.port & 0x01, dat.address, dat.data, dat.time, dat.addtionalData);
+            WriteOPNARegister(d1);
+
+            var d2 = new ChipDatum(0x02 + (dat.port & 0x01), dat.address, dat.data, dat.time, dat.addtionalData);
+            WriteOPNARegister(d2);
+        }
 
 
         public Music2(Work work, Action<ChipDatum> WriteOPNARegister)
@@ -236,7 +244,7 @@ namespace mucomDotNET.Driver
             for (int e = 0; e < 7; e++)
             {
                 ChipDatum dat = new ChipDatum(0, 0x28, (byte)e);
-                WriteOPNARegister(dat);
+                WriteOPNASimultaneousOutput(dat);
             }
         }
 
@@ -247,14 +255,13 @@ namespace mucomDotNET.Driver
             for (int b = 0; b < 3; b++)
             {
                 ChipDatum dat = new ChipDatum(0, (byte)(0x8 + b), 0x0);
-                WriteOPNARegister(dat);
+                WriteOPNASimultaneousOutput(dat);
             }
         }
 
         // **   VOLUME OR FADEOUT etc RESET**
 
-        public void WORKINIT()
-        {
+        public void WORKINIT() {
             work.soundWork.C2NUM = 0;
             work.soundWork.CHNUM = 0;
             work.soundWork.PVMODE = 0;
@@ -266,8 +273,7 @@ namespace mucomDotNET.Driver
             work.mDataAdr = work.soundWork.MU_TOP;
 
 
-            for (int i = 0; i < num; i++)
-            {
+            for (int i = 0; i < num; i++) {
                 work.mDataAdr += 1 + MAXCH * 4;
                 work.mDataAdr = work.soundWork.MU_TOP + Cmn.getLE16(work.mData, (uint)work.mDataAdr);
             }
@@ -275,28 +281,36 @@ namespace mucomDotNET.Driver
             work.soundWork.TIMER_B = (work.mData[work.mDataAdr] != null) ? ((byte)work.mData[work.mDataAdr].dat) : (byte)200;
             work.soundWork.TB_TOP = ++work.mDataAdr;
 
-            int ch = 0;// (CH1DATのこと)
-            for (ch = 0; ch < 6; ch++)
-            {
-                FMINIT(ch);
+            InitWork(0);
+
+            work.soundWork.C2NUM = 0;
+            work.soundWork.CHNUM = 0;
+            InitWork(11);
+
+            work.fmVoiceAtMusData = GetVoiceDataAtMusData();
+
+            work.mData = null;
+        }
+
+        private int InitWork(int ofs) {
+            int ch = 0;
+            for (ch = 0; ch < 6; ch++) {
+                FMINIT(ofs + ch);
                 //ch++;//オリジナルは　ix+=WKLENG だが、配列化しているので。
             }
 
             work.soundWork.CHNUM = 0;
             ch = 6;//DRAMDAT
-            FMINIT(ch);
+            FMINIT(ofs + ch);
 
             work.soundWork.CHNUM = 0;
             //ix = 7;//CHADAT
-            for (ch = 7; ch < 7 + 4; ch++)
-            {
-                FMINIT(ch);
+            for (ch = 7; ch < 7 + 4; ch++) {
+                FMINIT(ofs + ch);
                 //オリジナルは　ix+=WKLENG だが、配列化しているので。
             }
 
-            work.fmVoiceAtMusData = GetVoiceDataAtMusData();
-
-            work.mData = null;
+            return ch;
         }
 
         private byte[] GetVoiceDataAtMusData()
@@ -386,16 +400,16 @@ namespace mucomDotNET.Driver
             SSGOFF();
 
             ChipDatum dat = new ChipDatum(0, 0x29, 0x83);// CH 4-6 ENABLE
-            WriteOPNARegister(dat);
+            WriteOPNASimultaneousOutput(dat);
 
             for (int b = 0; b < 6; b++)
             {
                 dat = new ChipDatum(0, (byte)b, 0x00);// CH 4-6 ENABLE
-                WriteOPNARegister(dat);
+                WriteOPNASimultaneousOutput(dat);
             }
 
             dat = new ChipDatum(0, 7, 0b0011_1000);
-            WriteOPNARegister(dat);
+            WriteOPNASimultaneousOutput(dat);
 
             // PSGﾊﾞｯﾌｧ ｲﾆｼｬﾗｲｽﾞ
             for (int i = 0; i < work.soundWork.INITPM.Length; i++)
@@ -423,27 +437,27 @@ namespace mucomDotNET.Driver
             for (int b = 0; b < 3; b++)
             {
                 dat = new ChipDatum(0, (byte)(0xb4 + b), 0xc0);//fm 1-3
-                WriteOPNARegister(dat);
+                WriteOPNASimultaneousOutput(dat);
             }
 
             for (int b = 0; b < 6; b++)
             {
                 dat = new ChipDatum(0, (byte)(0x18 + b), 0xc0);//rhythm
-                WriteOPNARegister(dat);
+                WriteOPNASimultaneousOutput(dat);
             }
 
             work.soundWork.FMPORT = 4;
             for (int b = 0; b < 3; b++)
             {
                 dat = new ChipDatum(1, (byte)(0xb4 + b), 0xc0);//fm 4-6
-                WriteOPNARegister(dat);
+                WriteOPNASimultaneousOutput(dat);
             }
 
             work.soundWork.FMPORT = 0;
             dat = new ChipDatum(0, 0x22, 0x00);//lfo freq control
-            WriteOPNARegister(dat);
+            WriteOPNASimultaneousOutput(dat);
             dat = new ChipDatum(0, 0x12, 0x00);//rhythm test data
-            WriteOPNARegister(dat);
+            WriteOPNASimultaneousOutput(dat);
 
 
             for (int b = 0; b < 7; b++)
@@ -501,7 +515,7 @@ namespace mucomDotNET.Driver
         {
 
             ChipDatum dat = new ChipDatum(0, 0x27, work.soundWork.PLSET1_VAL);//  TIMER-OFF DATA
-            WriteOPNARegister(dat);
+            WriteOPNASimultaneousOutput(dat);
             dat = new ChipDatum(0, 0x27, work.soundWork.PLSET2_VAL);//  TIMER-ON DATA
             WriteOPNARegister(dat);
 
@@ -509,108 +523,117 @@ namespace mucomDotNET.Driver
             //FDOUT();
 
             int n = 0;
-            for(int i = 0; i < 11; i++)
+            for(int i = 0; i < MAXCH; i++)
             {
                 if (work.soundWork.CHDAT[i].musicEnd) n++;
             }
-            if (n == 11) work.Status = 0;
+            if (n == MAXCH) work.Status = 0;
         }
 
         // **	CALL FM		**
 
         //private long loopC = 0;
 
-        public void DRIVE()
-        {
+        public void DRIVE() {
             int n = 0;
+
+            work.soundWork.PORTOFS = 0;
+            n = DriveOffset(0, n);
+
+            work.soundWork.PORTOFS = 2;
+            n = DriveOffset(11, n);
+
+            if (work.maxLoopCount == -1) n = 0;
+            if (n == MAXCH)
+                MSTOP();
+        }
+
+        private int DriveOffset(int ofs, int n) {
 
             work.soundWork.FMPORT = 0;
 
             //Log.WriteLine(LogLevel.TRACE, string.Format("----- -----{0}", loopC++));
             Log.WriteLine(LogLevel.TRACE, "----- FM 1");
-            FMENT(0);
-            if ((work.soundWork.CHDAT[0].dataTopAddress == -1 && work.soundWork.CHDAT[0].loopEndFlg)
-                || work.soundWork.CHDAT[0].loopCounter >= work.maxLoopCount)
+            FMENT(ofs + 0);
+            if ((work.soundWork.CHDAT[ofs + 0].dataTopAddress == -1 && work.soundWork.CHDAT[ofs + 0].loopEndFlg)
+                || work.soundWork.CHDAT[ofs + 0].loopCounter >= work.maxLoopCount)
                 n++;
 
             Log.WriteLine(LogLevel.TRACE, "----- FM 2");
-            FMENT(1);
-            if ((work.soundWork.CHDAT[1].dataTopAddress == -1 && work.soundWork.CHDAT[1].loopEndFlg)
-                || work.soundWork.CHDAT[1].loopCounter >= work.maxLoopCount)
+            FMENT(ofs + 1);
+            if ((work.soundWork.CHDAT[ofs + 1].dataTopAddress == -1 && work.soundWork.CHDAT[ofs + 1].loopEndFlg)
+                || work.soundWork.CHDAT[ofs + 1].loopCounter >= work.maxLoopCount)
                 n++;
 
             Log.WriteLine(LogLevel.TRACE, "----- FM 3");
-            FMENT(2);
-            if ((work.soundWork.CHDAT[2].dataTopAddress == -1 && work.soundWork.CHDAT[2].loopEndFlg)
-                || work.soundWork.CHDAT[2].loopCounter >= work.maxLoopCount)
+            FMENT(ofs + 2);
+            if ((work.soundWork.CHDAT[ofs + 2].dataTopAddress == -1 && work.soundWork.CHDAT[ofs + 2].loopEndFlg)
+                || work.soundWork.CHDAT[ofs + 2].loopCounter >= work.maxLoopCount)
                 n++;
 
 
             work.soundWork.SSGF1 = 0xff;
             Log.WriteLine(LogLevel.TRACE, "----- SSG1");
-            SSGENT(3);
-            if ((work.soundWork.CHDAT[3].dataTopAddress == -1 && work.soundWork.CHDAT[3].loopEndFlg)
-                || work.soundWork.CHDAT[3].loopCounter >= work.maxLoopCount)
+            SSGENT(ofs + 3);
+            if ((work.soundWork.CHDAT[ofs + 3].dataTopAddress == -1 && work.soundWork.CHDAT[ofs + 3].loopEndFlg)
+                || work.soundWork.CHDAT[ofs + 3].loopCounter >= work.maxLoopCount)
                 n++;
 
             Log.WriteLine(LogLevel.TRACE, "----- SSG2");
-            SSGENT(4);
-            if ((work.soundWork.CHDAT[4].dataTopAddress == -1 && work.soundWork.CHDAT[4].loopEndFlg)
-                || work.soundWork.CHDAT[4].loopCounter >= work.maxLoopCount)
+            SSGENT(ofs + 4);
+            if ((work.soundWork.CHDAT[ofs + 4].dataTopAddress == -1 && work.soundWork.CHDAT[ofs + 4].loopEndFlg)
+                || work.soundWork.CHDAT[ofs + 4].loopCounter >= work.maxLoopCount)
                 n++;
 
             Log.WriteLine(LogLevel.TRACE, "----- SSG3");
-            SSGENT(5);
-            if ((work.soundWork.CHDAT[5].dataTopAddress == -1 && work.soundWork.CHDAT[5].loopEndFlg)
-                || work.soundWork.CHDAT[5].loopCounter >= work.maxLoopCount)
+            SSGENT(ofs + 5);
+            if ((work.soundWork.CHDAT[ofs + 5].dataTopAddress == -1 && work.soundWork.CHDAT[ofs + 5].loopEndFlg)
+                || work.soundWork.CHDAT[ofs + 5].loopCounter >= work.maxLoopCount)
                 n++;
 
             work.soundWork.SSGF1 = 0;
 
 
-            if (notSoundBoard2) return;
+            if (notSoundBoard2) return n;
 
             work.soundWork.DRMF1 = 1;
             Log.WriteLine(LogLevel.TRACE, "----- Ryhthm");
-            FMENT(6);
-            if( (work.soundWork.CHDAT[6].dataTopAddress == -1 && work.soundWork.CHDAT[6].loopEndFlg)
-                || work.soundWork.CHDAT[6].loopCounter >= work.maxLoopCount)
+            FMENT(ofs + 6);
+            if ((work.soundWork.CHDAT[ofs + 6].dataTopAddress == -1 && work.soundWork.CHDAT[ofs + 6].loopEndFlg)
+                || work.soundWork.CHDAT[ofs + 6].loopCounter >= work.maxLoopCount)
                 n++;
 
             work.soundWork.DRMF1 = 0;
 
             work.soundWork.FMPORT = 4;
             Log.WriteLine(LogLevel.TRACE, "----- FM 4");
-            FMENT(7);
-            if( (work.soundWork.CHDAT[7].dataTopAddress == -1 && work.soundWork.CHDAT[7].loopEndFlg)
-                || work.soundWork.CHDAT[7].loopCounter >= work.maxLoopCount)
+            FMENT(ofs + 7);
+            if ((work.soundWork.CHDAT[ofs + 7].dataTopAddress == -1 && work.soundWork.CHDAT[ofs + 7].loopEndFlg)
+                || work.soundWork.CHDAT[ofs + 7].loopCounter >= work.maxLoopCount)
                 n++;
 
             Log.WriteLine(LogLevel.TRACE, "----- FM 5");
-            FMENT(8);
-            if ((work.soundWork.CHDAT[8].dataTopAddress == -1 && work.soundWork.CHDAT[8].loopEndFlg)
-                || work.soundWork.CHDAT[8].loopCounter >= work.maxLoopCount)
+            FMENT(ofs + 8);
+            if ((work.soundWork.CHDAT[ofs + 8].dataTopAddress == -1 && work.soundWork.CHDAT[ofs + 8].loopEndFlg)
+                || work.soundWork.CHDAT[ofs + 8].loopCounter >= work.maxLoopCount)
                 n++;
 
             Log.WriteLine(LogLevel.TRACE, "----- FM 6");
-            FMENT(9);
-            if ((work.soundWork.CHDAT[9].dataTopAddress == -1 && work.soundWork.CHDAT[9].loopEndFlg)
-                || work.soundWork.CHDAT[9].loopCounter >= work.maxLoopCount)
+            FMENT(ofs + 9);
+            if ((work.soundWork.CHDAT[ofs + 9].dataTopAddress == -1 && work.soundWork.CHDAT[ofs + 9].loopEndFlg)
+                || work.soundWork.CHDAT[ofs + 9].loopCounter >= work.maxLoopCount)
                 n++;
 
 
             work.soundWork.PCMFLG = 0xff;
             Log.WriteLine(LogLevel.TRACE, "----- ADPCM");
-            FMENT(10);
-            if ((work.soundWork.CHDAT[10].dataTopAddress == -1 && work.soundWork.CHDAT[10].loopEndFlg)
-                || work.soundWork.CHDAT[10].loopCounter >= work.maxLoopCount)
+            FMENT(ofs + 10);
+            if ((work.soundWork.CHDAT[ofs + 10].dataTopAddress == -1 && work.soundWork.CHDAT[ofs + 10].loopEndFlg)
+                || work.soundWork.CHDAT[ofs + 10].loopCounter >= work.maxLoopCount)
                 n++;
 
             work.soundWork.PCMFLG = 0;
-
-            if (work.maxLoopCount == -1) n = 0;
-            if (n == MAXCH)
-                MSTOP();
+            return n;
         }
 
         public void FMENT(int ix)
@@ -714,7 +737,7 @@ namespace mucomDotNET.Driver
                 }
             }
 
-            ChipDatum dat = new ChipDatum(port, d, e, 0, work.crntMmlDatum);
+            ChipDatum dat = new ChipDatum(work.soundWork.PORTOFS + port, d, e, 0, work.crntMmlDatum);
             WriteOPNARegister(dat);
         }
 
@@ -761,7 +784,7 @@ namespace mucomDotNET.Driver
 
         public void PCMOUT(byte d, byte e)
         {
-            ChipDatum dat = new ChipDatum(1, d, e, 0, work.crntMmlDatum);
+            ChipDatum dat = new ChipDatum(work.soundWork.PORTOFS + 1, d, e, 0, work.crntMmlDatum);
             WriteOPNARegister(dat);
         }
 
