@@ -2,7 +2,7 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
-      "commandLineArgs": "-XML -LOGLEVEL=INFO D:\\bootcamp\\FM音源\\data\\MUC\\mucom88win_yk2mml181225\\BARE2_MML\\bare03_.muc"
+      "commandLineArgs": "-XML -LOGLEVEL=TRACE c:\\temp\\On_Cho.B_.muc"
     }
   }
 }
