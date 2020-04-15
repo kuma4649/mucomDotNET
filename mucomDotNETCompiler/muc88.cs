@@ -1877,7 +1877,7 @@ namespace mucomDotNET.Compiler
                     msg.get("E0459")
                     , mucInfo.row, mucInfo.col);
             }
-            if (0xb2 < n)
+            if (0xb6 < n)
             {
                 throw new MucException(
                     msg.get("E0460")
