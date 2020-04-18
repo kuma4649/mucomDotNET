@@ -7,7 +7,10 @@ namespace mucomDotNET.Compiler
 {
     public static class work
     {
-        public static int MAXCH = 22;
+        /// <summary>
+        /// コンパイラとしての最大トラック数
+        /// </summary>
+        public static int MAX_WORK_CHANNEL = 22;
 
         //使用しない！
         //public const int T_CLK = 0x8C10;
@@ -23,8 +26,8 @@ namespace mucomDotNET.Compiler
         //
         public static int FMLIB = 0;// 0x6000 w
 
-        public static int[] tcnt = new int[MAXCH]; //0x8c10 w
-        public static int[] lcnt = new int[MAXCH]; //0x8c12 w
+        public static int[] tcnt = new int[MAX_WORK_CHANNEL]; //0x8c10 w
+        public static int[] lcnt = new int[MAX_WORK_CHANNEL]; //0x8c12 w
                 
         public static int pcmFlag = 0;//0x8c10+10*4 w
 
@@ -88,7 +91,7 @@ namespace mucomDotNET.Compiler
         public static int PSGMD { get; internal set; }
         public static int KEYONR { get; internal set; }
         public static int bufStartPtr { get; internal set; }
-        public static int[] bufCount { get; internal set; } = new int[MAXCH];
+        public static int[] bufCount { get; internal set; } = new int[MAX_WORK_CHANNEL];
         public static int JPCOL { get; internal set; }
         public static List<int> JCHCOM { get; internal set; }
 

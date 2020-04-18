@@ -12,14 +12,23 @@ namespace mucomDotNET.Compiler
         public Msub msub = null;
         public expand expand = null;
 
-        /// <summary>
-        /// 最大チャンネル数
-        /// </summary>
-        internal static readonly int MAXCH = 22;
         private readonly MUCInfo mucInfo;
         private readonly Func<EnmFCOMPNextRtn>[] COMTBL;
         //private readonly int errLin = 0;
         private iEncoding enc = null;
+
+        public bool trackExtend = false;
+
+        /// <summary>
+        /// 最大チャンネル数
+        /// </summary>
+        public int GetMaxChannel() {
+            return trackExtend ? 22 : 11;
+        }
+
+        public Muc88(MUCInfo mucInfo, iEncoding enc, bool extend) : this(mucInfo, enc) {
+            this.trackExtend = extend;
+        } 
 
         public Muc88(MUCInfo mucInfo,iEncoding enc)
         {
@@ -1985,6 +1994,7 @@ namespace mucomDotNET.Compiler
 
             byte ch = (byte)work.COMNOW;
 
+            // 折返し
             if (ch >= 11) ch -= 11;
 
             // 範囲外(0未満、10超過) or SSG
@@ -2851,6 +2861,8 @@ namespace mucomDotNET.Compiler
         public ChannelType CHCHK()
         {
             var CurrentChannel = work.COMNOW;
+
+            // 折返し
             if (CurrentChannel >= 11) CurrentChannel -= 11;
 
             if (CurrentChannel >= 3 && CurrentChannel < 6)
@@ -2933,7 +2945,7 @@ namespace mucomDotNET.Compiler
             {
                 return COMPI3();
             }
-            for (int i = 0; i < work.MAXCH; i++)
+            for (int i = 0; i < work.MAX_WORK_CHANNEL; i++)
             {
                 work.tcnt[i] = 0;
                 work.lcnt[i] = 0;
@@ -2948,7 +2960,7 @@ namespace mucomDotNET.Compiler
         public int COMPI3()
         {
             work.DATTBL = work.MU_TOP + 1;
-            work.MDATA = work.MU_TOP + (MAXCH * 4) + 3;// 11ch * 4byte + 3byte    (DATTBLの大きさ?)
+            work.MDATA = work.MU_TOP + (GetMaxChannel() * 4) + 3;// 11ch * 4byte + 3byte    (DATTBLの大きさ?)
             work.REPCOUNT = 0;
             work.title = work.titleFmt;
 
@@ -2994,7 +3006,7 @@ namespace mucomDotNET.Compiler
 
                 work.bufCount[work.COMNOW - 1] = work.MDATA - work.bufStartPtr;
 
-            } while (work.COMNOW != work.MAXCH);
+            } while (work.COMNOW != GetMaxChannel());
         }
 
         public void COMPST()
@@ -3031,7 +3043,7 @@ namespace mucomDotNET.Compiler
                     continue;
                 }
 
-                if (c < 'A' || c > ('A' + work.MAXCH))
+                if (c < 'A' || c > ('A' + GetMaxChannel()))
                 {
                     //goto RECOM
                     continue;
@@ -3197,7 +3209,7 @@ namespace mucomDotNET.Compiler
             mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 0, new MmlDatum((byte)(work.MDATA - work.DATTBL + 1)));
             mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 1, new MmlDatum((byte)((work.MDATA - work.DATTBL + 1) >> 8)));
 
-            if (work.COMNOW == work.MAXCH)
+            if (work.COMNOW == GetMaxChannel())
             {
                 CMPEN1();
                 return;

@@ -41,7 +41,8 @@ namespace mucomDotNET.Compiler
 
         public void Init()
         {
-            muc88 = new Muc88(mucInfo, enc);
+            bool UseTrackExtend = false;
+            muc88 = new Muc88(mucInfo, enc, UseTrackExtend);
             msub = new Msub(mucInfo, enc);
             expand = new expand(mucInfo);
             smon = new smon(mucInfo);
@@ -319,7 +320,7 @@ namespace mucomDotNET.Compiler
                 work.compilerInfo.loopCount = new List<int>();
                 work.compilerInfo.bufferCount = new List<int>();
 
-                for (int i = 0; i < Muc88.MAXCH; i++)
+                for (int i = 0; i < muc88.GetMaxChannel(); i++)
                 {
                     if (work.lcnt[i] != 0) { work.lcnt[i] = work.tcnt[i] - (work.lcnt[i] - 1); }
                     if (work.tcnt[i] > maxcount) maxcount = work.tcnt[i];
@@ -345,9 +346,12 @@ namespace mucomDotNET.Compiler
                 int length = mucInfo.bufDst.Count;
                 mubsize = length;
 
-                Log.WriteLine(LogLevel.INFO, "- mucomW.NET -");
+                var trackExtend = muc88.trackExtend;
+                var ProgramTitle = trackExtend ?  "- mucomW.NET -" : "- mucom.NET -";
+
+                Log.WriteLine(LogLevel.INFO, ProgramTitle);
                 Log.WriteLine(LogLevel.INFO, "[ Total count ]");
-                Log.WriteLine(LogLevel.INFO,strTcount);
+                Log.WriteLine(LogLevel.INFO, strTcount);
                 Log.WriteLine(LogLevel.INFO, "[ Loop count  ]");
                 Log.WriteLine(LogLevel.INFO, strLcount);
                 Log.WriteLine(LogLevel.INFO, "[ Buffer count  ]");
