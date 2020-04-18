@@ -12,6 +12,11 @@ namespace mucomDotNET.Compiler
         /// </summary>
         public static int MAX_WORK_CHANNEL = 22;
 
+        /// <summary>
+        /// チップの最大チャンネル数
+        /// </summary>
+        public static int MAX_CHIP_CH = 11;
+
         //使用しない！
         //public const int T_CLK = 0x8C10;
         //public const int BEFMD = T_CLK + 4 * 11 + 1;//+1ｱﾏﾘ
@@ -46,6 +51,12 @@ namespace mucomDotNET.Compiler
         public static int ERRLINE = 0;//0xf32e w
         public static int COMNOW = 0;// 0xf330 b
         public static int COUNT = 0;// 0xf331 b
+
+        /// <summary>
+        /// 各チップの割当チャンネル
+        /// </summary>
+        public static int CHIP_CH = 0;
+
 
         public static int VOLINT = 0;// 0xfxxx b
         public static int ESCAPE = 0;//

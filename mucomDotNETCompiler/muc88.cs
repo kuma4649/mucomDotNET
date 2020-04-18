@@ -1049,7 +1049,7 @@ namespace mucomDotNET.Compiler
         {
             mucInfo.bufDst.Set(work.DATTBL - 1, new MmlDatum(n));// TIMER_B ﾆ ｱﾜｾﾙ
 
-            if (work.COMNOW >= 3 && work.COMNOW < 6)
+            if (work.CHIP_CH >= 3 && work.CHIP_CH < 6)
             {
                 WriteWarning(msg.get("W0412"), mucInfo.row, mucInfo.col);
                 return EnmFCOMPNextRtn.fcomp1;
@@ -1194,7 +1194,7 @@ namespace mucomDotNET.Compiler
         private EnmFCOMPNextRtn SETSE()
         {
 
-            if (work.COMNOW != 2)
+            if (work.CHIP_CH != 2)
             {
                 // 3 Ch ｲｶﾞｲﾅﾗ ERROR
                 throw new MucException(
@@ -1992,10 +1992,7 @@ namespace mucomDotNET.Compiler
             n--;
             n *= 4;
 
-            byte ch = (byte)work.COMNOW;
-
-            // 折返し
-            if (ch >= 11) ch -= 11;
+            byte ch = (byte)work.CHIP_CH;
 
             // 範囲外(0未満、10超過) or SSG
             if (ch < 0 || (ch >= 3 && ch < 7) || ch >= 10)
@@ -2189,7 +2186,7 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETVOL()
         {
-            if (work.COMNOW == 10)
+            if (work.CHIP_CH == 10)
             {
                 return SETVOL_ADPCM();
             }
@@ -2224,10 +2221,10 @@ namespace mucomDotNET.Compiler
                 , tp == ChannelType.FM ? "FM" : "SSG"
                 , "YM2608", 0, 0, work.COMNOW);
 
-            if (work.COMNOW != 6)
+            if (work.CHIP_CH != 6)
             {
                 n += work.TV_OFS;
-                if (work.COMNOW < 3 || work.COMNOW > 6)
+                if (work.CHIP_CH < 3 || work.CHIP_CH > 6)
                 {
                     n += 4;
                 }
@@ -2860,10 +2857,7 @@ namespace mucomDotNET.Compiler
 
         public ChannelType CHCHK()
         {
-            var CurrentChannel = work.COMNOW;
-
-            // 折返し
-            if (CurrentChannel >= 11) CurrentChannel -= 11;
+            var CurrentChannel = work.CHIP_CH;
 
             if (CurrentChannel >= 3 && CurrentChannel < 6)
             {
@@ -2933,6 +2927,7 @@ namespace mucomDotNET.Compiler
 
         internal int COMPIL()
         {
+            work.CHIP_CH = 0;
             work.COMNOW = 0;
             work.ADRSTC = 0;
             work.VPCO = 0;
@@ -3203,6 +3198,8 @@ namespace mucomDotNET.Compiler
         CMPE2:
             mucInfo.bufDst.Set(work.MDATA++, new MmlDatum(0));   // SET END MARK = 0
 
+            work.CHIP_CH++;
+            if (work.CHIP_CH >= work.MAX_CHIP_CH) work.CHIP_CH -= work.MAX_CHIP_CH;
             work.COMNOW++;	// Ch.=Ch.+ 1
 
             //↓TBLSET();相当
