@@ -807,16 +807,17 @@ namespace mucomDotNET.Driver
         {
 
             byte a;
+            bool nrFlg = false;
             do
             {
                 Log.WriteLine(LogLevel.TRACE, string.Format("{0:x}", hl + 0xc200));
                 a = (byte)work.cd.mData[hl].dat;
                 //* 00H as end
-                if (a == 0)// ﾃﾞｰﾀ ｼｭｳﾘｮｳ ｦ ｼﾗﾍﾞﾙ
+                while (a == 0)// ﾃﾞｰﾀ ｼｭｳﾘｮｳ ｦ ｼﾗﾍﾞﾙ
                 {
                     work.cd.loopEndFlg = true;
 
-                    if (work.cd.dataTopAddress == -1)
+                    if (work.cd.dataTopAddress == -1 || nrFlg)
                     {
                         FMEND(hl);//* DATA TOP ADRESS ｶﾞ 0000H ﾃﾞ BGM
                         return; // ﾉ ｼｭｳﾘｮｳ ｦ ｹｯﾃｲ ｿﾚ ｲｶﾞｲﾊ ｸﾘｶｴｼ
@@ -824,6 +825,7 @@ namespace mucomDotNET.Driver
                     hl = (uint)work.cd.dataTopAddress;
                     a = (byte)work.cd.mData[hl].dat;// GET FLAG & LENGTH
                     work.cd.loopCounter++;
+                    nrFlg = true;
                 }
 
                 //演奏情報退避
@@ -842,6 +844,7 @@ namespace mucomDotNET.Driver
                 hl = work.hl;
             } while (true);
 
+            nrFlg = false;
             work.cd.lengthCounter = a & 0x7f;// SET WAIT COUNTER
 
 
