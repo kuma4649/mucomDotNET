@@ -8,6 +8,7 @@ namespace mucomDotNET.Compiler
 {
     public class Msub
     {
+        private work work = null;
         private readonly MUCInfo mucInfo;
         public Muc88 muc88;
         private iEncoding enc = null;
@@ -76,8 +77,9 @@ namespace mucomDotNET.Compiler
             ,0x62,11//   'b' ,11
         };
 
-        public Msub(MUCInfo mucInfo,iEncoding enc)
+        public Msub(work work, MUCInfo mucInfo,iEncoding enc)
         {
+            this.work = work;
             this.mucInfo = mucInfo;
             this.enc = enc;
         }

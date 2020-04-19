@@ -17,9 +17,11 @@ namespace mucomDotNET.Compiler
         private readonly Func<EnmFCOMPNextRtn>[] COMTBL;
         //private readonly int errLin = 0;
         private iEncoding enc = null;
+        private work work = null;
 
-        public Muc88(MUCInfo mucInfo,iEncoding enc)
+        public Muc88(work work, MUCInfo mucInfo,iEncoding enc)
         {
+            this.work = work;
             this.enc = enc;
             this.mucInfo = mucInfo;
             COMTBL = new Func<EnmFCOMPNextRtn>[]

@@ -89,6 +89,7 @@ namespace mucomDotNET.Driver
             bool isLoadADPCM = (bool)((object[])addtionalOption)[1];
             bool loadADPCMOnly = (bool)((object[])addtionalOption)[2];
 
+            work = new Work();
             header = new MUBHeader(srcBuf, enc);
             work.mData = GetDATA();
             tags = GetTags();

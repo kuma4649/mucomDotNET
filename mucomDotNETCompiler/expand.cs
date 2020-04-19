@@ -8,6 +8,7 @@ namespace mucomDotNET.Compiler
 {
     public class expand
     {
+        private work work = null;
         private MUCInfo mucInfo;
         public Msub msub = null;
         public smon smon = null;
@@ -21,8 +22,9 @@ namespace mucomDotNET.Compiler
             0x0EE8,0x0E12,0x0D48,0x0C89,0x0BD5,0x0B2B,0x0A8A,0x09F3,
             0x0964,0x08DD,0x085E,0x07E6
         };
-        public expand(MUCInfo mucInfo)
+        public expand(work work, MUCInfo mucInfo)
         {
+            this.work = work;
             this.mucInfo = mucInfo;
         }
 
