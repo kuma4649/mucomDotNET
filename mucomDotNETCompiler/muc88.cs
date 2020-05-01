@@ -1510,19 +1510,19 @@ namespace mucomDotNET.Compiler
 
             List<object> args = new List<object>();
             args.Add(kotae);
-            LinePos lp = new LinePos(
-                mucInfo.fnSrcOnlyFile
-                , mucInfo.row
-                , mucInfo.col
-                , mucInfo.srcCPtr - mucInfo.col + 1
-                , ""
-                , "YM2608", 0, 0
-                , work.COMNOW);
-
+            LinePos lp;
 
             while (kotae > 0x6f)
             {
                 kotae -= 0x6f;
+                lp = new LinePos(
+                    mucInfo.fnSrcOnlyFile
+                    , mucInfo.row
+                    , mucInfo.col
+                    , mucInfo.srcCPtr - mucInfo.col + 1
+                    , ""
+                    , "YM2608", 0, 0
+                    , work.COMNOW);
                 msub.MWRIT2(new MmlDatum(
                     enmMMLType.Rest
                     , args
@@ -1531,6 +1531,14 @@ namespace mucomDotNET.Compiler
                     ));
             }
             work.BEFRST = kotae;
+            lp = new LinePos(
+                mucInfo.fnSrcOnlyFile
+                , mucInfo.row
+                , mucInfo.col
+                , mucInfo.srcCPtr - mucInfo.col + 1
+                , ""
+                , "YM2608", 0, 0
+                , work.COMNOW);
             msub.MWRIT2(new MmlDatum(
                     enmMMLType.Rest
                     , args

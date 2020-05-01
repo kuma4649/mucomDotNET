@@ -2,7 +2,7 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
-      "commandLineArgs": "-XML -LOGLEVEL=INFO c:\\temp\\S_bug01.muc"
+      "commandLineArgs": "-XML -LOGLEVEL=INFO c:\\temp\\debug_sorcerian_op.muc"
     }
   }
 }
