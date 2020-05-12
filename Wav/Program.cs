@@ -83,7 +83,7 @@ namespace Wav
 
                 drv.SetLoopCount(loop);
 
-                List<Tuple<string, string>> tags = drv.GetTags();
+                List<Tuple<string, string>> tags = ((Driver)drv).GetTags();
                 if (tags != null)
                 {
                     foreach (Tuple<string, string> tag in tags)

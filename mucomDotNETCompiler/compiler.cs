@@ -608,6 +608,57 @@ namespace mucomDotNET.Compiler
 
         }
 
+        public GD3Tag GetGD3TagInfo(byte[] srcBuf)
+        {
+            List<Tuple<string, string>> tags = GetTagsFromMUC(srcBuf);
 
+            GD3Tag gt = new GD3Tag();
+
+            foreach (Tuple<string, string> tag in tags)
+            {
+                switch (tag.Item1)
+                {
+                    case "title":
+                        addItemAry(gt, enmTag.Title, tag.Item2);
+                        addItemAry(gt, enmTag.TitleJ, tag.Item2);
+                        break;
+                    case "composer":
+                        addItemAry(gt, enmTag.Composer, tag.Item2);
+                        addItemAry(gt, enmTag.ComposerJ, tag.Item2);
+                        break;
+                    case "author":
+                        addItemAry(gt, enmTag.Artist, tag.Item2);
+                        addItemAry(gt, enmTag.ArtistJ, tag.Item2);
+                        break;
+                    case "comment":
+                        addItemAry(gt, enmTag.Note, tag.Item2);
+                        break;
+                    case "mucom88":
+                        addItemAry(gt, enmTag.RequestDriverVersion, tag.Item2);
+                        break;
+                    case "date":
+                        addItemAry(gt, enmTag.ReleaseDate, tag.Item2);
+                        break;
+                    case "driver":
+                        addItemAry(gt, enmTag.DriverName, tag.Item2);
+                        break;
+                }
+            }
+
+            return gt;
+        }
+
+        private static void addItemAry(GD3Tag gt,enmTag tag, string item)
+        {
+            if (!gt.dicItem.ContainsKey(tag))
+                gt.dicItem.Add(tag, new string[] { item });
+            else
+            {
+                string[] dmy = gt.dicItem[tag];
+                Array.Resize(ref dmy, dmy.Length + 1);
+                dmy[dmy.Length - 1] = item;
+                gt.dicItem[tag] = dmy;
+            }
+        }
     }
 }

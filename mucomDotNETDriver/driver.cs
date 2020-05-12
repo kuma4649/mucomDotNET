@@ -440,5 +440,98 @@ namespace mucomDotNET.Driver
             work.maxLoopCount = loopCounter;
             return 0;
         }
+
+        public GD3Tag GetGD3TagInfo(byte[] srcBuf)
+        {
+            uint tagdata = Cmn.getLE32(srcBuf, 0x000c);
+            uint tagsize = Cmn.getLE32(srcBuf, 0x0010);
+
+            if (tagdata == 0) return null;
+            if (srcBuf == null) return null;
+
+            List<byte> lb = new List<byte>();
+            for (int i = 0; i < tagsize; i++)
+            {
+                lb.Add(srcBuf[tagdata + i]);
+            }
+
+            List<Tuple<string, string>> tags = GetTagsByteArray(lb.ToArray());
+            GD3Tag gt = new GD3Tag();
+
+            foreach (Tuple<string, string> tag in tags)
+            {
+                switch (tag.Item1)
+                {
+                    case "title":
+                        addItemAry(gt, enmTag.Title, tag.Item2);
+                        addItemAry(gt, enmTag.TitleJ, tag.Item2);
+                        break;
+                    case "composer":
+                        addItemAry(gt, enmTag.Composer, tag.Item2);
+                        addItemAry(gt, enmTag.ComposerJ, tag.Item2);
+                        break;
+                    case "author":
+                        addItemAry(gt, enmTag.Artist, tag.Item2);
+                        addItemAry(gt, enmTag.ArtistJ, tag.Item2);
+                        break;
+                    case "comment":
+                        addItemAry(gt, enmTag.Note, tag.Item2);
+                        break;
+                    case "mucom88":
+                        addItemAry(gt, enmTag.RequestDriverVersion, tag.Item2);
+                        break;
+                    case "date":
+                        addItemAry(gt, enmTag.ReleaseDate, tag.Item2);
+                        break;
+                    case "driver":
+                        addItemAry(gt, enmTag.DriverName, tag.Item2);
+                        break;
+                }
+            }
+
+            return gt;
+        }
+
+        private List<Tuple<string, string>> GetTagsByteArray(byte[] buf)
+        {
+            var text = enc.GetStringFromSjisArray(buf) //Encoding.GetEncoding("shift_jis").GetString(buf)
+                .Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries)
+                .Where(x => x.IndexOf("#") == 0);
+
+            List<Tuple<string, string>> tags = new List<Tuple<string, string>>();
+            foreach (string v in text)
+            {
+                try
+                {
+                    int p = v.IndexOf(' ');
+                    string tag = "";
+                    string ele = "";
+                    if (p >= 0)
+                    {
+                        tag = v.Substring(1, p).Trim().ToLower();
+                        ele = v.Substring(p + 1).Trim();
+                        Tuple<string, string> item = new Tuple<string, string>(tag, ele);
+                        tags.Add(item);
+                    }
+                }
+                catch { }
+            }
+
+            return tags;
+        }
+
+        private void addItemAry(GD3Tag gt, enmTag tag, string item)
+        {
+            if (!gt.dicItem.ContainsKey(tag))
+                gt.dicItem.Add(tag, new string[] { item });
+            else
+            {
+                string[] dmy = gt.dicItem[tag];
+                Array.Resize(ref dmy, dmy.Length + 1);
+                dmy[dmy.Length - 1] = item;
+                gt.dicItem[tag] = dmy;
+            }
+        }
+
     }
 }

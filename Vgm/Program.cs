@@ -64,7 +64,7 @@ namespace Vgm
 
                 drv.SetLoopCount(loop);
 
-                tags = drv.GetTags();
+                tags = ((Driver)drv).GetTags();
                 if (tags != null)
                 {
                     foreach (Tuple<string, string> tag in tags)

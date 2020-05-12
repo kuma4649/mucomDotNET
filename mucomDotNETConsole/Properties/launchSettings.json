@@ -2,7 +2,7 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
-      "commandLineArgs": "-LOGLEVEL=INFO d:\\temp\\debug_sorcerian_op.muc"
+      "commandLineArgs": "-LOGLEVEL=TRACE c:\\temp\\ssgtest.muc"
     }
   }
 }

@@ -2,7 +2,7 @@
   "profiles": {
     "Player": {
       "commandName": "Project",
-      "commandLineArgs": "c:\\temp\\S_bug01.xml"
+      "commandLineArgs": "c:\\temp\\ssgtest.mub"
     }
   }
 }

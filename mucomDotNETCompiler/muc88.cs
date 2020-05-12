@@ -3017,46 +3017,74 @@ namespace mucomDotNET.Compiler
                     continue;
                 }
 
-                char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
-                    ? mucInfo.lin.Item2[mucInfo.srcCPtr++]
-                    : (char)0;
+                //char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                //    ? mucInfo.lin.Item2[mucInfo.srcCPtr++]
+                //    : (char)0;
 
-                if (work.ADRSTC > 0)
+                //if (work.ADRSTC > 0)
+                //{
+                //    //        goto CST3;//ﾏｸﾛﾁｭｳﾅﾗ ﾍｯﾀﾞﾁｪｯｸﾊﾟｽ
+                //}
+
+                //if (c == 0)
+                //{
+                    ////goto RECOM
+                    //continue;
+                //}
+
+                //if (c < 'A' || c > ('A' + work.MAXCH))
+                //{
+                    ////goto RECOM
+                    //continue;
+                //}
+
+                //char ch = c;
+                //c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                //    ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                //    : (char)0;
+                //if (c == 0)
+                //{
+                //    //goto RECOM
+                //    continue;
+                //}
+
+                //if ((ch - 'A') != work.COMNOW)
+                //{
+                //    // ｹﾞﾝｻﾞｲ ｺﾝﾊﾟｲﾙﾁｭｳ ﾉ ﾁｬﾝﾈﾙ
+                //    // ﾃﾞﾅｹﾚ ﾊﾞ ﾂｷﾞﾉｷﾞｮｳ
+                //    // goto RECOM;
+                //    continue;
+                //}
+
+                bool fnd = false;
+                char c;
+                do
                 {
-                    //        goto CST3;//ﾏｸﾛﾁｭｳﾅﾗ ﾍｯﾀﾞﾁｪｯｸﾊﾟｽ
-                }
+                    c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                        ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                        : (char)0;
+                    if (c == 0) break;
+                    if ((c < (char)0x41 || c > (char)0x5a) //大文字の範囲外
+                        && (c < (char)0x61 || c > (char)0x7a) //小文字の範囲外
+                        ) break;
 
-                if (c == 0)
-                {
-                    //goto RECOM
-                    continue;
-                }
+                    if (c < 'A' || c > ('A' + work.MAXCH))
+                    {
+                        //goto RECOM
+                        continue;
+                    }
 
-                if (c < 'A' || c > ('A' + work.MAXCH))
-                {
-                    //goto RECOM
-                    continue;
-                }
+                    if ((c - 'A') == work.COMNOW)
+                    {
+                        fnd = true;
+                        break;
+                    }
 
-                char ch = c;
-                c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
-                    ? mucInfo.lin.Item2[mucInfo.srcCPtr]
-                    : (char)0;
-                if (c == 0)
-                {
-                    //goto RECOM
-                    continue;
-                }
+                    mucInfo.srcCPtr++;
+                } while (true);
+                if (!fnd) continue;
 
-                if ((ch - 'A') != work.COMNOW)
-                {
-                    // ｹﾞﾝｻﾞｲ ｺﾝﾊﾟｲﾙﾁｭｳ ﾉ ﾁｬﾝﾈﾙ
-                    // ﾃﾞﾅｹﾚ ﾊﾞ ﾂｷﾞﾉｷﾞｮｳ
-                    // goto RECOM;
-                    continue;
-                }
-
-                Log.WriteLine(LogLevel.TRACE, string.Format(msg.get("I0402"), ch));
+                Log.WriteLine(LogLevel.TRACE, string.Format(msg.get("I0402"), c));
 
                 EnmFMCOMPrtn ret = FMCOMP();// TO FM COMPILE
                 if (mucInfo.ErrSign) break;
