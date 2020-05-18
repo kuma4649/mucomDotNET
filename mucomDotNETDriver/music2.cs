@@ -802,6 +802,7 @@ namespace mucomDotNET.Driver
                     hl = (uint)work.cd.dataTopAddress;
                     a = (byte)work.cd.mData[hl].dat;// GET FLAG & LENGTH
                     work.cd.loopCounter++;
+                    if (work.cd.loopCounter > work.nowLoopCounter) work.nowLoopCounter = work.cd.loopCounter;
                     nrFlg = true;
                 }
 
@@ -2511,6 +2512,7 @@ namespace mucomDotNET.Driver
                     }
                     work.hl = (uint)work.cd.dataTopAddress;
                     work.cd.loopCounter++;
+                    if (work.cd.loopCounter > work.nowLoopCounter) work.nowLoopCounter = work.cd.loopCounter;
                 }
 
                 //演奏情報退避

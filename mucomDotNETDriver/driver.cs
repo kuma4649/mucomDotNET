@@ -533,5 +533,16 @@ namespace mucomDotNET.Driver
             }
         }
 
+        public int GetNowLoopCounter()
+        {
+            try
+            {
+                return work.nowLoopCounter;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
     }
 }

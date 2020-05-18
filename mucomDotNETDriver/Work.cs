@@ -29,6 +29,7 @@ namespace mucomDotNET.Driver
         public int weight { get; internal set; }
         public object crntMmlDatum { get; internal set; }
         public int maxLoopCount { get; internal set; } = -1;
+        public int nowLoopCounter { get; internal set; } = -1;
 
         public OPNATimer timer = null;
         public ulong timeCounter = 0L;
