@@ -77,7 +77,12 @@ namespace Vgm
                 byte[] pcmdata = drv.GetPCMFromSrcBuf();
                 if (pcmdata != null && pcmdata.Length > 0) vw.WriteAdpcm(pcmdata);
 
-                drv.StartRendering((int)SamplingRate, (int)opnaMasterClock);
+                drv.StartRendering((int)SamplingRate,
+                    new Tuple<string, int>[]
+                    {
+                        new Tuple<string, int>("YM2608",(int)opnaMasterClock)
+                    }
+                    );
 
                 drv.MusicSTART(0);
 

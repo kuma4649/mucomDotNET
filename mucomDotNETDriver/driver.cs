@@ -266,14 +266,18 @@ namespace mucomDotNET.Driver
         //rendering
         //-------
 
-        public void StartRendering(int renderingFreq = 44100, int opnaMasterClock = 7987200)
+        public void StartRendering(int renderingFreq, Tuple<string, int>[] chipsMasterClock)
         {
             lock (work.SystemInterrupt)
             {
 
                 work.timeCounter = 0L;
                 this.renderingFreq = renderingFreq <= 0 ? 44100 : renderingFreq;
-                this.opnaMasterClock = opnaMasterClock <= 0 ? 7987200 : opnaMasterClock;
+                this.opnaMasterClock = 7987200;
+                if (chipsMasterClock != null && chipsMasterClock.Length > 0)
+                {
+                    this.opnaMasterClock = chipsMasterClock[0].Item2 <= 0 ? 7987200 : chipsMasterClock[0].Item2;
+                }
                 work.timer = new OPNATimer(renderingFreq, opnaMasterClock);
                 Log.WriteLine(LogLevel.TRACE, "Start rendering.");
 
@@ -544,5 +548,6 @@ namespace mucomDotNET.Driver
                 return -1;
             }
         }
+
     }
 }
