@@ -79,7 +79,7 @@ namespace mucomDotNET.Common
         public int row { get; set; }
         public int col { get; set; }
         public int VM { get; set; }
-        public bool needNormalMucom { get; set; } = false;
+        //public bool needNormalMucom { get; set; } = false;
 
         public enum enmDriverType
         {
@@ -89,8 +89,8 @@ namespace mucomDotNET.Common
             DotNet
         }
 
-        private enmDriverType _DriverType = enmDriverType.normal;
-        public bool needEMucom = false;
+        private enmDriverType _DriverType = enmDriverType.DotNet;
+        //public bool needEMucom = false;
 
         public enmDriverType DriverType
         {
@@ -101,13 +101,13 @@ namespace mucomDotNET.Common
             set
 
             {
-                if (_DriverType == enmDriverType.normal && value == enmDriverType.DotNet && needNormalMucom)
-                {
-                    throw new MucException(msg.get("E0001"), row, col);
-                }
+                //if (_DriverType == enmDriverType.normal && value == enmDriverType.DotNet && needNormalMucom)
+                //{
+                //    throw new MucException(msg.get("E0001"), row, col);
+                //}
 
-                if (_DriverType == enmDriverType.E && needEMucom) 
-                    return;
+                //if (_DriverType == enmDriverType.E && needEMucom) 
+                //    return;
 
                 _DriverType = value;
             }
@@ -146,8 +146,8 @@ namespace mucomDotNET.Common
             bufTitle = new AutoExtendList<int>();
             mmlVoiceDataWork = new AutoExtendList<byte>();
 
-            DriverType = enmDriverType.normal;
-            needNormalMucom = false;
+            DriverType = enmDriverType.DotNet;//.normal;
+            //needNormalMucom = false;
             isIDE = false;
         }
 

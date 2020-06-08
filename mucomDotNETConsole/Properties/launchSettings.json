@@ -2,7 +2,7 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
-      "commandLineArgs": "-LOGLEVEL=TRACE "
+      "commandLineArgs": "-LOGLEVEL=TRACE D:\\bootcamp\\FM音源\\data\\MUC\\WING\\kroman.muc"
     }
   }
 }

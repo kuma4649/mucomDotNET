@@ -204,16 +204,15 @@ namespace mucomDotNET.Compiler
                         break;
                     case "driver":
                         mucInfo.driver = tag.Item2;
-                        if (mucInfo.driver == "mucomDotNET")
+                        if (mucInfo.driver.ToLower() == "mucomdotnet")
                         {
                             mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
                         }
-                        else if (mucInfo.driver == "mucom88E")
+                        else if (mucInfo.driver.ToLower() == "mucom88e")
                         {
                             mucInfo.DriverType = MUCInfo.enmDriverType.E;
-                            mucInfo.needEMucom = true;
                         }
-                        else if (mucInfo.driver == "mucom88em")
+                        else if (mucInfo.driver.ToLower() == "mucom88em")
                         {
                             mucInfo.DriverType = MUCInfo.enmDriverType.em;
                         }
@@ -518,7 +517,11 @@ namespace mucomDotNET.Compiler
             //データサイズが64k超えていたらdotnet確定
             if (work.ENDADR - work.MU_NUM > 0xffff)
             {
-                mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
+                if(mucInfo.DriverType!= MUCInfo.enmDriverType.DotNet)
+                {
+                    //TBD
+                    return 1;
+                }
             }
 
             if(!useDriverTAG && mucInfo.DriverType== MUCInfo.enmDriverType.DotNet)

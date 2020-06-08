@@ -1,4 +1,8 @@
 更新履歴
+TAG057 2020/06/08 2nd
+  Compiler
+  ・判定がややこしいわりにあまり便利ではないDriverの自動昇格機能を削除。デフォルトはmucomDotNETになってます。
+
 TAG056 2020/06/08
   Compiler
   ・Driverタグmucom88Eに対応しました(?)sコマンドが使えます。
