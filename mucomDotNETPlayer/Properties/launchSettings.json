@@ -1,8 +1,7 @@
 {
   "profiles": {
     "Player": {
-      "commandName": "Project",
-      "commandLineArgs": "c:\\temp\\ssgtest.mub"
+      "commandName": "Project"
     }
   }
 }

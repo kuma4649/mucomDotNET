@@ -81,21 +81,35 @@ namespace mucomDotNET.Common
         public int VM { get; set; }
         public bool needNormalMucom { get; set; } = false;
 
-        private bool _isDotNET = false;
+        public enum enmDriverType
+        {
+            normal,
+            E,
+            em,
+            DotNet
+        }
 
-        public bool isDotNET
+        private enmDriverType _DriverType = enmDriverType.normal;
+        public bool needEMucom = false;
+
+        public enmDriverType DriverType
         {
             get
             {
-                return _isDotNET;
+                return _DriverType;
             }
             set
+
             {
-                if(!_isDotNET && value && needNormalMucom)
+                if (_DriverType == enmDriverType.normal && value == enmDriverType.DotNet && needNormalMucom)
                 {
                     throw new MucException(msg.get("E0001"), row, col);
                 }
-                _isDotNET = value;
+
+                if (_DriverType == enmDriverType.E && needEMucom) 
+                    return;
+
+                _DriverType = value;
             }
         }//mucomDotNET独自機能を使用したか否か
 
@@ -132,7 +146,7 @@ namespace mucomDotNET.Common
             bufTitle = new AutoExtendList<int>();
             mmlVoiceDataWork = new AutoExtendList<byte>();
 
-            isDotNET = false;
+            DriverType = enmDriverType.normal;
             needNormalMucom = false;
             isIDE = false;
         }

@@ -58,7 +58,7 @@ namespace mucomDotNET.Compiler
             //, SETHE
             , SETHEP
             , SETKST
-            , SETKON
+            , SETKONorSETHE
             , SETDCO
             , SETLR
             , SETHLF
@@ -93,7 +93,7 @@ namespace mucomDotNET.Compiler
                     msg.get("E0505")
                     , mucInfo.row, mucInfo.col);
 
-            mucInfo.isDotNET = true;
+            mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
             msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xf1));
             msub.MWRIT2(new MmlDatum((byte)n));
 
@@ -117,7 +117,7 @@ namespace mucomDotNET.Compiler
                     msg.get("E0507")
                     , mucInfo.row, mucInfo.col);
 
-            mucInfo.isDotNET = true;
+            mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
             msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xf2));
             msub.MWRITE(new MmlDatum((byte)n), new MmlDatum((byte)(n >> 8)));
 
@@ -246,13 +246,13 @@ namespace mucomDotNET.Compiler
             {
                 if (c == '>')//0x3e
                 {
-                    if (pflg) mucInfo.isDotNET = true;
+                    if (pflg) mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
                     pflg = true;
                     SOU1();
                 }
                 else if (c == '<')//0x3c
                 {
-                    if (pflg) mucInfo.isDotNET = true;
+                    if (pflg) mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
                     pflg = true;
                     SOD1();
                 }
@@ -505,13 +505,13 @@ namespace mucomDotNET.Compiler
             {
                 if (c == '>')//0x3e
                 {
-                    if (pflg) mucInfo.isDotNET = true;
+                    if (pflg) mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
                     pflg = true;
                     SOU1();
                 }
                 else if (c == '<')//0x3c
                 {
-                    if (pflg) mucInfo.isDotNET = true;
+                    if (pflg) mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
                     pflg = true;
                     SOD1();
                 }
@@ -761,7 +761,7 @@ namespace mucomDotNET.Compiler
             if (c == ',')//0x2c
             {
                 //1-6の範囲内ならwait値を取得する
-                mucInfo.isDotNET = true;
+                mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
                 mucInfo.srcCPtr++;
                 ptr = mucInfo.srcCPtr;
                 int n2 = msub.REDATA(mucInfo.lin, ref ptr);
@@ -938,6 +938,17 @@ namespace mucomDotNET.Compiler
             return EnmFCOMPNextRtn.fcomp1;
         }
 
+        public EnmFCOMPNextRtn SETKONorSETHE()
+        {
+            if(mucInfo.DriverType!= MUCInfo.enmDriverType.E)
+            {
+                return SETKON();
+            }
+            else
+            {
+                return SETHE();
+            }
+        }
 
         // *    KEY ON REVISE * added
         public EnmFCOMPNextRtn SETKON()
@@ -1003,7 +1014,7 @@ namespace mucomDotNET.Compiler
             }
 
             mucInfo.srcCPtr = ptr;
-            mucInfo.isDotNET = true;
+            mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
             msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xf6));
             msub.MWRITE(new MmlDatum((byte)n[0]), new MmlDatum((byte)n[1]));
             msub.MWRITE(new MmlDatum((byte)n[2]), new MmlDatum((byte)n[3]));
@@ -1224,7 +1235,7 @@ namespace mucomDotNET.Compiler
                 break;
             }
 
-            if (!mucInfo.isDotNET && !is16bit)
+            if (mucInfo.DriverType== MUCInfo.enmDriverType.normal && !is16bit)
             {
                 msub.MWRIT2(new MmlDatum(0xf7));// COM OF 'S'
                 for (int i = 0; i < 4; i++)
@@ -1234,10 +1245,10 @@ namespace mucomDotNET.Compiler
             else
             {
                 //既存のフォーマットを既に使っている時はエラーとする
-                if (!mucInfo.isDotNET && mucInfo.needNormalMucom)
+                if (mucInfo.DriverType== MUCInfo.enmDriverType.normal && mucInfo.needNormalMucom)
                     throw new MucException(msg.get("E0527"), mucInfo.row, mucInfo.col);
 
-                mucInfo.isDotNET = true;
+                mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
                 msub.MWRIT2(new MmlDatum(0xf7));// COM OF 'S'
                 for (int i = 0; i < 4; i++)
                 {
@@ -1786,7 +1797,7 @@ namespace mucomDotNET.Compiler
             //        , mucInfo.row, mucInfo.col);
             //}
 
-            mucInfo.isDotNET = true;
+            mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
             ptr = mucInfo.srcCPtr;
             n = msub.REDATA(mucInfo.lin, ref ptr);
             mucInfo.srcCPtr = ptr;
@@ -2571,7 +2582,7 @@ namespace mucomDotNET.Compiler
                     , mucInfo.row, mucInfo.col);
             }
 
-            mucInfo.isDotNET = true;
+            mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
             msub.MWRIT2(new MmlDatum((byte)n));//一つ目のパラメータをセット
 
             return SETSE1(5, "E0510", "E0511");
@@ -2887,7 +2898,7 @@ namespace mucomDotNET.Compiler
 
             if (mucInfo.isIDE)
             {
-                mucInfo.isDotNET = true;
+                mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
                 List<object> args = new List<object>();
                 args.Add(n);
                 LinePos lp = new LinePos(

@@ -206,8 +206,19 @@ namespace mucomDotNET.Compiler
                         mucInfo.driver = tag.Item2;
                         if (mucInfo.driver == "mucomDotNET")
                         {
-                            mucInfo.isDotNET = true;
+                            mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
                         }
+                        else if (mucInfo.driver == "mucom88E")
+                        {
+                            mucInfo.DriverType = MUCInfo.enmDriverType.E;
+                            mucInfo.needEMucom = true;
+                        }
+                        else if (mucInfo.driver == "mucom88em")
+                        {
+                            mucInfo.DriverType = MUCInfo.enmDriverType.em;
+                        }
+                        else
+                            mucInfo.DriverType = MUCInfo.enmDriverType.normal;
                         break;
                     case "invert":
                         mucInfo.invert = tag.Item2;
@@ -507,10 +518,10 @@ namespace mucomDotNET.Compiler
             //データサイズが64k超えていたらdotnet確定
             if (work.ENDADR - work.MU_NUM > 0xffff)
             {
-                mucInfo.isDotNET = true;
+                mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
             }
 
-            if(!useDriverTAG && mucInfo.isDotNET)
+            if(!useDriverTAG && mucInfo.DriverType== MUCInfo.enmDriverType.DotNet)
             {
                 if (tags == null) tags = new List<Tuple<string, string>>();
                 tags.Add(new Tuple<string, string>("driver", MUCInfo.DotNET));
