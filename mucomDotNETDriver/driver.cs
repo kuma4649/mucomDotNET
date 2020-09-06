@@ -549,5 +549,9 @@ namespace mucomDotNET.Driver
             }
         }
 
+        public void SetDriverSwitch(params object[] param)
+        {
+            //throw new NotImplementedException();
+        }
     }
 }
