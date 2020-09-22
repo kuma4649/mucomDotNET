@@ -3093,7 +3093,8 @@ namespace mucomDotNET.Compiler
                     if (c < 'A' || c > ('A' + work.MAXCH))
                     {
                         //goto RECOM
-                        continue;
+                        //continue;
+                        break;
                     }
 
                     if ((c - 'A') == work.COMNOW)
