@@ -35,5 +35,6 @@ copy .\play.bat .\output\
 copy .\playOnGIMIC.bat .\output\
 copy .\playOnSCCI.bat .\output\
 copy .\toWav.bat .\output\
+copy .\removeZoneIdent.bat .\output\
 
 pause

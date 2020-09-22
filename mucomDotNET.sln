@@ -15,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "document", "document", "{A1
 		playOnGIMIC.bat = playOnGIMIC.bat
 		playOnSCCI.bat = playOnSCCI.bat
 		README.md = README.md
+		removeZoneIdent.bat = removeZoneIdent.bat
 		toWav.bat = toWav.bat
 		usage.txt = usage.txt
 	EndProjectSection
@@ -40,7 +41,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wav.Net4", "Wav.Net4\Wav.Ne
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vgm", "Vgm\Vgm.csproj", "{044CA1E4-816F-4085-A492-ECCB58CBA954}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vgm.Net4", "Vgm.Net4\Vgm.Net4.csproj", "{66D1AADB-C06E-4F55-BB07-9730B95220D8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vgm.Net4", "Vgm.Net4\Vgm.Net4.csproj", "{66D1AADB-C06E-4F55-BB07-9730B95220D8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
