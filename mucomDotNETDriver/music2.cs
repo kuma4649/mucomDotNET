@@ -1988,6 +1988,9 @@ namespace mucomDotNET.Driver
                 return;
             }
             work.cd.reverbFlg = false;
+
+            if (work.idx >= 3 && work.idx <= 5) return;
+
             STVOL();
         }
 

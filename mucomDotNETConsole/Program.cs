@@ -203,6 +203,8 @@ namespace mucomDotNET.Console
                 , arg
                 );
 
+            if (!File.Exists(fn)) return null;
+
             FileStream strm;
             try
             {
