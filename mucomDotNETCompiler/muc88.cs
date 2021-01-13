@@ -3148,7 +3148,7 @@ namespace mucomDotNET.Compiler
             do
             {
                 ch = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr++] : (char)0;
-            } while (ch == ' ');//0x20
+            } while (ch == ' ' || ch == '\t');//0x20
 
             if (ch == 0 || ch == ';' || ch == '{')//0x3b 0x7b 0x2a
             {
@@ -3474,7 +3474,7 @@ namespace mucomDotNET.Compiler
                     ? mucInfo.lin.Item2[mucInfo.srcCPtr++]
                     : (char)0;
                 if (c == 0) return EnmFMCOMPrtn.normal;
-            } while (c != ' ');//ONE SPACE?
+            } while (c != ' ' && c!='\t');//ONE SPACE?
 
             mucInfo.ErrSign = false;
             EnmFCOMPNextRtn ret = EnmFCOMPNextRtn.fcomp1;
@@ -3529,7 +3529,7 @@ namespace mucomDotNET.Compiler
                     : (char)0;
                 if (c == 0)// DATA END?
                     return EnmFCOMPNextRtn.NextLine;// ﾂｷﾞ ﾉ ｷﾞｮｳﾍ
-            } while (c == ' ');//CHECK SPACE
+            } while (c == ' ' || c == '\t');//CHECK SPACE
 
             mucInfo.srcCPtr--;
             work.com = msub.FMCOMC(c);// COM CHECK
@@ -3711,7 +3711,7 @@ namespace mucomDotNET.Compiler
 
             int ptr = mucInfo.srcCPtr;
             if (mucInfo.lin.Item2.Length > ptr - 1)
-                while (ptr > 1 && mucInfo.lin.Item2[ptr - 1] == ' ') ptr--;
+                while (ptr > 1 && (mucInfo.lin.Item2[ptr - 1] == ' ' || mucInfo.lin.Item2[ptr - 1] == '\t')) ptr--;
 
             LinePos lp = new LinePos(
                 mucInfo.fnSrcOnlyFile
@@ -3755,7 +3755,7 @@ namespace mucomDotNET.Compiler
 
             int ptr = mucInfo.srcCPtr;
             if (mucInfo.lin.Item2.Length > ptr - 1)
-                while (ptr > 1 && mucInfo.lin.Item2[ptr - 1] == ' ') ptr--;
+                while (ptr > 1 && (mucInfo.lin.Item2[ptr - 1] == ' ' || mucInfo.lin.Item2[ptr - 1] == '\t')) ptr--;
 
             LinePos lp = new LinePos(
                 mucInfo.fnSrcOnlyFile

@@ -107,7 +107,7 @@ namespace mucomDotNET.Compiler
                 }
                 ch = lin.Item2.Length > srcCPtr ? lin.Item2[srcCPtr] : (char)0;
                 srcCPtr++;
-            } while (ch == ' ');
+            } while (ch == ' ' || ch=='\t');
 
             if (ch == '$')//0x24
             {
