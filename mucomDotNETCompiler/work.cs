@@ -23,9 +23,17 @@ namespace mucomDotNET.Compiler
         //
         public int FMLIB = 0;// 0x6000 w
 
-        public int[] tcnt = new int[11];// MAXCH]; //0x8c10 w
-        public int[] lcnt = new int[11];// MAXCH]; //0x8c12 w
-                
+        public int[][] tcnt = new int[11][]{
+            new int[10],new int[10],new int[10],new int[10],new int[10],
+            new int[10],new int[10],new int[10],new int[10],new int[10],
+            new int[10]
+        };// MAXCH]; //0x8c10 w
+        public int[][] lcnt = new int[11][]{
+            new int[10],new int[10],new int[10],new int[10],new int[10],
+            new int[10],new int[10],new int[10],new int[10],new int[10],
+            new int[10]
+        };// MAXCH]; //0x8c12 w
+
         public int pcmFlag = 0;//0x8c10+10*4 w
 
         public int JCLOCK = 0;//0x8c90 w
@@ -63,7 +71,7 @@ namespace mucomDotNET.Compiler
 
         public byte LINCFG = 0;
         public int ADRSTC = 0;
-        public byte VPCO=1;//dummyで1としている
+        public byte VPCO = 1;//dummyで1としている
         public byte OctaveUDFLG = 0;
         public byte VolumeUDFLG = 0;
         public int REPCOUNT = 0;
@@ -75,29 +83,45 @@ namespace mucomDotNET.Compiler
 
         public int HEXFG = 0;
 
-        public  byte SECCOM { get; internal set; }
-        public  byte[] BEFTONE { get; internal set; } = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-        public  int BEFCO { get; internal set; }
-        public  int com { get; internal set; }
-        public  byte BFDAT { get; internal set; }
-        public  byte VDDAT { get; internal set; }
-        public  int LINE { get; internal set; }
-        public  int JPLINE { get; internal set; } = -1;
-        public  int BEFMD { get; internal set; }
-        public  int FRQBEF { get; internal set; }
-        public  int PSGMD { get; internal set; }
-        public  int KEYONR { get; internal set; }
-        public  int bufStartPtr { get; internal set; }
-        public  int[] bufCount { get; internal set; } = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-        public  int JPCOL { get; internal set; }
-        public  List<int> JCHCOM { get; internal set; }
+        public byte SECCOM { get; internal set; }
+        public byte[] BEFTONE { get; internal set; } = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        public int BEFCO { get; internal set; }
+        public int com { get; internal set; }
+        public byte BFDAT { get; internal set; }
+        public byte VDDAT { get; internal set; }
+        public int LINE { get; internal set; }
+        public int JPLINE { get; internal set; } = -1;
+        public int BEFMD { get; internal set; }
+        public int FRQBEF { get; internal set; }
+        public int PSGMD { get; internal set; }
+        public int KEYONR { get; internal set; }
+        public int bufStartPtr { get; internal set; }
+        public int[][] bufCount { get; internal set; } = new int[][] {
+            new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+        };
+        public int JPCOL { get; internal set; }
+        public List<int> JCHCOM { get; internal set; }
 
-        public  int MU_NUM = 0;// 0xC200 b ｺﾝﾊﾟｲﾙﾁｭｳ ﾉ MUSICﾅﾝﾊﾞｰ
-        public  int OTODAT = 1;// 0xc201 w FMｵﾝｼｮｸ ｶﾞ ｶｸﾉｳｻﾚﾙ ｱﾄﾞﾚｽﾄｯﾌﾟ ｶﾞ ﾊｲｯﾃｲﾙ
-        public  int SSGDAT = 3;// 0xc203 w SSG...
-        public  int MU_TOP = 5;// 0xc205 w ﾐｭｰｼﾞｯｸ ﾃﾞｰﾀ(ｱﾄﾞﾚｽﾃｰﾌﾞﾙ ﾌｸﾑ) ｽﾀｰﾄ ｱﾄﾞﾚｽ
-        public  CompilerInfo compilerInfo = null;
-        public  int quantize=0;
-        public  int beforeQuantize=0;
+        public int MU_NUM = 0;// 0xC200 b ｺﾝﾊﾟｲﾙﾁｭｳ ﾉ MUSICﾅﾝﾊﾞｰ
+        public int OTODAT = 1;// 0xc201 w FMｵﾝｼｮｸ ｶﾞ ｶｸﾉｳｻﾚﾙ ｱﾄﾞﾚｽﾄｯﾌﾟ ｶﾞ ﾊｲｯﾃｲﾙ
+        public int SSGDAT = 3;// 0xc203 w SSG...
+        public int MU_TOP = 5;// 0xc205 w ﾐｭｰｼﾞｯｸ ﾃﾞｰﾀ(ｱﾄﾞﾚｽﾃｰﾌﾞﾙ ﾌｸﾑ) ｽﾀｰﾄ ｱﾄﾞﾚｽ
+        public CompilerInfo compilerInfo = null;
+        public int quantize = 0;
+        public int beforeQuantize = 0;
+        public int pageNow = 0;
+        public int backupMDATA = 0;
+        public int lastMDATA = 0;
+
     }
 }

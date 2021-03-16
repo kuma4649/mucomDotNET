@@ -172,7 +172,7 @@ namespace mucomDotNET.Driver
                 ,REVERVE       // 0xFF 0xF3 - ﾘﾊﾞｰﾌﾞ
                 ,REVMOD	       // 0xFF 0xF4 - ﾘﾊﾞｰﾌﾞﾓｰﾄﾞ
                 ,REVSW	       // 0xFF 0xF5 - ﾘﾊﾞｰﾌﾞ ｽｲｯﾁ
-                ,SetKeyOnDelay // 0xFF 0xF6
+                ,SetKeyOnDelay // 0xFF 0xF6 - キーオンディレイ 'KD' n1,n2,n3,n4
                 ,NTMEAN        // 0xFF 0xF7
                 ,NTMEAN        // 0xFF 0xF8
                 ,NTMEAN        // 0xFF 0xF9
@@ -1801,7 +1801,7 @@ namespace mucomDotNET.Driver
             List<object> args = new List<object>();
             args.Add((int)a);
 
-            LinePos lp = new LinePos("", -1, -1, -1
+            LinePos lp = new LinePos(null,"", -1, -1, -1
                 , work.soundWork.SSGF1 == 0 ? "FM" : "ADPCM"
                 , "YM2608", 0, 0, work.cd.channelNumber);
             work.crntMmlDatum = new MmlDatum(enmMMLType.Pan, args, lp, 0);

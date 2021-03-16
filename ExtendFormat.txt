@@ -1,0 +1,95 @@
+DotNET独自フォーマットについて
+
+構成
+  以下の順番でファイルは構成される。
+  1.ヘッダー情報
+    固定長ヘッダー情報
+    可変長ヘッダー情報
+  2.ページデータ
+    mucom88のパート部のバイナリと互換
+  3.Instrumentデータ
+    mucom88の音色データ部のバイナリと互換
+  4.PCMデータ
+    mucom88のPCMのバイナリと互換
+  5.曲情報
+    mucom88winの曲情報のバイナリと互換
+
+固定長ヘッダー情報
+     Adr  Size Contents             Remark
+     0000    4 'muPb'               FCC
+     0004    4 '0100'               このフォーマットのバージョン番号。4文字で。現時点では100のみ。
+     0008    1 5                    可変長ヘッダー情報の数。
+     0009    1 chips count          使用する音源の数(0～)
+     000A    2 total part count     使用するパートの総数(0～)
+     000C    2 total page count     使用するページの総数(0～)
+     000E    2 total Inst.Set count 使用するInstrumentセットの総数(0～)
+     0010    2 total PCMset count   使用するPCMセットの総数(0～)
+     0012    4 Info.Address         曲情報への絶対アドレス
+     0016    4 Jump clock           Jコマンドのclock位置
+     001A    4 Jump line number     Jコマンドの行数
+
+可変長ヘッダー情報
+  定義する数によって情報の大きさがかわる。
+  以下の順番で可変長ヘッダー情報は構成される。
+    1.Chip Define division.
+    2.Part division.
+    3.Page division.
+    4.Instrument set division.
+    5.PCM set division.
+
+Chip Define division.
+  chips countで設定した数だけ繰り返し定義すること
+
+     Ofs  Size Contents             Remark
+    +0000    4 Chip Identify number 後述。音源Chip毎に割り当てられた数値を記録する。
+                                    同じChip Identify numberで複数回定義可能。
+                                    (これによって複数個の同じChipを使用した演奏ができる。)
+    +0004    4 chip clock           音源Chipのマスタークロック
+    +0008    4 chip option          音源Chipのオプション情報
+    +000C    4 Heat Beat            タイマー
+                                    最上位ビットが立っていない時 : 種類を示す。( 0:Unuse 1:OPNA Timer 2:NTSC 3:PAL ... )
+                                    最上位ビットが立っている時   : 31ビットの即値(固定)になる。
+    +0010    4 Heat Beat2           タイマー(サブ)(TBD)
+                                    最上位ビットが立っていない時 : 種類を示す。( 0:Unuse 1:OPNA Timer 2:NTSC 3:PAL ... )
+                                    最上位ビットが立っている時   : 31ビットの即値(固定)になる。
+                                    タイマーは曲のテンポとして使用したいChipに対して設定する。
+                                    複数指定した場合は最初のChipが採用される。
+    +0014    1 part count           この音源Chipで使用するパートの数(0～)
+    +0015    1 Use Inst.set Count   この音源Chipで使用するInstrumentセットの個数
+    +0016  2*n Use Inst.set Number  この音源Chipで使用するInstrumentセットの番号。上記パラメータの個数だけ繰り返す。
+    略       1 Use PCMset Count     この音源Chipで使用するPCMセットの個数
+    略     2*n Use PCMset Number    この音源Chipで使用するPCMセットの番号。上記パラメータの個数だけ繰り返す。
+
+Part division.
+  total part countで設定した数だけ繰り返し定義すること
+
+     Ofs  Size Contents             Remark
+    +0000    1 page count           ページの数(0～)
+
+Page division.
+  total page countで設定した数だけ繰り返し定義すること
+
+     Ofs  Size Contents             Remark
+    +0000    4 page Length          ページの大きさ(0～)
+
+Instrument set division.
+  total Instrument set countで設定した数だけ繰り返し定義すること
+
+     Ofs  Size Contents             Remark
+    +0000    4 Inst. set Length     Instrument setの大きさ(0～)
+
+PCM set division.
+  total PCM set countで設定した数だけ繰り返し定義すること
+
+     Ofs  Size Contents             Remark
+    +0000    4 PCM set Length       PCM setの大きさ(0～)
+
+
+Chip Identify number
+　Chip Define divisionで使用する音源の識別番号のリスト。
+   番号       音源名  
+   0x0000000C SN76489(TBD)
+   0x0000002C YM2612(TBD)
+   0x00000030 YM2151(TBD)
+   0x00000044 YM2203(TBD)
+   0x00000048 YM2608  

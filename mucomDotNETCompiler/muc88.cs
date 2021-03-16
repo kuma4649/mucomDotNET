@@ -208,7 +208,7 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETPTM()
         {
-            LinePos lp = new LinePos(mucInfo.fnSrc, mucInfo.row, mucInfo.col, mucInfo.srcCPtr);
+            LinePos lp = new LinePos(mucInfo.document,mucInfo.fnSrc, mucInfo.row, mucInfo.col, mucInfo.srcCPtr);
 
             mucInfo.srcCPtr++;
             byte before_note = msub.STTONE();//KUMA:オクターブ情報などを含めた音符情報に変換
@@ -656,7 +656,7 @@ namespace mucomDotNET.Compiler
         private EnmFCOMPNextRtn SETTAG()
         {
 
-            work.JCLOCK = work.tcnt[work.COMNOW];
+            work.JCLOCK = work.tcnt[work.COMNOW][work.pageNow];
             work.JCHCOM = new List<int>();
             work.JCHCOM.Add(work.COMNOW);
             if (work.POINTC >= 0)
@@ -750,6 +750,7 @@ namespace mucomDotNET.Compiler
             List<object> args = new List<object>();
             args.Add(n);
             LinePos lp = new LinePos(
+                mucInfo.document,
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
@@ -937,8 +938,8 @@ namespace mucomDotNET.Compiler
             HL += 4;
             work.MDATA += 2;
 
-            mucInfo.bufLoopStack.Set(HL, (byte)work.tcnt[work.COMNOW]);
-            mucInfo.bufLoopStack.Set(HL + 1, (byte)(work.tcnt[work.COMNOW] >> 8));
+            mucInfo.bufLoopStack.Set(HL, (byte)work.tcnt[work.COMNOW][work.pageNow]);
+            mucInfo.bufLoopStack.Set(HL + 1, (byte)(work.tcnt[work.COMNOW][work.pageNow] >> 8));
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -1054,7 +1055,10 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn TIMEB2(byte n)
         {
-            mucInfo.bufDst.Set(work.DATTBL - 1, new MmlDatum(n));// TIMER_B ﾆ ｱﾜｾﾙ
+            if (!mucInfo.usePageFunction)
+            {
+                mucInfo.bufDst.Set(work.DATTBL - 1, new MmlDatum(n));// TIMER_B ﾆ ｱﾜｾﾙ
+            }
 
             if (work.COMNOW >= 3 && work.COMNOW < 6)
             {
@@ -1185,13 +1189,17 @@ namespace mucomDotNET.Compiler
             int HL = work.MDATA;
             int DE = HL - work.MU_TOP;
             int c = work.COMNOW;
-            HL = work.DATTBL + c * 4 + 2;
 
-            mucInfo.bufDst.Set(HL, new MmlDatum((byte)DE));
-            HL++;
-            mucInfo.bufDst.Set(HL, new MmlDatum((byte)(DE >> 8)));
+            if (!mucInfo.usePageFunction)
+            {
+                //Jump先となるアドレスをDATTBLに書き込む
+                HL = work.DATTBL + c * 4 + 2;
+                mucInfo.bufDst.Set(HL, new MmlDatum((byte)DE));
+                HL++;
+                mucInfo.bufDst.Set(HL, new MmlDatum((byte)(DE >> 8)));
+            }
 
-            work.lcnt[c] = work.tcnt[c] + 1;// +1('L'ﾌﾗｸﾞﾉ ｶﾜﾘ)
+            work.lcnt[c][work.pageNow] = work.tcnt[c][work.pageNow] + 1;// +1('L'ﾌﾗｸﾞﾉ ｶﾜﾘ)
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -1361,18 +1369,18 @@ namespace mucomDotNET.Compiler
 
             int backupAdr = mucInfo.bufLoopStack.Get(loopStackPtr + 6)
                 + mucInfo.bufLoopStack.Get(loopStackPtr + 7) * 0x100;
-            backupAdr += work.tcnt[work.COMNOW] * (rep - 1);
+            backupAdr += work.tcnt[work.COMNOW][work.pageNow] * (rep - 1);
 
             int ofs = mucInfo.bufLoopStack.Get(loopStackPtr + 8)
                 + mucInfo.bufLoopStack.Get(loopStackPtr + 9) * 0x100;
             if (ofs == 0)
             {
                 // '/'ﾊ ｶｯｺﾅｲﾆ ﾂｶﾜﾚﾃﾅｲ
-                ofs = work.tcnt[work.COMNOW];
+                ofs = work.tcnt[work.COMNOW][work.pageNow];
             }
 
             backupAdr += ofs;
-            work.tcnt[work.COMNOW] = backupAdr;
+            work.tcnt[work.COMNOW][work.pageNow] = backupAdr;
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -1396,12 +1404,12 @@ namespace mucomDotNET.Compiler
             mucInfo.bufLoopStack.Set(work.POINTC + 3, (byte)(work.MDATA >> 8));
             mucInfo.bufLoopStack.Set(work.POINTC + 4, 0);
             mucInfo.bufLoopStack.Set(work.POINTC + 5, 0);
-            mucInfo.bufLoopStack.Set(work.POINTC + 6, (byte)work.tcnt[work.COMNOW]);
-            mucInfo.bufLoopStack.Set(work.POINTC + 7, (byte)(work.tcnt[work.COMNOW] >> 8));
+            mucInfo.bufLoopStack.Set(work.POINTC + 6, (byte)work.tcnt[work.COMNOW][work.pageNow]);
+            mucInfo.bufLoopStack.Set(work.POINTC + 7, (byte)(work.tcnt[work.COMNOW][work.pageNow] >> 8));
             mucInfo.bufLoopStack.Set(work.POINTC + 8, 0);
             mucInfo.bufLoopStack.Set(work.POINTC + 9, 0);
 
-            work.tcnt[work.COMNOW] = 0;//ﾄｰﾀﾙ ｸﾛｯｸ ｸﾘｱ
+            work.tcnt[work.COMNOW][work.pageNow] = 0;//ﾄｰﾀﾙ ｸﾛｯｸ ｸﾘｱ
 
             work.REPCOUNT++;
             if (work.REPCOUNT > 16)
@@ -1511,7 +1519,7 @@ namespace mucomDotNET.Compiler
                 }
             }
 
-            work.tcnt[work.COMNOW] += kotae;
+            work.tcnt[work.COMNOW][work.pageNow] += kotae;
 
             if (work.BEFRST != 0)// ｾﾞﾝｶｲｶｳﾝﾀ ﾜｰｸ(ﾌﾗｸﾞ)
             {
@@ -1532,6 +1540,7 @@ namespace mucomDotNET.Compiler
             {
                 kotae -= 0x6f;
                 lp = new LinePos(
+                    mucInfo.document,
                     mucInfo.fnSrcOnlyFile
                     , mucInfo.row
                     , mucInfo.col
@@ -1548,6 +1557,7 @@ namespace mucomDotNET.Compiler
             }
             work.BEFRST = kotae;
             lp = new LinePos(
+                mucInfo.document,
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row
                 , mucInfo.col
@@ -2229,6 +2239,7 @@ namespace mucomDotNET.Compiler
             List<object> args = new List<object>();
             args.Add(n);
             LinePos lp = new LinePos(
+                mucInfo.document,
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
@@ -2257,6 +2268,7 @@ namespace mucomDotNET.Compiler
             List<object> args = new List<object>();
             args.Add(n);
             LinePos lp = new LinePos(
+                mucInfo.document,
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
@@ -2316,6 +2328,7 @@ namespace mucomDotNET.Compiler
                 List<object> args = new List<object>();
                 args.Add(n);
                 LinePos lp = new LinePos(
+                    mucInfo.document,
                     mucInfo.fnSrcOnlyFile
                     , mucInfo.row, mucInfo.col
                     , mucInfo.srcCPtr - mucInfo.col + 1
@@ -2393,6 +2406,7 @@ namespace mucomDotNET.Compiler
             }
 
             LinePos lp = new LinePos(
+                mucInfo.document,
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
@@ -2673,6 +2687,7 @@ namespace mucomDotNET.Compiler
             args.Add(0);//dummy
             args.Add(num - 1);
             LinePos lp = new LinePos(
+                mucInfo.document,
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
@@ -2712,6 +2727,7 @@ namespace mucomDotNET.Compiler
             args.Add(0);//dummy
             args.Add(num);
             LinePos lp = new LinePos(
+                mucInfo.document,
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
@@ -2757,6 +2773,7 @@ namespace mucomDotNET.Compiler
             args.Add(0);//dummy
             args.Add(num);
             LinePos lp = new LinePos(
+                mucInfo.document,
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
@@ -2913,6 +2930,7 @@ namespace mucomDotNET.Compiler
                 List<object> args = new List<object>();
                 args.Add(n);
                 LinePos lp = new LinePos(
+                    mucInfo.document,
                     mucInfo.fnSrcOnlyFile
                     ,mucInfo.row
                     ,mucInfo.col
@@ -2951,6 +2969,8 @@ namespace mucomDotNET.Compiler
             work.JPLINE = -1;
             work.JPCOL = -1;
 
+            mucInfo.usePageFunction = CheckUsePageFunction();
+
             INIT();
             if (work.LINCFG != 0)
             {
@@ -2958,8 +2978,11 @@ namespace mucomDotNET.Compiler
             }
             for (int i = 0; i < work.MAXCH; i++)
             {
-                work.tcnt[i] = 0;
-                work.lcnt[i] = 0;
+                for (int j = 0; j < 10; j++)
+                {
+                    work.tcnt[i][j] = 0;
+                    work.lcnt[i][j] = 0;
+                }
             }
             work.pcmFlag = 0;
             work.JCLOCK = 0;
@@ -2972,11 +2995,19 @@ namespace mucomDotNET.Compiler
         {
             work.DATTBL = work.MU_TOP + 1;
             work.MDATA = work.MU_TOP + 0x2f;// 11ch * 4byte + 3byte    (DATTBLの大きさ?)
+
+            //KUMA:ページ機能を使う場合は0番地からデータを配置する
+            if (mucInfo.usePageFunction) work.MDATA = 0;
+
+            work.backupMDATA = work.MDATA;
             work.REPCOUNT = 0;
             work.title = work.titleFmt;
 
-            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 0, new MmlDatum((byte)(work.MDATA - work.DATTBL + 1)));
-            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 1, new MmlDatum((byte)((work.MDATA - work.DATTBL + 1) >> 8)));
+            if (!mucInfo.usePageFunction)
+            {
+                mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 0, new MmlDatum((byte)(work.MDATA - work.DATTBL + 1)));
+                mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 1, new MmlDatum((byte)((work.MDATA - work.DATTBL + 1) >> 8)));
+            }
 
             work.POINTC = work.LOOPSP - 10;// LOOP ﾖｳ ｽﾀｯｸ
 
@@ -2992,8 +3023,11 @@ namespace mucomDotNET.Compiler
             work.MACFG = 0xff;
             COMPST();//KUMA:先ずマクロの解析
 
-            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 0, new MmlDatum((byte)(work.MDATA - work.DATTBL + 1)));
-            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 1, new MmlDatum((byte)((work.MDATA - work.DATTBL + 1) >> 8)));
+            if (!mucInfo.usePageFunction)
+            {
+                mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 0, new MmlDatum((byte)(work.MDATA - work.DATTBL + 1)));
+                mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 1, new MmlDatum((byte)((work.MDATA - work.DATTBL + 1) >> 8)));
+            }
 
             mucInfo.srcCPtr = 0;
             mucInfo.srcLinPtr = 0;
@@ -3007,6 +3041,10 @@ namespace mucomDotNET.Compiler
             {
 
                 work.MACFG = 0x00;
+
+                //KUMA:ページ機能を使う場合は0番地からデータを配置する
+                if (mucInfo.usePageFunction) work.MDATA = 0;
+
                 work.bufStartPtr = work.MDATA;
 
                 COMPST();
@@ -3014,8 +3052,6 @@ namespace mucomDotNET.Compiler
 
                 CMPEND();// ﾘﾝｸ ﾎﾟｲﾝﾀ = 0->BASIC END
                 if (mucInfo.ErrSign) return;
-
-                work.bufCount[work.COMNOW - 1] = work.MDATA - work.bufStartPtr;
 
             } while (work.COMNOW != work.MAXCH);
         }
@@ -3086,6 +3122,13 @@ namespace mucomDotNET.Compiler
                         ? mucInfo.lin.Item2[mucInfo.srcCPtr]
                         : (char)0;
                     if (c == 0) break;
+
+                    if (c >= '0' && c <= '9')
+                    {
+                        mucInfo.srcCPtr++;
+                        continue;
+                    }
+
                     if ((c < (char)0x41 || c > (char)0x5a) //大文字の範囲外
                         && (c < (char)0x61 || c > (char)0x7a) //小文字の範囲外
                         ) break;
@@ -3107,7 +3150,36 @@ namespace mucomDotNET.Compiler
                 } while (true);
                 if (!fnd) continue;
 
-                Log.WriteLine(LogLevel.TRACE, string.Format(msg.get("I0402"), c));
+
+                //page番号を得る
+                int p = -1;
+                mucInfo.srcCPtr++;
+                int fndNum = 0;
+                do
+                {
+                    char cb = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                        ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                        : (char)0;
+                    if (cb == 0) break;
+                    if (cb >= '0' && cb <= '9')
+                    {
+                        p = cb - '0';
+                        if (p == work.pageNow) break;
+                        mucInfo.srcCPtr++;
+                        fndNum++;
+                        continue;
+                    }
+                    else
+                    {
+                        //数字がひとつもない場合,カレントが0ページかどうかチェック後break
+                        if (0 == work.pageNow && fndNum == 0) p = 0;
+                        break;
+                    }
+                } while (true);
+                if (p == -1) continue;
+                if (p != work.pageNow) continue;
+
+                Log.WriteLine(LogLevel.TRACE, string.Format(msg.get("I0402"), c, p));
 
                 EnmFMCOMPrtn ret = FMCOMP();// TO FM COMPILE
                 if (mucInfo.ErrSign) break;
@@ -3122,6 +3194,64 @@ namespace mucomDotNET.Compiler
                 // ﾂｷﾞ ﾉ ｷﾞｮｳﾍ
             } while (true);
         }
+
+        public bool CheckUsePageFunction()
+        {
+            int srcLinPtr = -1;
+            int srcCPtr;
+            Tuple<int, string> lin;
+
+            do
+            {
+                srcLinPtr++;
+                if (mucInfo.basSrc.Count == srcLinPtr) break;
+                lin = mucInfo.basSrc[srcLinPtr];
+                if (lin.Item2.Length < 1) continue;
+                srcCPtr = 0;
+
+                bool fnd = false;
+                char c;
+                do
+                {
+                    c = srcCPtr < lin.Item2.Length
+                        ? lin.Item2[srcCPtr]
+                        : (char)0;
+                    if (c == 0) break;
+
+                    if (c >= '0' && c <= '9')
+                    {
+                        srcCPtr++;
+                        continue;
+                    }
+
+                    if ((c < (char)0x41 || c > (char)0x5a) //大文字の範囲外
+                        && (c < (char)0x61 || c > (char)0x7a) //小文字の範囲外
+                        ) break;
+
+                    if (c < 'A' || c > ('A' + work.MAXCH)) break;
+
+                    fnd = true;
+                    break;
+                } while (true);
+                if (!fnd) continue;
+
+                //page番号を得る
+                srcCPtr++;
+                do
+                {
+                    char cb = srcCPtr < lin.Item2.Length
+                        ? lin.Item2[srcCPtr]
+                        : (char)0;
+                    if (cb == 0) break;
+                    if (cb >= '0' && cb <= '9') return true;
+                    break;
+                } while (true);
+
+            } while (true);
+
+            return false;
+        }
+
 
         public void MACPRC()
         {
@@ -3232,28 +3362,78 @@ namespace mucomDotNET.Compiler
         {
             mucInfo.ErrSign = false;
 
-            if (work.tcnt[work.COMNOW] != 0 && mucInfo.bufDst.Get(work.DATTBL + 4 * work.COMNOW + 2)!=null)
+            if (work.tcnt[work.COMNOW][work.pageNow] != 0 && mucInfo.bufDst.Get(work.DATTBL + 4 * work.COMNOW + 2)!=null)
             {
                 goto CMPE2;
             }
 
-            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 2, new MmlDatum(0));
-            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 3, new MmlDatum(0));
+            if (!mucInfo.usePageFunction)
+            {
+                mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 2, new MmlDatum(0));
+                mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 3, new MmlDatum(0));
+            }
 
         CMPE2:
             mucInfo.bufDst.Set(work.MDATA++, new MmlDatum(0));   // SET END MARK = 0
 
-            work.COMNOW++;	// Ch.=Ch.+ 1
 
-            //↓TBLSET();相当
-            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 0, new MmlDatum((byte)(work.MDATA - work.DATTBL + 1)));
-            mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 1, new MmlDatum((byte)((work.MDATA - work.DATTBL + 1) >> 8)));
 
-            if (work.COMNOW == work.MAXCH)
+
+            //KUMA:Result表示用のbufCountをセット
+            if (!mucInfo.usePageFunction)
             {
-                CMPEN1();
-                return;
+                work.bufCount[0][0] = work.MDATA - work.bufStartPtr;
             }
+            else
+            {
+                work.bufCount[work.COMNOW][work.pageNow] = work.MDATA - work.bufStartPtr;
+            }
+            
+            //KUMA:ページ数を+1する。10ページ作成したら次のChにする。ヘッダにはmmlデータの大きさを書き込む
+            if (!mucInfo.usePageFunction) work.pageNow = 10;//ページ機能を利用しないなら一気に10ページ進める
+            else work.pageNow++;
+
+            if (work.pageNow == 10)
+            {
+                work.COMNOW++;  // Ch.=Ch.+ 1
+                work.pageNow = 0;
+            }
+
+            //KUMA:
+            //mucInfo.bufSize[work.COMNOW][work.pageNow] = (work.MDATA - work.DATTBL + 1);
+
+            if (work.pageNow != 0)
+            {
+                if (work.pageNow == 1) work.lastMDATA = work.MDATA;
+                work.MDATA = work.backupMDATA;//KUMA:次のChへ移る場合以外は、MDATAの位置を元に戻す
+            }
+            else
+            {
+                if (mucInfo.usePageFunction) work.MDATA = work.lastMDATA;
+
+                if (!mucInfo.usePageFunction)
+                {
+                    //↓TBLSET();相当
+                    mucInfo.bufPage[0][0].Set(work.DATTBL + 4 * work.COMNOW + 0, new MmlDatum((byte)(work.MDATA - work.DATTBL + 1)));
+                    mucInfo.bufPage[0][0].Set(work.DATTBL + 4 * work.COMNOW + 1, new MmlDatum((byte)((work.MDATA - work.DATTBL + 1) >> 8)));
+                }
+
+                //KUMA:最後のCh、ページまでコンパイルしたか
+                if (work.COMNOW == work.MAXCH)
+                {
+                    mucInfo.bufDst = mucInfo.bufPage[0][0];//KUMA:最初のバッファへ切り替え
+                    CMPEN1();
+                    return;
+                }
+
+            }
+
+            if (mucInfo.usePageFunction)
+            {
+                mucInfo.bufDst = mucInfo.bufPage[work.COMNOW][work.pageNow];//KUMA:バッファの切り替え
+            }
+
+            work.backupMDATA = work.MDATA;
 
             // TEXT START ADR
             mucInfo.srcCPtr = 0;
@@ -3322,9 +3502,21 @@ namespace mucomDotNET.Compiler
         public void VOICECONV1()
         {
             // --   25 BYTE VOICE DATA ﾉ ｾｲｾｲ   --
-            mucInfo.useOtoAdr = work.ENDADR;
-            work.ENDADR++;
-            work.VICADR = work.ENDADR;
+            if (!mucInfo.usePageFunction)
+            {
+                mucInfo.useOtoAdr = work.ENDADR;
+                work.ENDADR++;
+                work.VICADR = work.ENDADR;
+            }
+            else
+            {
+                work.ENDADR = 0;
+                mucInfo.useOtoAdr = work.ENDADR;
+                work.ENDADR++;
+                work.VICADR = work.ENDADR;
+                mucInfo.bufUseVoice = new AutoExtendList<MmlDatum>();
+                mucInfo.bufDst = mucInfo.bufUseVoice;
+            }
 
             int dvPtr = 0;// work.DEFVOICE;
             int B = 256;//FM:256色
@@ -3691,7 +3883,7 @@ namespace mucomDotNET.Compiler
 
         private void TCLKSUB(int clk)
         {
-            work.tcnt[work.COMNOW] += clk;
+            work.tcnt[work.COMNOW][work.pageNow] += clk;
         }
 
         public void FCOMP17(int note, int clk)
@@ -3714,6 +3906,7 @@ namespace mucomDotNET.Compiler
                 while (ptr > 1 && (mucInfo.lin.Item2[ptr - 1] == ' ' || mucInfo.lin.Item2[ptr - 1] == '\t')) ptr--;
 
             LinePos lp = new LinePos(
+                mucInfo.document,
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row
                 , mucInfo.col
@@ -3758,6 +3951,7 @@ namespace mucomDotNET.Compiler
                 while (ptr > 1 && (mucInfo.lin.Item2[ptr - 1] == ' ' || mucInfo.lin.Item2[ptr - 1] == '\t')) ptr--;
 
             LinePos lp = new LinePos(
+                mucInfo.document,
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row
                 , mucInfo.col

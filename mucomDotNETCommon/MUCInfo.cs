@@ -34,6 +34,8 @@ namespace mucomDotNET.Common
         public byte[] pcmData { get; set; }
         public List<Tuple<int, string>> basSrc { get; set; }
 
+        public object document = null;
+
         private string _fnSrc = null;
         public string fnSrc {
             get
@@ -55,7 +57,16 @@ namespace mucomDotNET.Common
         }
         public string workPath { get; set; }
         public string fnDst { get; set; }
+
+        //KUMA:作業向けメモリ
         public AutoExtendList<MmlDatum> bufDst { get; set; }
+
+        //KUMA:ページ毎のメモリ
+        public AutoExtendList<MmlDatum>[][] bufPage { get; set; }
+
+        //KUMA:音色用のメモリ(ページ機能使用時のみ)
+        public AutoExtendList<MmlDatum> bufUseVoice { get; set; }
+
         public int srcLinPtr { get; set; }
         public int srcCPtr { get; set; }
         public Tuple<int, string> lin { get; set; }
@@ -116,6 +127,7 @@ namespace mucomDotNET.Common
         public bool isIDE { get; set; } = false;
         public Point skipPoint { get; set; } = Point.Empty;
         public int skipChannel { get; set; } = -1;
+        public bool usePageFunction { get; set; } = false;
 
         public void Clear()
         {
@@ -136,7 +148,19 @@ namespace mucomDotNET.Common
             fnSrc = "";
             workPath = "";
             fnDst = "";
-            bufDst = new AutoExtendList<MmlDatum>();
+
+            //バッファの作成
+            bufPage = new AutoExtendList<MmlDatum>[11][];
+            for (int i = 0; i < 11; i++)
+            {
+                bufPage[i] = new AutoExtendList<MmlDatum>[10];
+                for (int j = 0; j < 10; j++)
+                {
+                    bufPage[i][j] = new AutoExtendList<MmlDatum>();
+                };
+            };
+            bufDst = bufPage[0][0];
+
             srcLinPtr = 0;
             srcCPtr = 0;
             bufMac = new AutoExtendList<int>();
@@ -149,6 +173,7 @@ namespace mucomDotNET.Common
             DriverType = enmDriverType.DotNet;//.normal;
             //needNormalMucom = false;
             isIDE = false;
+            usePageFunction = false;
         }
 
     }

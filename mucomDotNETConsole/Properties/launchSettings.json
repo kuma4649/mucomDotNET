@@ -2,7 +2,7 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
-      "commandLineArgs": "-LOGLEVEL=TRACE D:\\bootcamp\\FM音源\\data\\MUC\\call2opn.muc"
+      "commandLineArgs": "-LOGLEVEL=TRACE D:\\bootcamp\\FM音源\\data\\MUC\\test.muc"
     }
   }
 }
