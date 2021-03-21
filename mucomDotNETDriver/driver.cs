@@ -92,6 +92,7 @@ namespace mucomDotNET.Driver
             work = new Work();
             header = new MUBHeader(srcBuf, enc);
             work.mData = GetDATA();
+            work.header = header;
             tags = GetTags();
             GetFileNameFromTag();
             work.fmVoice = GetFMVoiceFromFile(appendFileReaderCallback);

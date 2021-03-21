@@ -25,8 +25,9 @@ DotNET独自フォーマットについて
      000E    2 total Inst.Set count 使用するInstrumentセットの総数(0～)
      0010    2 total PCMset count   使用するPCMセットの総数(0～)
      0012    4 Info.Address         曲情報への絶対アドレス
-     0016    4 Jump clock           Jコマンドのclock位置
-     001A    4 Jump line number     Jコマンドの行数
+     0016    4 Info.Size            曲情報のサイズ
+     001A    4 Jump clock           Jコマンドのclock位置
+     001E    4 Jump line number     Jコマンドの行数
 
 可変長ヘッダー情報
   定義する数によって情報の大きさがかわる。
@@ -71,6 +72,7 @@ Page division.
 
      Ofs  Size Contents             Remark
     +0000    4 page Length          ページの大きさ(0～)
+    +0004    4 page LoopPoint       ページのループポイント(-1:none 0～)
 
 Instrument set division.
   total Instrument set countで設定した数だけ繰り返し定義すること

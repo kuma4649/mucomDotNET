@@ -630,7 +630,10 @@ namespace mucomDotNET.Compiler
 
             dat.Add(new MmlDatum(0x05));// 可変長ヘッダー情報の数。
             dat.Add(new MmlDatum(0x01));// 使用する音源の数(0～)
+
             dat.Add(new MmlDatum(Muc88.MAXCH));// 使用するパートの総数(0～)
+            dat.Add(new MmlDatum(0x00));
+
             int n = 0;
             for (int i = 0; i < Muc88.MAXCH; i++)
             {
@@ -639,8 +642,12 @@ namespace mucomDotNET.Compiler
                     if (work.bufCount[i][j] > 1) n++;
                 }
             }
+
             dat.Add(new MmlDatum(n));// 使用するページの総数(0～)
+            dat.Add(new MmlDatum(0x00));
+
             dat.Add(new MmlDatum(work.OTONUM > 0 ? 1 : 0));// 使用するInstrumentセットの総数(0～)
+            dat.Add(new MmlDatum(0x00));
 
             int pcmsize = (pcmdata == null) ? 0 : pcmdata.Length;
             bool pcmuse = ((option & 2) == 0);
@@ -659,8 +666,14 @@ namespace mucomDotNET.Compiler
             }
 
             dat.Add(new MmlDatum(pcmuse ? 1 : 0));// 使用するPCMセットの総数(0～)
+            dat.Add(new MmlDatum(0x00));
 
             dat.Add(new MmlDatum(0x00));// 曲情報への絶対アドレス
+            dat.Add(new MmlDatum(0x00));// 
+            dat.Add(new MmlDatum(0x00));// 
+            dat.Add(new MmlDatum(0x00));// 
+
+            dat.Add(new MmlDatum(0x00));// 曲情報のサイズ
             dat.Add(new MmlDatum(0x00));// 
             dat.Add(new MmlDatum(0x00));// 
             dat.Add(new MmlDatum(0x00));// 
@@ -746,6 +759,11 @@ namespace mucomDotNET.Compiler
                     {
                         n = work.bufCount[i][j];
                         dat.Add(new MmlDatum((byte)n));// ページの大きさ(0～)
+                        dat.Add(new MmlDatum((byte)(n >> 8)));
+                        dat.Add(new MmlDatum((byte)(n >> 16)));
+                        dat.Add(new MmlDatum((byte)(n >> 24)));
+                        n = work.loopPoint[i][j];
+                        dat.Add(new MmlDatum((byte)n));// ページのループポイント(0～)
                         dat.Add(new MmlDatum((byte)(n >> 8)));
                         dat.Add(new MmlDatum((byte)(n >> 16)));
                         dat.Add(new MmlDatum((byte)(n >> 24)));
@@ -839,12 +857,20 @@ namespace mucomDotNET.Compiler
 
             if (tags != null)
             {
+                int tagsize = 0;
                 foreach (Tuple<string, string> tag in tags)
                 {
                     if (tag.Item1 != null && tag.Item1.Length > 0 && tag.Item1[0] == '*') continue;
                     byte[] b = enc.GetSjisArrayFromString(string.Format("#{0} {1}\r\n", tag.Item1, tag.Item2));
+                    tagsize += b.Length;
                     foreach (byte bd in b) dat.Add(new MmlDatum(bd));
                 }
+
+                dat[0x16] = new MmlDatum((byte)tagsize);
+                dat[0x17] = new MmlDatum((byte)(tagsize >> 8));
+                dat[0x18] = new MmlDatum((byte)(tagsize >> 16));
+                dat[0x19] = new MmlDatum((byte)(tagsize >> 24));
+
             }
 
 

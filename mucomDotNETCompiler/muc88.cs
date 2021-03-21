@@ -1198,6 +1198,10 @@ namespace mucomDotNET.Compiler
                 HL++;
                 mucInfo.bufDst.Set(HL, new MmlDatum((byte)(DE >> 8)));
             }
+            else
+            {
+                work.loopPoint[c][work.pageNow] = HL;
+            }
 
             work.lcnt[c][work.pageNow] = work.tcnt[c][work.pageNow] + 1;// +1('L'ﾌﾗｸﾞﾉ ｶﾜﾘ)
 
@@ -2982,6 +2986,7 @@ namespace mucomDotNET.Compiler
                 {
                     work.tcnt[i][j] = 0;
                     work.lcnt[i][j] = 0;
+                    work.loopPoint[i][j] = -1;
                 }
             }
             work.pcmFlag = 0;
@@ -3200,6 +3205,7 @@ namespace mucomDotNET.Compiler
             int srcLinPtr = -1;
             int srcCPtr;
             Tuple<int, string> lin;
+            int f = 0;
 
             do
             {
@@ -3243,13 +3249,14 @@ namespace mucomDotNET.Compiler
                         ? lin.Item2[srcCPtr]
                         : (char)0;
                     if (cb == 0) break;
-                    if (cb >= '0' && cb <= '9') return true;
+                    if (cb >= '0' && cb <= '9')
+                        f |= 1 << (int)(cb - '0');//見つけたページ番号のビットを立てる
                     break;
                 } while (true);
 
             } while (true);
 
-            return false;
+            return (f & 0x3fe) != 0;//全く使用していない or 0ページのみの使用 の場合は ページ未使用 と判定する
         }
 
 

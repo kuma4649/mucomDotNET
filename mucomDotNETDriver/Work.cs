@@ -14,6 +14,9 @@ namespace mucomDotNET.Driver
         public object SystemInterrupt = new object();
 
         private int _status = 0;
+
+        public MUBHeader header { get; internal set; }
+
         public int Status
         {
             get { lock (lockObj) { return _status; } }
@@ -21,8 +24,18 @@ namespace mucomDotNET.Driver
         }
 
         public uint mDataAdr { get; internal set; }
-        public int idx { get; internal set; }
+        //public int idx { get; internal set; }
+
+        /// <summary>
+        /// カレントのチャンネル
+        /// </summary>
         public CHDAT cd { get; internal set; }
+
+        /// <summary>
+        /// カレントのページ
+        /// </summary>
+        public PGDAT pg { get; internal set; }
+
         public bool carry { get; internal set; }
         public uint hl { get; internal set; }
         public byte A_Reg { get; internal set; }

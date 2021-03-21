@@ -2,7 +2,7 @@
   "profiles": {
     "Player": {
       "commandName": "Project",
-      "commandLineArgs": "D:\\bootcamp\\FM音源\\data\\MUC\\WING\\kroman.mub"
+      "commandLineArgs": "D:\\bootcamp\\FM音源\\data\\MUC\\test.mub"
     }
   }
 }

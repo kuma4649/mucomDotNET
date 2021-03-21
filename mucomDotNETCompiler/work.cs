@@ -33,6 +33,11 @@ namespace mucomDotNET.Compiler
             new int[10],new int[10],new int[10],new int[10],new int[10],
             new int[10]
         };// MAXCH]; //0x8c12 w
+        public int[][] loopPoint = new int[11][]{
+            new int[10],new int[10],new int[10],new int[10],new int[10],
+            new int[10],new int[10],new int[10],new int[10],new int[10],
+            new int[10]
+        };// MAXCH]; //0x8c12 w
 
         public int pcmFlag = 0;//0x8c10+10*4 w
 

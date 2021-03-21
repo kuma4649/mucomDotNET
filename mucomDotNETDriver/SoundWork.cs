@@ -13,7 +13,7 @@ namespace mucomDotNET.Driver
     /// </summary>
     public class SoundWork
     {
-        public CHDAT[] CHDAT = new CHDAT[]
+        public List< CHDAT> CHDAT = new List<CHDAT>()
         {
             new CHDAT()//FM Ch1
             ,new CHDAT()//FM Ch2
@@ -85,13 +85,13 @@ namespace mucomDotNET.Driver
 
         // **	PMS/AMS/LR DATA	**
         public byte[] PALDAT = new byte[] {
-            0x0C0,
-            0x0C0,
-            0x0C0,
-            0x0,// DUMMY
-            0x0C0,
-            0x0C0,
-            0x0C0
+            0xC0,0xC0,0xC0,0xC0,0xC0, 0xC0,0xC0,0xC0,0xC0,0xC0,
+            0xC0,0xC0,0xC0,0xC0,0xC0, 0xC0,0xC0,0xC0,0xC0,0xC0,
+            0xC0,0xC0,0xC0,0xC0,0xC0, 0xC0,0xC0,0xC0,0xC0,0xC0,
+            0x00,0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,0x00, // DUMMY
+            0xC0,0xC0,0xC0,0xC0,0xC0, 0xC0,0xC0,0xC0,0xC0,0xC0,
+            0xC0,0xC0,0xC0,0xC0,0xC0, 0xC0,0xC0,0xC0,0xC0,0xC0,
+            0xC0,0xC0,0xC0,0xC0,0xC0, 0xC0,0xC0,0xC0,0xC0,0xC0
         };
 
         // **	ﾎﾞﾘｭｰﾑ ﾃﾞｰﾀ   **
@@ -117,61 +117,90 @@ namespace mucomDotNET.Driver
 
         internal void Init()
         {
-            CHDAT[0].lengthCounter = 1;
-            CHDAT[0].instrumentNumber = 24;
-            CHDAT[0].volume = 10;
+            for (int i = 0; i < CHDAT[0].PGDAT.Count; i++)
+            {
+                CHDAT[0].PGDAT[i].lengthCounter = 1;
+                CHDAT[0].PGDAT[i].instrumentNumber = 24;
+                CHDAT[0].PGDAT[i].volume = 10;
+            }
 
-            CHDAT[1].lengthCounter = 1;
-            CHDAT[1].instrumentNumber = 24;
-            CHDAT[1].volume = 10;
-            CHDAT[1].channelNumber = 1;
+            for (int i = 0; i < CHDAT[1].PGDAT.Count; i++)
+            {
+                CHDAT[1].PGDAT[i].lengthCounter = 1;
+                CHDAT[1].PGDAT[i].instrumentNumber = 24;
+                CHDAT[1].PGDAT[i].volume = 10;
+                CHDAT[1].PGDAT[i].channelNumber = 1;
+            }
 
-            CHDAT[2].lengthCounter = 1;
-            CHDAT[2].instrumentNumber = 24;
-            CHDAT[2].volume = 10;
-            CHDAT[2].channelNumber = 2;
+            for (int i = 0; i < CHDAT[2].PGDAT.Count; i++)
+            {
+                CHDAT[2].PGDAT[i].lengthCounter = 1;
+                CHDAT[2].PGDAT[i].instrumentNumber = 24;
+                CHDAT[2].PGDAT[i].volume = 10;
+                CHDAT[2].PGDAT[i].channelNumber = 2;
+            }
 
+            for (int i = 0; i < CHDAT[3].PGDAT.Count; i++)
+            {
+                CHDAT[3].PGDAT[i].lengthCounter = 1;
+                CHDAT[3].PGDAT[i].instrumentNumber = 0;
+                CHDAT[3].PGDAT[i].volume = 8;
+                CHDAT[3].PGDAT[i].volReg = 8;
+                CHDAT[3].PGDAT[i].channelNumber = 0;
+            }
 
-            CHDAT[3].lengthCounter = 1;
-            CHDAT[3].instrumentNumber = 0;
-            CHDAT[3].volume = 8;
-            CHDAT[3].volReg = 8;
-            CHDAT[3].channelNumber = 0;
+            for (int i = 0; i < CHDAT[4].PGDAT.Count; i++)
+            {
+                CHDAT[4].PGDAT[i].lengthCounter = 1;
+                CHDAT[4].PGDAT[i].instrumentNumber = 0;
+                CHDAT[4].PGDAT[i].volume = 8;
+                CHDAT[4].PGDAT[i].volReg = 9;
+                CHDAT[4].PGDAT[i].channelNumber = 2;
+            }
 
-            CHDAT[4].lengthCounter = 1;
-            CHDAT[4].instrumentNumber = 0;
-            CHDAT[4].volume = 8;
-            CHDAT[4].volReg = 9;
-            CHDAT[4].channelNumber = 2;
+            for (int i = 0; i < CHDAT[5].PGDAT.Count; i++)
+            {
+                CHDAT[5].PGDAT[i].lengthCounter = 1;
+                CHDAT[5].PGDAT[i].instrumentNumber = 0;
+                CHDAT[5].PGDAT[i].volume = 8;
+                CHDAT[5].PGDAT[i].volReg = 10;
+                CHDAT[5].PGDAT[i].channelNumber = 4;
+            }
 
-            CHDAT[5].lengthCounter = 1;
-            CHDAT[5].instrumentNumber = 0;
-            CHDAT[5].volume = 8;
-            CHDAT[5].volReg = 10;
-            CHDAT[5].channelNumber = 4;
+            for (int i = 0; i < CHDAT[6].PGDAT.Count; i++)
+            {
+                CHDAT[6].PGDAT[i].lengthCounter = 1;
+                CHDAT[6].PGDAT[i].volume = 10;
+                CHDAT[6].PGDAT[i].channelNumber = 2;
+            }
 
+            for (int i = 0; i < CHDAT[7].PGDAT.Count; i++)
+            {
+                CHDAT[7].PGDAT[i].lengthCounter = 1;
+                CHDAT[7].PGDAT[i].volume = 10;
+                CHDAT[7].PGDAT[i].channelNumber = 2;
+            }
 
-            CHDAT[6].lengthCounter = 1;
-            CHDAT[6].volume = 10;
-            CHDAT[6].channelNumber = 2;
+            for (int i = 0; i < CHDAT[8].PGDAT.Count; i++)
+            {
+                CHDAT[8].PGDAT[i].lengthCounter = 1;
+                CHDAT[8].PGDAT[i].volume = 10;
+                CHDAT[8].PGDAT[i].channelNumber = 2;
+            }
 
+            for (int i = 0; i < CHDAT[9].PGDAT.Count; i++)
+            {
+                CHDAT[9].PGDAT[i].lengthCounter = 1;
+                CHDAT[9].PGDAT[i].volume = 10;
+                CHDAT[9].PGDAT[i].channelNumber = 2;
+            }
 
-            CHDAT[7].lengthCounter = 1;
-            CHDAT[7].volume = 10;
-            CHDAT[7].channelNumber = 2;
-
-            CHDAT[8].lengthCounter = 1;
-            CHDAT[8].volume = 10;
-            CHDAT[8].channelNumber = 2;
-
-            CHDAT[9].lengthCounter = 1;
-            CHDAT[9].volume = 10;
-            CHDAT[9].channelNumber = 2;
-
-
-            CHDAT[10].lengthCounter = 1;
-            CHDAT[10].volume = 10;
-            CHDAT[10].channelNumber = 2;
+            for (int i = 0; i < CHDAT[10].PGDAT.Count; i++)
+            {
+                CHDAT[10].PGDAT[i].lengthCounter = 1;
+                CHDAT[10].PGDAT[i].volume = 10;
+                CHDAT[10].PGDAT[i].channelNumber = 2;
+            }
 
             PREGBF = new byte[9];
             INITPM = new byte[] { 0, 0, 0, 0, 0, 56, 0, 0, 0 };
@@ -224,6 +253,14 @@ namespace mucomDotNET.Driver
     }
 
     public class CHDAT
+    {
+        public List<PGDAT> PGDAT = new List<PGDAT>();
+
+        public int keyOnCh { get; internal set; }
+        public int currentPageNo { get; internal set; }
+    }
+
+    public class PGDAT
     {
         public MmlDatum[] mData = null;
 
@@ -286,6 +323,7 @@ namespace mucomDotNET.Driver
         public bool SSGTremoloFlg { get; internal set; }
         public int SSGTremoloVol { get; internal set; }
         public int loopCounter { get; internal set; }
+        public int pageNo { get; internal set; }
 
         public bool KeyOnDelayFlag = false;
         public byte keyOnSlot = 0xf0;
