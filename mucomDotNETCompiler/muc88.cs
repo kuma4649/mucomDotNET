@@ -3035,7 +3035,7 @@ namespace mucomDotNET.Compiler
             }
 
             mucInfo.srcCPtr = 0;
-            mucInfo.srcLinPtr = 0;
+            mucInfo.srcLinPtr = -1;
 
             CSTART2();
         }
@@ -3444,7 +3444,7 @@ namespace mucomDotNET.Compiler
 
             // TEXT START ADR
             mucInfo.srcCPtr = 0;
-            mucInfo.srcLinPtr = 0;
+            mucInfo.srcLinPtr = -1;
 
             INIT();
 

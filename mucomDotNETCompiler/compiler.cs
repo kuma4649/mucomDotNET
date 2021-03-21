@@ -331,7 +331,8 @@ namespace mucomDotNET.Compiler
                 work.compilerInfo.loopCount = new List<int>();
                 work.compilerInfo.bufferCount = new List<int>();
 
-                bool usePageFunction = false;
+                bool usePageFunction = mucInfo.usePageFunction;// false;
+                int bufferLength = 0;
                 for (int i = 0; i < Muc88.MAXCH; i++)
                 {
                     string Tc = "";
@@ -348,8 +349,8 @@ namespace mucomDotNET.Compiler
                             Tc += string.Format("{0}{1}:{2:d05} ", (char)('A' + i), j, work.tcnt[i][j]);
                             Lc += string.Format("{0}{1}:{2:d05} ", (char)('A' + i), j, work.lcnt[i][j]);
                             Bc += string.Format("{0}{1}:{2:d05} ", (char)('A' + i), j, work.bufCount[i][j]);
-
-                            if (j != 0) usePageFunction = true;
+                            bufferLength = work.bufCount[i][j];
+                            //if (j != 0) usePageFunction = true;
                         }
                     }
                     if (Tc.Length > 2)
@@ -378,6 +379,7 @@ namespace mucomDotNET.Compiler
                 int start = Convert.ToInt32(msg, 16);
                 msg = enc.GetStringFromSjisArray(textLineBuf, 41, 4);//Encoding.GetEncoding("Shift_JIS").GetString(textLineBuf, 41, 4);
                 int length = mucInfo.bufDst.Count;
+                if (usePageFunction) length = bufferLength;
                 mubsize = length;
 
                 Log.WriteLine(LogLevel.INFO, "- mucom.NET -");

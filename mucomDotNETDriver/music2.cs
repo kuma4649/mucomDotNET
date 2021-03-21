@@ -329,9 +329,12 @@ namespace mucomDotNET.Driver
             for (ch = 7; ch < 7 + 4; ch++) FMINITex(ch);
 
             List<byte> buf = new List<byte>();
-            for (int i = 0; i < work.header.mupb.instruments[0].data.Length; i++)
+            if (work.header.mupb.instruments != null && work.header.mupb.instruments.Length > 0 && work.header.mupb.instruments[0].data != null)
             {
-                buf.Add((byte)work.header.mupb.instruments[0].data[i].dat);
+                for (int i = 0; i < work.header.mupb.instruments[0].data.Length; i++)
+                {
+                    buf.Add((byte)work.header.mupb.instruments[0].data[i].dat);
+                }
             }
             work.fmVoiceAtMusData = buf.ToArray();
 
