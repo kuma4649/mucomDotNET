@@ -329,5 +329,10 @@ namespace mucomDotNET.Driver
         public byte keyOnSlot = 0xf0;
         public byte[] KD = new byte[4];
         public byte[] KDWork = new byte[4];
+        public byte backupMIXPort { get; internal set; } = 0x38;
+        public byte backupNoiseFrq { get; internal set; } = 0;
+        public byte backupHardEnv { get; internal set; } = 0;
+        public byte backupHardEnvFine { get; internal set; } = 0;
+        public byte backupHardEnvCoarse { get; internal set; } = 0;
     }
 }

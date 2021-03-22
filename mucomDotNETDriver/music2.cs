@@ -878,7 +878,7 @@ namespace mucomDotNET.Driver
                 return;
             }
 
-            if (work.cd.keyOnCh != -1)
+            if (work.cd.keyOnCh != -1 || !work.pg.keyoffflg)
             {
                 work.pg.dataAddressWork = hl + 1;// SET NEXT SOUND DATA ADD
                 return;
@@ -2320,7 +2320,20 @@ namespace mucomDotNET.Driver
 
         public void NOISE()
         {
-            byte c = (byte)work.pg.mData[work.hl++].dat;
+            work.pg.backupMIXPort = (byte)work.pg.mData[work.hl++].dat;
+            if (work.pg.pageNo != work.cd.currentPageNo) return;
+
+            tNOISE();
+        }
+        
+        public void restoreNOISE()
+        {
+            tNOISE();
+        }
+
+        public void tNOISE()
+        {
+            byte c = work.pg.backupMIXPort;
             byte b = (byte)work.pg.channelNumber;
             byte e = work.soundWork.PREGBF[5];
             b >>= 1;
@@ -2351,11 +2364,24 @@ namespace mucomDotNET.Driver
             work.soundWork.PREGBF[5] = e;
         }
 
+
         // **   ﾉｲｽﾞ ｼｭｳﾊｽｳ   **
 
         public void NOISEW()
         {
-            byte e = (byte)work.pg.mData[work.hl++].dat;
+            work.pg.backupNoiseFrq = (byte)work.pg.mData[work.hl++].dat;
+            if (work.pg.pageNo != work.cd.currentPageNo) return;
+
+            tNOISEW();
+
+        }
+        public void restoreNOISEW()
+        {
+            tNOISEW();
+        }
+        public void tNOISEW()
+        {
+            byte e = (byte)work.pg.backupNoiseFrq;
             PSGOUT(6, e);
             work.soundWork.PREGBF[4] = e;
         }
@@ -2387,6 +2413,8 @@ namespace mucomDotNET.Driver
 
         public void PLLFO()
         {
+            if (work.pg.pageNo != work.cd.currentPageNo) return;
+
             // ---	FOR FM & SSG LFO	---
             if (!work.pg.lfoflg)
             {
@@ -2660,6 +2688,9 @@ namespace mucomDotNET.Driver
 
         public void SSSUB0()
         {
+            if (work.pg.pageNo != work.cd.currentPageNo)
+                return;
+
             if ((work.pg.volume & 0x80) == 0)// ENVELOPE CHECK
             {
                 return;
@@ -2681,7 +2712,7 @@ namespace mucomDotNET.Driver
             if (work.soundWork.KEY_FLAG != 0xff)
             {
                 byte d = (byte)work.pg.volReg;
-                PSGOUT(d, e);
+                if (work.pg.pageNo == work.cd.currentPageNo) PSGOUT(d, e);
             }
             return;
         }
@@ -2709,7 +2740,7 @@ namespace mucomDotNET.Driver
             // --	HARD ENV.KEY OFF   --
             if (work.pg.hardEnveFlg)
             {
-                PSGOUT((byte)work.pg.volReg, 0);//SSG KEY OFF
+                if (work.pg.pageNo == work.cd.currentPageNo) PSGOUT((byte)work.pg.volReg, 0);//SSG KEY OFF
             }
 
             // --	SOFT ENV.KEY OFF   --
@@ -2774,7 +2805,7 @@ namespace mucomDotNET.Driver
                                       //  ｷｭｳﾌ ﾅﾗ SSSUBA
             if (carry)
             {
-                work.crntMmlDatum = work.pg.mData[work.hl-1];
+                work.crntMmlDatum = work.pg.mData[work.hl - 1];
                 SSSUBA();
                 SETPT();
                 return;
@@ -2804,6 +2835,24 @@ namespace mucomDotNET.Driver
 
             //Mem.stack.Push(Z80.HL);
 
+
+            if (work.cd.keyOnCh != -1 || !work.pg.keyoffflg)//KUMA:既に他のページが発音中の場合は処理しない
+            {
+                SETPT();//KUMA:演奏位置の更新
+                return;
+            }
+            work.cd.keyOnCh = work.pg.pageNo;
+            if (work.cd.currentPageNo != work.pg.pageNo)
+            {
+                work.cd.currentPageNo = work.pg.pageNo;
+                //復帰処理
+                restoreNOISE();
+                restoreNOISEW();
+                restoreHRDENV();
+                restoreENVPOD();
+                //work.pg.lfoflg = false;
+            }
+
             b = a;
             a &= 0b0000_1111;//  GET KEY CODE
             byte e = a;
@@ -2823,6 +2872,8 @@ namespace mucomDotNET.Driver
                 } while (b != 0);// OCTAVE DATA ﾉ ｹｯﾃｲ
                 //  1 ﾅﾗ SSSUB4 ﾍ
             }
+            
+            //KUMA:FNUMのセット
             //SSSUB4:
             e = (byte)hl;
             byte d = (byte)work.pg.channelNumber;
@@ -2830,6 +2881,7 @@ namespace mucomDotNET.Driver
             e = (byte)(hl >> 8);
             d++;
             PSGOUT(d, e);
+
             if (work.pg.keyoffflg)
             {
                 goto SSSUBF;
@@ -3057,7 +3109,7 @@ namespace mucomDotNET.Driver
                 if (work.soundWork.KEY_FLAG != 0xff)
                 {
                     byte d = (byte)work.pg.volReg;
-                    PSGOUT(d, e);
+                    if (work.pg.pageNo == work.cd.currentPageNo) PSGOUT(d, e);
                 }
             }
             work.pg.dataAddressWork = work.hl;
@@ -3075,24 +3127,47 @@ namespace mucomDotNET.Driver
 
         public void HRDENV()
         {
+            work.pg.backupHardEnv = (byte)work.pg.mData[work.hl++].dat;
+            work.pg.hardEnveFlg = true;
+            if (work.pg.pageNo != work.cd.currentPageNo) return;
 
-            byte e = (byte)work.pg.mData[work.hl++].dat;
+            tHRDENV();
+        }
+        public void restoreHRDENV()
+        {
+            if (!work.pg.hardEnveFlg) return;
+            tHRDENV();
+        }
+        public void tHRDENV()
+        {
+            byte e = work.pg.backupHardEnv;
             byte d = 0x0d;
             PSGOUT(d, e);
             work.pg.hardEnveFlg = true;
             work.pg.hardEnvelopValue = (byte)(e & 0xf);
             work.pg.volume = 16;
-
         }
+
 
         public void ENVPOD()
         {
+            work.pg.backupHardEnvFine = (byte)work.pg.mData[work.hl++].dat;
+            work.pg.backupHardEnvCoarse = (byte)work.pg.mData[work.hl++].dat;
+            if (work.pg.pageNo != work.cd.currentPageNo) return;
 
-            byte e = (byte)work.pg.mData[work.hl++].dat;
+            tENVPOD();
+        }
+        public void restoreENVPOD()
+        {
+            tENVPOD();
+        }
+        public void tENVPOD()
+        {
+
+            byte e = (byte)work.pg.backupHardEnvFine;
             byte d = 0x0b;
             PSGOUT(d, e);
-
-            e = (byte)work.pg.mData[work.hl++].dat;
+            e = (byte)work.pg.backupHardEnvCoarse;
             d = 0x0c;
             PSGOUT(d, e);
 
