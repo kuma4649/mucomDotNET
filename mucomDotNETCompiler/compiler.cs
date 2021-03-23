@@ -335,38 +335,56 @@ namespace mucomDotNET.Compiler
                 int bufferLength = 0;
                 for (int i = 0; i < Muc88.MAXCH; i++)
                 {
-                    string Tc = "";
-                    string Lc = "";
-                    string Bc = "";
-                    for (int j = 0; j < 10; j++)
+                    if (!usePageFunction)
                     {
-                        if (work.lcnt[i][j] != 0) { work.lcnt[i][j] = work.tcnt[i][j] - (work.lcnt[i][j] - 1); }
-                        if (work.tcnt[i][j] > maxcount) maxcount = work.tcnt[i][j];
-                        work.compilerInfo.totalCount.Add(work.tcnt[i][j]);
-                        work.compilerInfo.loopCount.Add(work.lcnt[i][j]);
-                        if (work.bufCount[i][j] > 1)
+                        if (work.lcnt[i][0] != 0) { work.lcnt[i][0] = work.tcnt[i][0] - (work.lcnt[i][0] - 1); }
+                        if (work.tcnt[i][0] > maxcount) maxcount = work.tcnt[i][0];
+                        strTcount += string.Format("{0}:{1} ", (char)('A' + i), work.tcnt[i][0]);
+                        work.compilerInfo.totalCount.Add(work.tcnt[i][0]);
+                        strLcount += string.Format("{0}:{1} ", (char)('A' + i), work.lcnt[i][0]);
+                        work.compilerInfo.loopCount.Add(work.lcnt[i][0]);
+                        strBcount += string.Format("{0}:{1:x04} ", (char)('A' + i), work.bufCount[i][0]);
+                        work.compilerInfo.bufferCount.Add(work.bufCount[i][0]);
+                        if (work.bufCount[i][0] > 0xffff)
                         {
-                            Tc += string.Format("{0}{1}:{2:d05} ", (char)('A' + i), j, work.tcnt[i][j]);
-                            Lc += string.Format("{0}{1}:{2:d05} ", (char)('A' + i), j, work.lcnt[i][j]);
-                            Bc += string.Format("{0}{1}:{2:d05} ", (char)('A' + i), j, work.bufCount[i][j]);
-                            bufferLength = work.bufCount[i][j];
-                            //if (j != 0) usePageFunction = true;
+                            throw new MucException(string.Format(Common.msg.get("E0700"), (char)('A' + i), work.bufCount[i]));
                         }
                     }
-                    if (Tc.Length > 2)
+                    else
                     {
-                        strTcount += Tc + "\r\n";
-                        strLcount += Lc + "\r\n";
-                        strBcount += Bc + "\r\n";
-                    }
-                    for (int j = 0; j < 10; j++)
-                    {
-                        work.compilerInfo.bufferCount.Add(work.bufCount[i][j]);
-                        if (work.bufCount[i][j] > 0xffff)
+                        string Tc = "";
+                        string Lc = "";
+                        string Bc = "";
+                        for (int j = 0; j < 10; j++)
                         {
-                            throw new MucException(string.Format(Common.msg.get("E0700")
-                                , ((char)('A' + i)).ToString() + j.ToString()
-                                , work.bufCount[i]));
+                            if (work.lcnt[i][j] != 0) { work.lcnt[i][j] = work.tcnt[i][j] - (work.lcnt[i][j] - 1); }
+                            if (work.tcnt[i][j] > maxcount) maxcount = work.tcnt[i][j];
+                            work.compilerInfo.totalCount.Add(work.tcnt[i][j]);
+                            work.compilerInfo.loopCount.Add(work.lcnt[i][j]);
+                            if (work.bufCount[i][j] > 1)
+                            {
+                                Tc += string.Format("{0}{1}:{2:d05} ", (char)('A' + i), j, work.tcnt[i][j]);
+                                Lc += string.Format("{0}{1}:{2:d05} ", (char)('A' + i), j, work.lcnt[i][j]);
+                                Bc += string.Format("{0}{1}:{2:d05} ", (char)('A' + i), j, work.bufCount[i][j]);
+                                bufferLength = work.bufCount[i][j];
+                                //if (j != 0) usePageFunction = true;
+                            }
+                        }
+                        if (Tc.Length > 2)
+                        {
+                            strTcount += Tc + "\r\n";
+                            strLcount += Lc + "\r\n";
+                            strBcount += Bc + "\r\n";
+                        }
+                        for (int j = 0; j < 10; j++)
+                        {
+                            work.compilerInfo.bufferCount.Add(work.bufCount[i][j]);
+                            if (work.bufCount[i][j] > 0xffff)
+                            {
+                                throw new MucException(string.Format(Common.msg.get("E0700")
+                                    , ((char)('A' + i)).ToString() + j.ToString()
+                                    , work.bufCount[i]));
+                            }
                         }
                     }
                 }
@@ -385,7 +403,7 @@ namespace mucomDotNET.Compiler
                 Log.WriteLine(LogLevel.INFO, "- mucom.NET -");
                 Log.WriteLine(LogLevel.INFO, "[ Total count ]\r\n" + strTcount);
                 Log.WriteLine(LogLevel.INFO, "[ Loop count  ]\r\n"+strLcount);
-                Log.WriteLine(LogLevel.INFO, "[ Buffer count  ]\r\n" + strBcount);
+                if (usePageFunction) Log.WriteLine(LogLevel.INFO, "[ Buffer count  ]\r\n" + strBcount);
                 Log.WriteLine(LogLevel.INFO, "");
                 Log.WriteLine(LogLevel.INFO, string.Format("Used FM voice : {0}", fmvoice));
                 Log.WriteLine(LogLevel.INFO, string.Format("#Data Buffer  : ${0:x05} - ${1:x05} (${2:x05})", start, start + length - 1, length));

@@ -4,9 +4,13 @@
 [概要]  
   mucom88を.NET版に移植したものです。  
   古代さんのご厚意でAMD98の機能も盛り込んでおります。  
+  公式ページ  
+- [OPEN MUCOM PROJECT (株式会社エインシャント様)](https://www.ancient.co.jp/~mucom88/)  
+- [OPEN MUCOM88 Wiki (ONION software/おにたま様)](https://github.com/onitama/mucom88/wiki)  
   
 [機能、特徴]  
- ・１パート毎に64Kbyteフルに使用したmubが作成できます。未確認。  
+ ・１パートを最大10ページに分けて記述できます。  
+ ・１ページ毎に64Kbyteフルに使用したmubが作成できます。未確認。  
  ・一部mucom88ではオミットされた機能などが使えちゃいます。  
  このため、それらを使用したデータをmucom88で演奏するとおかしな事態になってしまいます。  
  (今のところ対策は何も行われていません。)  
@@ -54,7 +58,5 @@ https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ja
  ・Visual Studio Community 2019  
  ・さくらエディター  
   
- ・mucomさんとこのwiki  
-   https://github.com/MUCOM88/mucom88/wiki  
- ・ぼうきちさんとこのwiki  
-   https://github.com/BouKiCHi/mucom88/wiki  
+ ・[mucomさんとこのwiki](https://github.com/MUCOM88/mucom88/wiki)  
+ ・[ぼうきちさんとこのwiki](https://github.com/BouKiCHi/mucom88/wiki)  

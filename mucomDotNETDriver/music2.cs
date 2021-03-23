@@ -639,6 +639,7 @@ namespace mucomDotNET.Driver
 
                 work.cd = work.soundWork.CHDAT[i];//KUMA:カレントのパートワーク切り替え
                 work.cd.keyOnCh = -1;//KUMA:発音ページ情報をリセット
+                work.rhythmOR = 0;
 
                 for (int j = 0; j < work.cd.PGDAT.Count;j++) 
                 {
@@ -654,6 +655,11 @@ namespace mucomDotNET.Driver
                     //KUMA:終了パートのカウント
                     if ((work.pg.dataTopAddress == -1 && work.pg.loopEndFlg) 
                         || work.pg.loopCounter >= work.maxLoopCount) n++;
+                }
+
+                if (work.rhythmOR != 0)
+                {
+                    PSGOUT(0x10, (byte)(work.rhythmOR & 0b0011_1111));// KEY ON
                 }
             }
 
@@ -1170,7 +1176,14 @@ namespace mucomDotNET.Driver
         public void DKEYON()
         {
             if (work.soundWork.READY == 0) return;
-            PSGOUT(0x10, (byte)(work.soundWork.RHYTHM & 0b0011_1111));// KEY ON
+            if (work.header.mupb == null)
+            {
+                PSGOUT(0x10, (byte)(work.soundWork.RHYTHM & 0b0011_1111));// KEY ON
+            }
+            else
+            {
+                work.rhythmOR |= (work.soundWork.RHYTHM & 0b0011_1111);
+            }
         }
 
         // **	KEY-ON ROUTINE   **
@@ -1245,7 +1258,7 @@ namespace mucomDotNET.Driver
 
             if (work.soundWork.DRMF1 != 0)
             {
-                OTODRM();
+                restoreOTODRM();
                 return;
             }
 
@@ -1281,6 +1294,13 @@ namespace mucomDotNET.Driver
         {
             DummyOUT();
             work.soundWork.RHYTHM = work.pg.mData[work.hl++].dat;// SET RETHM PARA
+            work.pg.instrumentNumber = work.soundWork.RHYTHM;
+        }
+
+        public void restoreOTODRM()
+        {
+            DummyOUT();
+            work.soundWork.RHYTHM = work.pg.instrumentNumber;
         }
 
         public void OTOPCM()

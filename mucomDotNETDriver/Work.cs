@@ -43,6 +43,7 @@ namespace mucomDotNET.Driver
         public object crntMmlDatum { get; internal set; }
         public int maxLoopCount { get; internal set; } = -1;
         public int nowLoopCounter { get; internal set; } = -1;
+        public int rhythmOR { get; internal set; }
 
         public OPNATimer timer = null;
         public ulong timeCounter = 0L;
