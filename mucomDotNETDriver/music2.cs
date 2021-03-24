@@ -599,7 +599,8 @@ namespace mucomDotNET.Driver
                 if (p == work.soundWork.CHDAT[i].PGDAT.Count) n++;
                 //if (work.soundWork.CHDAT[i].PGDAT[0].musicEnd) n++;
             }
-            if (n == 11) work.Status = 0;
+            if (n == 11) 
+                work.Status = 0;
         }
 
         // **	CALL FM		**
@@ -788,6 +789,8 @@ namespace mucomDotNET.Driver
 
         public void PCMEND()
         {
+            if (work.cd.currentPageNo != work.pg.pageNo) return;
+
             PCMOUT(0x0b, 0x00);
             PCMOUT(0x01, 0x00);
             PCMOUT(0x00, 0x21);
@@ -1136,6 +1139,10 @@ namespace mucomDotNET.Driver
 
         public void PLAY()
         {
+            if (work.cd.keyOnCh != -1)
+                return;//KUMA:既に他のページが発音中の場合は処理しない
+            work.cd.keyOnCh = work.pg.pageNo;
+
             if (work.soundWork.READY == 0) return;
 
             PCMOUT(0x0b, 0x00);
@@ -1252,7 +1259,7 @@ namespace mucomDotNET.Driver
         {
             if (work.soundWork.PCMFLG != 0)
             {
-                OTOPCM();
+                restoreOTOPCM();
                 return;
             }
 
@@ -1305,11 +1312,33 @@ namespace mucomDotNET.Driver
 
         public void OTOPCM()
         {
+            if (work.cd.currentPageNo != work.pg.pageNo)
+            {
+                work.pg.instrumentNumber = (byte)work.pg.mData[work.hl++].dat-1;
+                return;
+            }
             DummyOUT();
             byte a = (byte)work.pg.mData[work.hl++].dat;
             work.soundWork.PCMNUM = a;
             a--;
             work.pg.instrumentNumber = a;
+
+            if (work.pcmTables != null && work.pcmTables.Length > a)
+            {
+                work.soundWork.STTADR = work.pcmTables[a].Item2[0];//start address
+                work.soundWork.ENDADR = work.pcmTables[a].Item2[1];//end address
+            }
+
+            if (work.soundWork.PVMODE == 0) return;
+
+            work.pg.volume = (byte)work.pcmTables[a].Item2[3];
+        }
+
+        public void restoreOTOPCM()
+        {
+            DummyOUT();
+            work.soundWork.PCMNUM = (byte)(work.pg.instrumentNumber + 1);
+            byte a = (byte)work.pg.instrumentNumber;
 
             if (work.pcmTables != null && work.pcmTables.Length > a)
             {
@@ -1837,6 +1866,7 @@ namespace mucomDotNET.Driver
             {
                 //既存処理
                 work.soundWork.PCMLR = a;
+                work.pg.panValue = a;
                 work.pg.panEnable = 0;//パーン禁止
                 return;
             }
@@ -1977,6 +2007,7 @@ namespace mucomDotNET.Driver
             {
                 work.pg.panEnable = 0;//パーン禁止
                 a = work.pg.panValue;
+                work.soundWork.PCMLR = a;
                 PCMOUT(0x01, (byte)(a << 6));
                 return;
             }
