@@ -30,6 +30,7 @@ copy .\CHANGE.txt .\output\
 copy .\README.md .\output\
 copy .\usage.txt .\output\
 copy .\MML.txt .\output\
+copy .\ExtendFormat.txt .\output\
 copy .\compile.bat .\output\
 copy .\play.bat .\output\
 copy .\playOnGIMIC.bat .\output\

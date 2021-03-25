@@ -316,7 +316,7 @@ namespace mucomDotNET.Driver
         public byte panMode = 0;//DB ? ;パーン モード 39
         public byte panCounterWork = 0;//DB ? ;パーン カウンター 40
         public byte panCounter = 0;//DB ? ;パーン カウンター 41
-        public byte panValue = 0;//DB ? ;パーン 値 42
+        public byte panValue = 3;//DB ? ;パーン 値 42
 
         public bool musicEnd { get; internal set; }
         public byte TLlfoSlot { get; internal set; }

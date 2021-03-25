@@ -1189,7 +1189,7 @@ namespace mucomDotNET.Driver
             }
             else
             {
-                work.rhythmOR |= (work.soundWork.RHYTHM & 0b0011_1111);
+                work.rhythmOR |= (work.pg.instrumentNumber & 0b0011_1111);
             }
         }
 
