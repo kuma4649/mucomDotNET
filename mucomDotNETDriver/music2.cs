@@ -1440,6 +1440,16 @@ namespace mucomDotNET.Driver
         public void VOLDRM()
         {
             byte a = (byte)work.pg.mData[work.hl++].dat;
+
+            if (work.isDotNET)
+            {
+                if ((a & 0x80) != 0)
+                {
+                    VOLDRMn((byte)(a & 0x1f));
+                    return;
+                }
+            }
+
             work.pg.volume = a;
             DVOLSET();
             //VOLDR1:
@@ -1454,6 +1464,20 @@ namespace mucomDotNET.Driver
                 PSGOUT((byte)(0x18 - b + 6), a);
                 b--;
             } while (b != 0);
+        }
+
+        public void VOLDRMn(byte a)
+        {
+            int inst = work.pg.instrumentNumber;
+            for(int i = 0; i < 6; i++)
+            {
+                if(((inst >> i) & 1) != 0)
+                {
+                    byte b = (byte)((work.soundWork.DRMVOL[i] & 0b1100_0000) | a);
+                    work.soundWork.DRMVOL[i] = b;
+                    PSGOUT((byte)(0x18 +i), b);
+                }
+            }
         }
 
         // --   SET TOTAL RHYTHM VOL	--
@@ -2175,20 +2199,47 @@ namespace mucomDotNET.Driver
 
         public void VOLUPF()
         {
-            work.pg.volume = work.pg.mData[work.hl++].dat + work.pg.volume;
+            if (work.soundWork.DRMF1 != 0)
+            {
+                byte n = (byte)work.pg.mData[work.hl++].dat;
+
+                if (work.isDotNET)
+                {
+                    if ((n&0x80)!=0)
+                    {
+                        VOLUPF_Rhythm(n);
+                        return;
+                    }
+                }
+
+                work.pg.volume += (sbyte)n;
+                DVOLSET();
+                return;
+            }
+
+            work.pg.volume += work.pg.mData[work.hl++].dat;
 
             if (work.soundWork.PCMFLG != 0)
             {
                 return;
             }
 
-            if (work.soundWork.DRMF1 != 0)
-            {
-                DVOLSET();
-                return;
-            }
-
             STVOL();
+        }
+
+        public void VOLUPF_Rhythm(byte a)
+        {
+            int inst = work.pg.instrumentNumber;
+            for (int i = 0; i < 6; i++)
+            {
+                if (((inst >> i) & 1) != 0)
+                {
+                    byte b = (byte)((sbyte)((a & 0x3f) | ((a & 0x40) != 0 ? 0xc0 : 0)) + (work.soundWork.DRMVOL[i] & 0x3f));
+                    b = (byte)((work.soundWork.DRMVOL[i] & 0b1100_0000) | b);
+                    work.soundWork.DRMVOL[i] = b;
+                    PSGOUT((byte)(0x18 + i), b);
+                }
+            }
         }
 
         // **	HARD LFO SET**

@@ -2069,6 +2069,7 @@ namespace mucomDotNET.Compiler
         }
 
 
+
         private EnmFCOMPNextRtn SETVUP()
         {
             if (work.VolumeUDFLG != 0)
@@ -2107,23 +2108,8 @@ namespace mucomDotNET.Compiler
                 mucInfo.srcCPtr--;
                 n = 1;// ﾍﾝｶ 1
             }
-            work.VOLUME += n;
-            msub.MWRITE(new MmlDatum(0xfb), new MmlDatum((byte)n));// COM OF ')'
 
-            return EnmFCOMPNextRtn.fcomp1;
-        }
-
-        private EnmFCOMPNextRtn SETODW()
-        {
-            SOD1();
-            if (mucInfo.Carry)
-            {
-                throw new MucException(
-                    msg.get("E0469")
-                    , mucInfo.row, mucInfo.col);
-            }
-
-            return EnmFCOMPNextRtn.fcomp1;
+            return SetRelativeVolume((sbyte)n);
         }
 
         public EnmFCOMPNextRtn SVD2()
@@ -2145,8 +2131,46 @@ namespace mucomDotNET.Compiler
                 mucInfo.srcCPtr--;
                 n = 1;// ﾍﾝｶ 1
             }
-            work.VOLUME -= n;
-            msub.MWRITE(new MmlDatum(0xfb), new MmlDatum((byte)-n));// ')' ﾉ ﾊﾝﾀｲ ﾊ '('
+
+            n = -n;// ')' ﾉ ﾊﾝﾀｲ ﾊ '('
+            return SetRelativeVolume((sbyte)n);
+        }
+
+        private EnmFCOMPNextRtn SetRelativeVolume(sbyte n)
+        {
+            work.VOLUME += n;
+
+            if (mucInfo.DriverType == MUCInfo.enmDriverType.DotNet)
+            {
+                if (work.COMNOW == 6)//KUMA:Rhythmの場合のみ特殊処理
+                {
+                    n = Math.Min(Math.Max(n, (sbyte)-63), (sbyte)63);
+                    byte m = (byte)n;
+                    m &= 0x7f;
+                    if (work.rhythmRelMode)//KUMA:とりあえず。
+                    {
+                        m |= 0x80;
+                    }
+
+                    msub.MWRITE(new MmlDatum(0xfb), new MmlDatum(m));
+                    return EnmFCOMPNextRtn.fcomp1;
+                }
+            }
+
+            msub.MWRITE(new MmlDatum(0xfb), new MmlDatum(n));
+            return EnmFCOMPNextRtn.fcomp1;
+        }
+
+
+        private EnmFCOMPNextRtn SETODW()
+        {
+            SOD1();
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    msg.get("E0469")
+                    , mucInfo.row, mucInfo.col);
+            }
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -2212,6 +2236,7 @@ namespace mucomDotNET.Compiler
             mucInfo.Carry = false;
         }
 
+
         private EnmFCOMPNextRtn SETVOL()
         {
             if (work.COMNOW == 10)
@@ -2232,6 +2257,26 @@ namespace mucomDotNET.Compiler
 
             if (mucInfo.Carry)
             {
+                if (mucInfo.DriverType == MUCInfo.enmDriverType.DotNet)
+                {
+                    char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr - 1 ? mucInfo.lin.Item2[mucInfo.srcCPtr - 1] : (char)0;
+                    if (c == 'm' && work.COMNOW == 6)
+                    {
+                        ptr = mucInfo.srcCPtr;
+                        n = msub.REDATA(mucInfo.lin, ref ptr);
+                        if (mucInfo.ErrSign)
+                        {
+                            throw new MucException(
+                                msg.get("E0472")
+                                , mucInfo.row, mucInfo.col);
+                        }
+                        mucInfo.srcCPtr = ptr;
+                        work.rhythmRelMode = false;
+                        if (n != 0) work.rhythmRelMode = true;
+                        return EnmFCOMPNextRtn.fcomp1;
+                    }
+                }
+
                 n = work.VOLINT;
             }
 
@@ -2281,6 +2326,10 @@ namespace mucomDotNET.Compiler
 
             // -	DRAM V. -
             n += work.TV_OFS;
+
+            if (mucInfo.DriverType == MUCInfo.enmDriverType.DotNet)
+                n = Math.Min(Math.Max(n, 0), 63);
+
             msub.MWRITE(new MmlDatum(enmMMLType.Volume, args, lp, 0xf1), new MmlDatum((byte)n));
 
             for (int i = 0; i < 6; i++)
@@ -2288,6 +2337,18 @@ namespace mucomDotNET.Compiler
                 char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
                 if (c != ',')//','
                 {
+                    if (mucInfo.DriverType == MUCInfo.enmDriverType.DotNet)
+                    {
+                        //KUMA:もしパラメータが一つだけの場合は個別指定したものとする
+                        if (i == 0)
+                        {
+                            MmlDatum m = mucInfo.bufDst.Get(work.MDATA - 1);
+                            m.dat |= 0x80;//KUMA:個別指定を意味するフラグをbit7にたてる
+                            mucInfo.bufDst.Set(work.MDATA - 1, m);
+                            return EnmFCOMPNextRtn.fcomp1;
+                        }
+                    }
+
                     throw new MucException(
                         msg.get("E0473")
                         , mucInfo.row, mucInfo.col);
@@ -3486,6 +3547,7 @@ namespace mucomDotNET.Compiler
                 work.VolumeUDFLG = 1;
             }
             work.quantize = 0;//KUMA: ポルタメントむけq値保存
+            work.rhythmRelMode = false;
         }
 
         public void CMPEN1()
