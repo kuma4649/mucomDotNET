@@ -337,6 +337,7 @@ namespace mucomDotNET.Compiler
                 {
                     if (!usePageFunction)
                     {
+                        work.compilerInfo.formatType = "mub";
                         if (work.lcnt[i][0] != 0) { work.lcnt[i][0] = work.tcnt[i][0] - (work.lcnt[i][0] - 1); }
                         if (work.tcnt[i][0] > maxcount) maxcount = work.tcnt[i][0];
                         strTcount += string.Format("{0}:{1} ", (char)('A' + i), work.tcnt[i][0]);
@@ -352,6 +353,7 @@ namespace mucomDotNET.Compiler
                     }
                     else
                     {
+                        work.compilerInfo.formatType = "mupb";
                         string Tc = "";
                         string Lc = "";
                         string Bc = "";

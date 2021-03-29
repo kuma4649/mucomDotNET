@@ -755,7 +755,7 @@ namespace mucomDotNET.Compiler
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
                 , tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM"))
-                , "YM2608", 0, 0, work.COMNOW); ;
+                , "YM2608", 0, 0, work.COMNOW * 10 + work.pageNow);
 
             msub.MWRITE(
                 new MmlDatum(enmMMLType.Pan, args, lp, 0xf8)
@@ -1551,7 +1551,7 @@ namespace mucomDotNET.Compiler
                     , mucInfo.srcCPtr - mucInfo.col + 1
                     , ""
                     , "YM2608", 0, 0
-                    , work.COMNOW);
+                    , work.COMNOW * 10 + work.pageNow);
                 msub.MWRIT2(new MmlDatum(
                     enmMMLType.Rest
                     , args
@@ -1568,7 +1568,7 @@ namespace mucomDotNET.Compiler
                 , mucInfo.srcCPtr - mucInfo.col + 1
                 , ""
                 , "YM2608", 0, 0
-                , work.COMNOW);
+                , work.COMNOW * 10 + work.pageNow);
             msub.MWRIT2(new MmlDatum(
                     enmMMLType.Rest
                     , args
@@ -2293,7 +2293,7 @@ namespace mucomDotNET.Compiler
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
                 , tp == ChannelType.FM ? "FM" : "SSG"
-                , "YM2608", 0, 0, work.COMNOW);
+                , "YM2608", 0, 0, work.COMNOW * 10 + work.pageNow);
 
             if (work.COMNOW != 6)
             {
@@ -2322,7 +2322,7 @@ namespace mucomDotNET.Compiler
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
                 , "RHYTHM"
-                , "YM2608", 0, 0, work.COMNOW);
+                , "YM2608", 0, 0, work.COMNOW * 10 + work.pageNow);
 
             // -	DRAM V. -
             n += work.TV_OFS;
@@ -2398,7 +2398,7 @@ namespace mucomDotNET.Compiler
                     , mucInfo.row, mucInfo.col
                     , mucInfo.srcCPtr - mucInfo.col + 1
                     , "ADPCM"
-                    , "YM2608", 0, 0, work.COMNOW);
+                    , "YM2608", 0, 0, work.COMNOW * 10 + work.pageNow);
 
                 n = (byte)n;
                 work.VOLUME = n;
@@ -2476,7 +2476,7 @@ namespace mucomDotNET.Compiler
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
                 , tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM"))
-                , "YM2608", 0, 0, work.COMNOW); ;
+                , "YM2608", 0, 0, work.COMNOW * 10 + work.pageNow);
             msub.MWRITE(new MmlDatum(
                  enmMMLType.Detune
                  , args
@@ -2757,7 +2757,7 @@ namespace mucomDotNET.Compiler
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
                 , "FM"
-                , "YM2608", 0, 0, work.COMNOW);
+                , "YM2608", 0, 0, work.COMNOW * 10 + work.pageNow);
 
             int voiceIndex = CCVC(num, mucInfo.bufDefVoice);// --	VOICE ｶﾞ ﾄｳﾛｸｽﾞﾐｶ?	--
             if (voiceIndex != -1)
@@ -2797,7 +2797,7 @@ namespace mucomDotNET.Compiler
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
                 , "SSG"
-                , "YM2608", 0, 0, work.COMNOW);
+                , "YM2608", 0, 0, work.COMNOW * 10 + work.pageNow);
 
             msub.MWRITE(
                 new MmlDatum(enmMMLType.Instrument, args, lp, 0xf0)
@@ -2843,7 +2843,7 @@ namespace mucomDotNET.Compiler
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
                 , tp == ChannelType.ADPCM ? "ADPCM" : "RHYTHM"
-                , "YM2608", 0, 0, work.COMNOW);
+                , "YM2608", 0, 0, work.COMNOW * 10 + work.pageNow);
 
             msub.MWRITE(new MmlDatum(enmMMLType.Instrument, args, lp, 0xf0), new MmlDatum((byte)num));
 
@@ -3003,7 +3003,7 @@ namespace mucomDotNET.Compiler
                     ,""
                     ,"YM2608"
                     ,0,0
-                    ,work.COMNOW
+                    ,work.COMNOW * 10 + work.pageNow
                     );
                 msub.MWRITE(
                     new MmlDatum(
@@ -3984,7 +3984,7 @@ namespace mucomDotNET.Compiler
                 , "YM2608"
                 , 0
                 , 0
-                , work.COMNOW
+                , work.COMNOW * 10 + work.pageNow
                 );
 
             // --	ｶｳﾝﾄ ｵｰﾊﾞｰ ｼｮﾘ	--
@@ -4029,7 +4029,7 @@ namespace mucomDotNET.Compiler
                 , "YM2608"
                 , 0
                 , 0
-                , work.COMNOW
+                , work.COMNOW * 10 + work.pageNow
                 );
 
             mucInfo.bufDst.Set(work.MDATA++, new MmlDatum(

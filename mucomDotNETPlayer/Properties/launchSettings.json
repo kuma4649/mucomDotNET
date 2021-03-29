@@ -2,7 +2,7 @@
   "profiles": {
     "Player": {
       "commandName": "Project",
-      "commandLineArgs": "D:\\bootcamp\\FM音源\\data\\MUC\\StreetsOfRage4\\testsor430.mub"
+      "commandLineArgs": "D:\\bootcamp\\FM音源\\data\\MUC\\call2opn.mub"
     }
   }
 }

@@ -642,6 +642,7 @@ namespace mucomDotNET.Driver
                 work.cd.keyOnCh = -1;//KUMA:発音ページ情報をリセット
                 work.rhythmOR = 0;
 
+                int m = 0;
                 for (int j = 0; j < work.cd.PGDAT.Count;j++) 
                 {
                     work.pg = work.cd.PGDAT[j];//KUMA:カレントのページワーク切り替え
@@ -655,8 +656,10 @@ namespace mucomDotNET.Driver
                     }
                     //KUMA:終了パートのカウント
                     if ((work.pg.dataTopAddress == -1 && work.pg.loopEndFlg) 
-                        || work.pg.loopCounter >= work.maxLoopCount) n++;
+                        || work.pg.loopCounter >= work.maxLoopCount) m++;
                 }
+                if (m == work.cd.PGDAT.Count) 
+                    n++;
 
                 if (work.rhythmOR != 0)
                 {
@@ -750,6 +753,11 @@ namespace mucomDotNET.Driver
                     port = 1;
                 }
             }
+            
+            //if (d >= 0x10 && d <= 0x1d)
+            //{
+            //    Console.WriteLine("{0:x} {1:x}", d, e);
+            //}
 
             ChipDatum dat = new ChipDatum(port, d, e, 0, work.crntMmlDatum);
             WriteOPNARegister(dat);
@@ -887,7 +895,7 @@ namespace mucomDotNET.Driver
                 return;
             }
 
-            if (work.cd.keyOnCh != -1 || !work.pg.keyoffflg)
+            if (work.cd.keyOnCh != -1 && work.cd.keyOnCh != work.pg.pageNo)// !work.pg.keyoffflg)
             {
                 work.pg.dataAddressWork = hl + 1;// SET NEXT SOUND DATA ADD
                 return;
@@ -2938,7 +2946,7 @@ namespace mucomDotNET.Driver
             //Mem.stack.Push(Z80.HL);
 
 
-            if (work.cd.keyOnCh != -1 || !work.pg.keyoffflg)//KUMA:既に他のページが発音中の場合は処理しない
+            if (work.cd.keyOnCh != -1 && work.cd.keyOnCh != work.pg.pageNo)// || !work.pg.keyoffflg)//KUMA:既に他のページが発音中の場合は処理しない
             {
                 SETPT();//KUMA:演奏位置の更新
                 return;

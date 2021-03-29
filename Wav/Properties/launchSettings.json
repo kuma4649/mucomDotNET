@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Wav": {
+      "commandName": "Project",
+      "commandLineArgs": "D:\\bootcamp\\FM音源\\data\\MUC\\call2opnOri.mub"
+    }
+  }
+}
