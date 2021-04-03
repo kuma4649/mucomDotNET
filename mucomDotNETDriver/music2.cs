@@ -641,6 +641,7 @@ namespace mucomDotNET.Driver
                 work.cd = work.soundWork.CHDAT[i];//KUMA:カレントのパートワーク切り替え
                 work.cd.keyOnCh = -1;//KUMA:発音ページ情報をリセット
                 work.rhythmOR = 0;
+                work.rhythmORKeyOff = 0;
 
                 int m = 0;
                 for (int j = 0; j < work.cd.PGDAT.Count;j++) 
@@ -660,6 +661,12 @@ namespace mucomDotNET.Driver
                 }
                 if (m == work.cd.PGDAT.Count) 
                     n++;
+
+
+                if (work.rhythmORKeyOff != 0)
+                {
+                    PSGOUT(0x10, (byte)((work.rhythmORKeyOff & 0b0011_1111) | 0x80));// KEY OFF
+                }
 
                 if (work.rhythmOR != 0)
                 {
@@ -782,8 +789,15 @@ namespace mucomDotNET.Driver
 
             if (work.soundWork.DRMF1 != 0)
             {
-                // --	ﾘｽﾞﾑ ｵﾝｹﾞﾝ ﾉ ｷｰｵﾌ	--
-                PSGOUT(0x10, (byte)((work.soundWork.RHYTHM & 0b0011_1111) | 0x80));// GET RETHM PARAMETER
+                if (work.header.mupb == null)
+                {
+                    // --	ﾘｽﾞﾑ ｵﾝｹﾞﾝ ﾉ ｷｰｵﾌ	--
+                    PSGOUT(0x10, (byte)((work.soundWork.RHYTHM & 0b0011_1111) | 0x80));// GET RETHM PARAMETER
+                }
+                else
+                {
+                    work.rhythmORKeyOff |= (work.pg.instrumentNumber & 0b0011_1111);
+                }
                 return;
             }
 
