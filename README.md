@@ -3,6 +3,8 @@
   
 [概要]  
   mucom88を.NET版に移植したものです。  
+  OPNAx2,OPNBx2の同時使用が可能です。  
+  (ぼうきちさんのWの機能を盛り込んだ形です。Thanks!>ぼうきちさん)  
   古代さんのご厚意でAMD98の機能も盛り込んでおります。  
   公式ページ  
 - [OPEN MUCOM PROJECT (株式会社エインシャント様)](https://www.ancient.co.jp/~mucom88/)  
@@ -26,6 +28,13 @@ https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ja
 著作権は作者が保有しています。  
 このソフトは無保証であり、このソフトを使用した事による  
 いかなる損害も作者は一切の責任を負いません。  
+  
+以下のソフトウェアのソースコードをC#向けに改変し使用しています。  
+これらのソースは各著作者が著作権を持ちます。  
+ライセンスに関しては、各ドキュメントを参照してください。  
+  
+  ・EncAdpcmA.cs  参考元：https://wiki.neogeodev.org/index.php?title=ADPCM_codecs  
+  
   
 以下のソフトウェアのソースコードをC#向けに改変し使用しています。  
 又はコード/dllを使用させていただいております。  

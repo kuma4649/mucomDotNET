@@ -43,13 +43,13 @@ namespace mucomDotNET.Driver
         public object crntMmlDatum { get; internal set; }
         public int maxLoopCount { get; internal set; } = -1;
         public int nowLoopCounter { get; internal set; } = -1;
-        public int rhythmORKeyOff { get; internal set; }
-        public int rhythmOR { get; internal set; }
+        public int[] rhythmORKeyOff { get; internal set; } = new int[4];
+        public int[] rhythmOR { get; internal set; } = new int[4];
 
         public OPNATimer timer = null;
         public ulong timeCounter = 0L;
-        public byte[] fmVoice = null;
-        public Tuple<string, ushort[]>[] pcmTables = null;
+        public byte[][] fmVoice = new byte[][] { null, null, null, null };
+        public Tuple<string, ushort[]>[][] pcmTables = new Tuple<string, ushort[]>[][] { null, null, null, null, null, null };
         public MmlDatum[] mData = null;
         public SoundWork soundWork = null;
         public byte[] fmVoiceAtMusData = null;

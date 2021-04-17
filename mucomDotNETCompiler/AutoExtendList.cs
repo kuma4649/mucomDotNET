@@ -42,5 +42,10 @@ namespace mucomDotNET.Compiler
         {
             return buf.ToArray();
         }
+
+        public void Clear()
+        {
+            buf = new List<T>();
+        }
     }
 }

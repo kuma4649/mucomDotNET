@@ -16,6 +16,7 @@ namespace Wav
         private static short[] emuRenderBuf = new short[2];
         private static iDriver drv = null;
         private static readonly uint opnaMasterClock = 7987200;
+        private static readonly uint opnbMasterClock = 8000000;
         private static WaveWriter ww = null;
         private static int loop = 2;
 
@@ -50,22 +51,49 @@ namespace Wav
                         , Path.GetFileNameWithoutExtension(args[fnIndex]) + ".wav")
                     );
 
+                List<MDSound.MDSound.Chip> lstChips = new List<MDSound.MDSound.Chip>();
+                MDSound.MDSound.Chip chip = null;
+
                 MDSound.ym2608 ym2608 = new MDSound.ym2608();
-                MDSound.MDSound.Chip chip = new MDSound.MDSound.Chip
+                for (int i = 0; i < 2; i++)
                 {
-                    type = MDSound.MDSound.enmInstrumentType.YM2608,
-                    ID = 0,
-                    Instrument = ym2608,
-                    Update = ym2608.Update,
-                    Start = ym2608.Start,
-                    Stop = ym2608.Stop,
-                    Reset = ym2608.Reset,
-                    SamplingRate = (uint)SamplingRate,
-                    Clock = opnaMasterClock,
-                    Volume = 0,
-                    Option = new object[] { GetApplicationFolder() }
-                };
-                mds = new MDSound.MDSound((uint)SamplingRate, (uint)samplingBuffer, new MDSound.MDSound.Chip[] { chip });
+                    chip = new MDSound.MDSound.Chip
+                    {
+                        type = MDSound.MDSound.enmInstrumentType.YM2608,
+                        ID = (byte)i,
+                        Instrument = ym2608,
+                        Update = ym2608.Update,
+                        Start = ym2608.Start,
+                        Stop = ym2608.Stop,
+                        Reset = ym2608.Reset,
+                        SamplingRate = (uint)SamplingRate,
+                        Clock = opnaMasterClock,
+                        Volume = 0,
+                        Option = new object[] { GetApplicationFolder() }
+                    };
+                    lstChips.Add(chip);
+                }
+                MDSound.ym2610 ym2610 = new MDSound.ym2610();
+                for (int i = 0; i < 2; i++)
+                {
+                    chip = new MDSound.MDSound.Chip
+                    {
+                        type = MDSound.MDSound.enmInstrumentType.YM2610,
+                        ID = (byte)i,
+                        Instrument = ym2610,
+                        Update = ym2610.Update,
+                        Start = ym2610.Start,
+                        Stop = ym2610.Stop,
+                        Reset = ym2610.Reset,
+                        SamplingRate = (uint)SamplingRate,
+                        Clock = opnbMasterClock,
+                        Volume = 0,
+                        Option = new object[] { GetApplicationFolder() }
+                    };
+                    lstChips.Add(chip);
+                }
+                mds = new MDSound.MDSound((uint)SamplingRate, (uint)samplingBuffer
+                    , lstChips.ToArray());
 
 
 #if NETCOREAPP
@@ -74,7 +102,18 @@ namespace Wav
                 drv = new Driver();
                 ((Driver)drv).Init(
                     args[fnIndex]
-                    , OPNAWrite
+                    , new List<Action<ChipDatum>>(){
+                        OPNAWriteP
+                        , OPNAWriteS
+                        , OPNBWriteP
+                        , OPNBWriteS
+                    }
+                    , new List<Action<byte[]>>() {
+                         OPNBWriteAdpcmAP
+                        , OPNBWriteAdpcmBP
+                        , OPNBWriteAdpcmAS
+                        , OPNBWriteAdpcmBS
+                    }
                     , OPNAWaitSend
                     , false
                     , true
@@ -215,6 +254,93 @@ namespace Wav
 
             return count;
         }
+
+        private static void OPNAWriteP(ChipDatum dat)
+        {
+            OPNAWrite(0, dat);
+        }
+        private static void OPNAWriteS(ChipDatum dat)
+        {
+            OPNAWrite(1, dat);
+        }
+        private static void OPNBWriteP(ChipDatum dat)
+        {
+            OPNBWrite(0, dat);
+        }
+        private static void OPNBWriteS(ChipDatum dat)
+        {
+            OPNBWrite(1, dat);
+        }
+        private static void OPNBWriteAdpcmAS(byte[] pcmData)
+        {
+            OPNBWrite_AdpcmA(1, pcmData);
+        }
+        private static void OPNBWriteAdpcmBS(byte[] pcmData)
+        {
+            OPNBWrite_AdpcmB(1, pcmData);
+        }
+        private static void OPNBWriteAdpcmAP(byte[] pcmData)
+        {
+            OPNBWrite_AdpcmA(0, pcmData);
+        }
+        private static void OPNBWriteAdpcmBP(byte[] pcmData)
+        {
+            OPNBWrite_AdpcmB(0, pcmData);
+        }
+
+
+        private static void OPNAWrite(int chipId, ChipDatum dat)
+        {
+            if (dat != null && dat.addtionalData != null)
+            {
+                MmlDatum md = (MmlDatum)dat.addtionalData;
+                if (md.linePos != null)
+                {
+                    Log.WriteLine(LogLevel.TRACE, string.Format("! OPNA i{0} r{1} c{2}"
+                        , chipId
+                        , md.linePos.row
+                        , md.linePos.col
+                        ));
+                }
+            }
+
+            Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipA:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
+
+            mds.WriteYM2608((byte)chipId, (byte)dat.port, (byte)dat.address, (byte)dat.data);
+        }
+
+        private static void OPNBWrite(int chipId, ChipDatum dat)
+        {
+            if (dat != null && dat.addtionalData != null)
+            {
+                MmlDatum md = (MmlDatum)dat.addtionalData;
+                if (md.linePos != null)
+                {
+                    Log.WriteLine(LogLevel.TRACE, string.Format("! OPNB i{0} r{1} c{2}"
+                        , chipId
+                        , md.linePos.row
+                        , md.linePos.col
+                        ));
+                }
+            }
+
+            Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipB:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
+
+            mds.WriteYM2610((byte)chipId, (byte)dat.port, (byte)dat.address, (byte)dat.data);
+        }
+
+        private static void OPNBWrite_AdpcmA(int chipId, byte[] pcmData)
+        {
+            mds.WriteYM2610_SetAdpcmA((byte)chipId, pcmData);
+
+        }
+
+        private static void OPNBWrite_AdpcmB(int chipId, byte[] pcmData)
+        {
+            mds.WriteYM2610_SetAdpcmB((byte)chipId, pcmData);
+
+        }
+
 
     }
 }

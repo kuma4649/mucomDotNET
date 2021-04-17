@@ -319,7 +319,7 @@ namespace mucomDotNET.Compiler
                 byte[] textLineBuf = new byte[80];
                 for (int i = 0; i < work.title.Length; i++) textLineBuf[i] = (byte)work.title[i];
 
-                int fmvoice = work.OTONUM;//.fmvoiceCnt;
+                //int fmvoice = work.OTONUM[0];//.fmvoiceCnt;
                 int pcmflag = 0;
                 int maxcount = 0;
                 int mubsize = 0;
@@ -331,64 +331,87 @@ namespace mucomDotNET.Compiler
                 work.compilerInfo.loopCount = new List<int>();
                 work.compilerInfo.bufferCount = new List<int>();
 
-                bool usePageFunction = mucInfo.usePageFunction;// false;
+                bool isExtendFormat = mucInfo.isExtendFormat;// false;
                 int bufferLength = 0;
-                for (int i = 0; i < Muc88.MAXCH; i++)
+                for (int i = 0; i < (isExtendFormat ? work.MAXChips : 1); i++)
                 {
-                    if (!usePageFunction)
+                    string Tc = "";
+                    string Lc = "";
+                    string Bc = "";
+                    for (int j = 0; j < work.MAXCH; j++)
                     {
-                        work.compilerInfo.formatType = "mub";
-                        if (work.lcnt[i][0] != 0) { work.lcnt[i][0] = work.tcnt[i][0] - (work.lcnt[i][0] - 1); }
-                        if (work.tcnt[i][0] > maxcount) maxcount = work.tcnt[i][0];
-                        strTcount += string.Format("{0}:{1} ", (char)('A' + i), work.tcnt[i][0]);
-                        work.compilerInfo.totalCount.Add(work.tcnt[i][0]);
-                        strLcount += string.Format("{0}:{1} ", (char)('A' + i), work.lcnt[i][0]);
-                        work.compilerInfo.loopCount.Add(work.lcnt[i][0]);
-                        strBcount += string.Format("{0}:{1:x04} ", (char)('A' + i), work.bufCount[i][0]);
-                        work.compilerInfo.bufferCount.Add(work.bufCount[i][0]);
-                        if (work.bufCount[i][0] > 0xffff)
+                        if (!isExtendFormat)
                         {
-                            throw new MucException(string.Format(Common.msg.get("E0700"), (char)('A' + i), work.bufCount[i]));
+                            work.compilerInfo.formatType = "mub";
+                            if (work.lcnt[i][j][0] != 0) { work.lcnt[i][j][0] = work.tcnt[i][j][0] - (work.lcnt[i][j][0] - 1); }
+                            if (work.tcnt[i][j][0] > maxcount) maxcount = work.tcnt[i][j][0];
+                            strTcount += string.Format("{0}:{1:d05} ", work.GetTrackCharacterFromChipValue(i, j), work.tcnt[i][j][0]);
+                            work.compilerInfo.totalCount.Add(work.tcnt[i][j][0]);
+                            strLcount += string.Format("{0}:{1:d05} ", work.GetTrackCharacterFromChipValue(i, j), work.lcnt[i][j][0]);
+                            work.compilerInfo.loopCount.Add(work.lcnt[i][j][0]);
+                            strBcount += string.Format("{0}:${1:x04} ", work.GetTrackCharacterFromChipValue(i, j), work.bufCount[i][j][0]);
+                            work.compilerInfo.bufferCount.Add(work.bufCount[i][j][0]);
+                            if (work.bufCount[i][j][0] > 0xffff)
+                            {
+                                throw new MucException(string.Format(Common.msg.get("E0700"), work.GetTrackCharacterFromChipValue(i, j), work.bufCount[i]));
+                            }
                         }
+                        else
+                        {
+                            work.compilerInfo.formatType = "mupb";
+                            int n = 0;
+                            for (int pg = 0; pg < 10; pg++)
+                            {
+                                if (work.lcnt[i][j][pg] != 0) { work.lcnt[i][j][pg] = work.tcnt[i][j][pg] - (work.lcnt[i][j][pg] - 1); }
+                                if (work.tcnt[i][j][pg] > maxcount) maxcount = work.tcnt[i][j][pg];
+                                work.compilerInfo.totalCount.Add(work.tcnt[i][j][pg]);
+                                work.compilerInfo.loopCount.Add(work.lcnt[i][j][pg]);
+                                if (work.bufCount[i][j][pg] > 1)
+                                {
+                                    Tc += string.Format("{0}{1}:{2:d05} ", work.GetTrackCharacterFromChipValue(i, j), pg, work.tcnt[i][j][pg]);
+                                    Lc += string.Format("{0}{1}:{2:d05} ", work.GetTrackCharacterFromChipValue(i, j), pg, work.lcnt[i][j][pg]);
+                                    Bc += string.Format("{0}{1}:${2:x04} ", work.GetTrackCharacterFromChipValue(i, j), pg, work.bufCount[i][j][pg]);
+                                    bufferLength = work.bufCount[i][j][pg];
+                                    n++;
+                                    if (n == 10)
+                                    {
+                                        n = 0;
+                                        Tc += "\r\n";
+                                        Lc += "\r\n";
+                                        Bc += "\r\n";
+                                    }
+                                    //if (j != 0) usePageFunction = true;
+                                }
+                            }
+                            for (int pg = 0; pg < 10; pg++)
+                            {
+                                work.compilerInfo.bufferCount.Add(work.bufCount[i][j][pg]);
+                                if (work.bufCount[i][j][pg] > 0xffff)
+                                {
+                                    throw new MucException(string.Format(Common.msg.get("E0700")
+                                        , work.GetTrackCharacterFromChipValue(i, j).ToString() + pg.ToString()
+                                        , work.bufCount[i][j]));
+                                }
+                            }
+                        }
+                    }
+
+                    if (!isExtendFormat)
+                    {
+                        if (strTcount.Length > 2) strTcount += "\r\n";
+                        if (strLcount.Length > 2) strLcount += "\r\n";
+                        if (strBcount.Length > 2) strBcount += "\r\n";
                     }
                     else
                     {
-                        work.compilerInfo.formatType = "mupb";
-                        string Tc = "";
-                        string Lc = "";
-                        string Bc = "";
-                        for (int j = 0; j < 10; j++)
-                        {
-                            if (work.lcnt[i][j] != 0) { work.lcnt[i][j] = work.tcnt[i][j] - (work.lcnt[i][j] - 1); }
-                            if (work.tcnt[i][j] > maxcount) maxcount = work.tcnt[i][j];
-                            work.compilerInfo.totalCount.Add(work.tcnt[i][j]);
-                            work.compilerInfo.loopCount.Add(work.lcnt[i][j]);
-                            if (work.bufCount[i][j] > 1)
-                            {
-                                Tc += string.Format("{0}{1}:{2:d05} ", (char)('A' + i), j, work.tcnt[i][j]);
-                                Lc += string.Format("{0}{1}:{2:d05} ", (char)('A' + i), j, work.lcnt[i][j]);
-                                Bc += string.Format("{0}{1}:{2:d05} ", (char)('A' + i), j, work.bufCount[i][j]);
-                                bufferLength = work.bufCount[i][j];
-                                //if (j != 0) usePageFunction = true;
-                            }
-                        }
-                        if (Tc.Length > 2)
-                        {
-                            strTcount += Tc + "\r\n";
-                            strLcount += Lc + "\r\n";
-                            strBcount += Bc + "\r\n";
-                        }
-                        for (int j = 0; j < 10; j++)
-                        {
-                            work.compilerInfo.bufferCount.Add(work.bufCount[i][j]);
-                            if (work.bufCount[i][j] > 0xffff)
-                            {
-                                throw new MucException(string.Format(Common.msg.get("E0700")
-                                    , ((char)('A' + i)).ToString() + j.ToString()
-                                    , work.bufCount[i]));
-                            }
-                        }
+                        strTcount += Tc;
+                        if (Tc.Length > 2) strTcount += "\r\n";
+                        strLcount += Lc;
+                        if (Lc.Length > 2) strLcount += "\r\n";
+                        strBcount += Bc;
+                        if (Bc.Length > 2) strBcount += "\r\n";
                     }
+
                 }
 
                 work.compilerInfo.jumpClock = work.JCLOCK;
@@ -399,21 +422,24 @@ namespace mucomDotNET.Compiler
                 int start = Convert.ToInt32(msg, 16);
                 msg = enc.GetStringFromSjisArray(textLineBuf, 41, 4);//Encoding.GetEncoding("Shift_JIS").GetString(textLineBuf, 41, 4);
                 int length = mucInfo.bufDst.Count;
-                if (usePageFunction) length = bufferLength;
+                if (isExtendFormat) length = bufferLength;
                 mubsize = length;
 
                 Log.WriteLine(LogLevel.INFO, "- mucom.NET -");
                 Log.WriteLine(LogLevel.INFO, "[ Total count ]\r\n" + strTcount);
                 Log.WriteLine(LogLevel.INFO, "[ Loop count  ]\r\n"+strLcount);
-                if (usePageFunction) Log.WriteLine(LogLevel.INFO, "[ Buffer count  ]\r\n" + strBcount);
+                if (isExtendFormat) 
+                    Log.WriteLine(LogLevel.INFO, "[ Buffer count  ]\r\n" + strBcount);
                 Log.WriteLine(LogLevel.INFO, "");
-                Log.WriteLine(LogLevel.INFO, string.Format("Used FM voice : {0}", fmvoice));
-                Log.WriteLine(LogLevel.INFO, string.Format("#Data Buffer  : ${0:x05} - ${1:x05} (${2:x05})", start, start + length - 1, length));
-                Log.WriteLine(LogLevel.INFO, string.Format("#Max Count    : {0}", maxcount));
-                Log.WriteLine(LogLevel.INFO, string.Format("#MML Lines    : {0}", mucInfo.lines));
-                Log.WriteLine(LogLevel.INFO, string.Format("#Data         : {0}", mubsize));
+                Log.WriteLine(LogLevel.INFO, string.Format("#mucom type    : {0}", mucInfo.DriverType));
+                Log.WriteLine(LogLevel.INFO, string.Format("#MUB Format    : {0}", isExtendFormat ? "Extend" : "Normal"));
+                Log.WriteLine(LogLevel.INFO, string.Format("#Used FM voice : {0} {1} {2} {3}", work.OTONUM[0], work.OTONUM[1], work.OTONUM[2], work.OTONUM[3]));
+                Log.WriteLine(LogLevel.INFO, string.Format("#Data Buffer   : ${0:x05} - ${1:x05} (${2:x05})", start, start + length - 1, length));
+                Log.WriteLine(LogLevel.INFO, string.Format("#Max Count     : {0}", maxcount));
+                Log.WriteLine(LogLevel.INFO, string.Format("#MML Lines     : {0}", mucInfo.lines));
+                Log.WriteLine(LogLevel.INFO, string.Format("#Data          : {0}", mubsize));
 
-                return SaveMusic(length, pcmflag, usePageFunction);
+                return SaveMusic(length, pcmflag, isExtendFormat);
             }
             catch (MucException me)
             {
@@ -428,7 +454,7 @@ namespace mucomDotNET.Compiler
         }
 
         //private int SaveMusic(string fname, ushort start, ushort length, int option)
-        private int SaveMusic(int length, int option,bool usePageFunc)
+        private int SaveMusic(int length, int option,bool isExtendFormat)
         {
             //		音楽データファイルを出力(コンパイルが必要)
             //		option : 1   = #タグによるvoice設定を無視
@@ -437,7 +463,7 @@ namespace mucomDotNET.Compiler
             //      usePageFunc : ページ機能を使用しているか
             //
 
-            if (usePageFunc)
+            if (isExtendFormat)
             {
                 return SaveMusicExtendFormat(length, option);
             }
@@ -518,8 +544,8 @@ namespace mucomDotNET.Compiler
             dat.Add(new MmlDatum(11));//ext_channel_num
             dat.Add(new MmlDatum(0));
 
-            dat.Add(new MmlDatum((byte)work.OTONUM));//ext_fmvoice_num
-            dat.Add(new MmlDatum((byte)(work.OTONUM >> 8)));
+            dat.Add(new MmlDatum((byte)work.OTONUM[0]));//ext_fmvoice_num
+            dat.Add(new MmlDatum((byte)(work.OTONUM[0] >> 8)));
 
             dat.Add(new MmlDatum(0));//ext_player(?)
             dat.Add(new MmlDatum(0));
@@ -651,24 +677,29 @@ namespace mucomDotNET.Compiler
             dat.Add(new MmlDatum(0x30));// 0
 
             dat.Add(new MmlDatum(0x05));// 可変長ヘッダー情報の数。
-            dat.Add(new MmlDatum(0x01));// 使用する音源の数(0～)
+            dat.Add(new MmlDatum(work.MAXChips));// 使用する音源の数(0～)
 
-            dat.Add(new MmlDatum(Muc88.MAXCH));// 使用するパートの総数(0～)
+            dat.Add(new MmlDatum(work.MAXCH * work.MAXChips));// 使用するパートの総数(0～)
             dat.Add(new MmlDatum(0x00));
 
             int n = 0;
-            for (int i = 0; i < Muc88.MAXCH; i++)
+            for (int i = 0; i < work.MAXChips; i++)
             {
-                for (int j = 0; j < 10; j++)
+                for (int j = 0; j < work.MAXCH; j++)
                 {
-                    if (work.bufCount[i][j] > 1) n++;
+                    for (int k = 0; k < work.MAXPG; k++)
+                    {
+                        if (work.bufCount[i][j][k] > 1) n++;
+                    }
                 }
             }
 
             dat.Add(new MmlDatum(n));// 使用するページの総数(0～)
             dat.Add(new MmlDatum(0x00));
 
-            dat.Add(new MmlDatum(work.OTONUM > 0 ? 1 : 0));// 使用するInstrumentセットの総数(0～)
+            int instSets = 0;
+            for (int i = 0; i < work.MAXChips; i++) instSets += work.OTONUM[i];
+            dat.Add(new MmlDatum(instSets > 0 ? 1 : 0));// 使用するInstrumentセットの総数(0～)
             dat.Add(new MmlDatum(0x00));
 
             int pcmsize = (pcmdata == null) ? 0 : pcmdata.Length;
@@ -717,85 +748,112 @@ namespace mucomDotNET.Compiler
 
             //Chip Define division.
 
-            dat.Add(new MmlDatum(0x48));// Chip Identify number(YM2608=0x48)
-            dat.Add(new MmlDatum(0x00));// 
-            dat.Add(new MmlDatum(0x00));// 
-            dat.Add(new MmlDatum(0x00));// 
-
-            int opnaMasterClock = 7987200;
-            dat.Add(new MmlDatum((byte)opnaMasterClock));// Chip Clock
-            dat.Add(new MmlDatum((byte)(opnaMasterClock >> 8)));
-            dat.Add(new MmlDatum((byte)(opnaMasterClock >> 16)));
-            dat.Add(new MmlDatum((byte)(opnaMasterClock >> 24)));
-
-            dat.Add(new MmlDatum(0x00));// Chip Option
-            dat.Add(new MmlDatum(0x00));// 
-            dat.Add(new MmlDatum(0x00));// 
-            dat.Add(new MmlDatum(0x00));// 
-
-            dat.Add(new MmlDatum(0x01));// Heart Beat (1:OPNA Timer)
-            dat.Add(new MmlDatum(0x00));// 
-            dat.Add(new MmlDatum(0x00));// 
-            dat.Add(new MmlDatum(0x00));// 
-
-            dat.Add(new MmlDatum(0x00));// Heart Beat2 (0:Unuse)
-            dat.Add(new MmlDatum(0x00));// 
-            dat.Add(new MmlDatum(0x00));// 
-            dat.Add(new MmlDatum(0x00));// 
-
-            dat.Add(new MmlDatum(Muc88.MAXCH));//part count 
-
-            n = work.OTONUM > 0 ? 1 : 0;
-            dat.Add(new MmlDatum(n));// 使用するInstrumentセットの総数(0～)
-            for (int i = 0; i < n; i++)
+            for (int chipI = 0; chipI < work.MAXChips; chipI++)
             {
-                dat.Add(new MmlDatum(0x00));// この音源Chipで使用するInstrumentセットの番号。上記パラメータの個数だけ繰り返す。
-                dat.Add(new MmlDatum(0x00));
-            }
+                dat.Add(new MmlDatum((byte)(chipI >> 0)));// Chip Index
+                dat.Add(new MmlDatum((byte)(chipI >> 8)));// 
 
-            n = pcmuse ? 1 : 0;
-            dat.Add(new MmlDatum(n));// この音源Chipで使用するPCMセットの個数
-            for (int i = 0; i < n; i++)
-            {
-                dat.Add(new MmlDatum(0x00));// この音源Chipで使用するPCMセットの番号。上記パラメータの個数だけ繰り返す。
-                dat.Add(new MmlDatum(0x00));
-            }
+                int opnaIdentifyNumber = 0x0000_0048;
+                int opnbIdentifyNumber = 0x0000_004c;
+                int opnaMasterClock = 7987200;
+                int opnbMasterClock = 8000000;
 
+                if (chipI < 2)
+                {
+                    dat.Add(new MmlDatum((byte)(opnaIdentifyNumber >> 0)));// Chip Identify number
+                    dat.Add(new MmlDatum((byte)(opnaIdentifyNumber >> 8)));// 
+                    dat.Add(new MmlDatum((byte)(opnaIdentifyNumber >> 16)));// 
+                    dat.Add(new MmlDatum((byte)(opnaIdentifyNumber >> 24)));// 
+
+                    dat.Add(new MmlDatum((byte)opnaMasterClock));// Chip Clock
+                    dat.Add(new MmlDatum((byte)(opnaMasterClock >> 8)));
+                    dat.Add(new MmlDatum((byte)(opnaMasterClock >> 16)));
+                    dat.Add(new MmlDatum((byte)(opnaMasterClock >> 24)));
+                }
+                else
+                {
+                    dat.Add(new MmlDatum((byte)(opnbIdentifyNumber >> 0)));// Chip Identify number
+                    dat.Add(new MmlDatum((byte)(opnbIdentifyNumber >> 8)));// 
+                    dat.Add(new MmlDatum((byte)(opnbIdentifyNumber >> 16)));// 
+                    dat.Add(new MmlDatum((byte)(opnbIdentifyNumber >> 24)));// 
+
+                    dat.Add(new MmlDatum((byte)opnbMasterClock));// Chip Clock
+                    dat.Add(new MmlDatum((byte)(opnbMasterClock >> 8)));
+                    dat.Add(new MmlDatum((byte)(opnbMasterClock >> 16)));
+                    dat.Add(new MmlDatum((byte)(opnbMasterClock >> 24)));
+                }
+
+                dat.Add(new MmlDatum(0x00));// Chip Option
+                dat.Add(new MmlDatum(0x00));// 
+                dat.Add(new MmlDatum(0x00));// 
+                dat.Add(new MmlDatum(0x00));// 
+
+                dat.Add(new MmlDatum(0x01));// Heart Beat (1:OPNA Timer)
+                dat.Add(new MmlDatum(0x00));// 
+                dat.Add(new MmlDatum(0x00));// 
+                dat.Add(new MmlDatum(0x00));// 
+
+                dat.Add(new MmlDatum(0x00));// Heart Beat2 (0:Unuse)
+                dat.Add(new MmlDatum(0x00));// 
+                dat.Add(new MmlDatum(0x00));// 
+                dat.Add(new MmlDatum(0x00));// 
+
+                dat.Add(new MmlDatum(work.MAXCH));//part count 
+
+                n = work.OTONUM[chipI] > 0 ? 1 : 0;
+                dat.Add(new MmlDatum(n));// 使用するInstrumentセットの総数(0～)
+
+                for (int i = 0; i < n; i++)
+                {
+                    dat.Add(new MmlDatum(0x00));// この音源Chipで使用するInstrumentセットの番号。上記パラメータの個数だけ繰り返す。
+                    dat.Add(new MmlDatum(0x00));
+                }
+
+                n = pcmuse ? 1 : 0;
+                dat.Add(new MmlDatum(n));// この音源Chipで使用するPCMセットの個数
+                for (int i = 0; i < n; i++)
+                {
+                    dat.Add(new MmlDatum(0x00));// この音源Chipで使用するPCMセットの番号。上記パラメータの個数だけ繰り返す。
+                    dat.Add(new MmlDatum(0x00));
+                }
+            }
 
             //Part division.
 
-            for (int i = 0; i < Muc88.MAXCH; i++)
+            for (int i = 0; i < work.MAXChips; i++)
             {
-                n = 0;
-                for (int j = 0; j < 10; j++) if (work.bufCount[i][j] > 1) n++;
-                dat.Add(new MmlDatum(n));//ページの数(0～)
+                for (int j = 0; j < work.MAXCH; j++)
+                {
+                    n = 0;
+                    for (int pg = 0; pg < work.MAXPG; pg++) if (work.bufCount[i][j][pg] > 1) n++;
+                    dat.Add(new MmlDatum(n));//ページの数(0～)
+                }
             }
-
 
             //Page division.
 
-            for (int i = 0; i < Muc88.MAXCH; i++)
-            {
-                for (int j = 0; j < 10; j++)
-                    if (work.bufCount[i][j] > 1)
+            for (int i = 0; i < work.MAXChips;i++)
+                for (int j = 0; j < work.MAXCH;j++)
+                    for (int pg = 0; pg < work.MAXPG; pg++)
                     {
-                        n = work.bufCount[i][j];
+                        if (work.bufCount[i][j][pg] < 2) continue;
+
+                        n = work.bufCount[i][j][pg];
                         dat.Add(new MmlDatum((byte)n));// ページの大きさ(0～)
                         dat.Add(new MmlDatum((byte)(n >> 8)));
                         dat.Add(new MmlDatum((byte)(n >> 16)));
                         dat.Add(new MmlDatum((byte)(n >> 24)));
-                        n = work.loopPoint[i][j];
+                        n = work.loopPoint[i][j][pg];
                         dat.Add(new MmlDatum((byte)n));// ページのループポイント(0～)
                         dat.Add(new MmlDatum((byte)(n >> 8)));
                         dat.Add(new MmlDatum((byte)(n >> 16)));
                         dat.Add(new MmlDatum((byte)(n >> 24)));
                     }
-            }
 
 
             //Instrument set division.
 
-            n = work.OTONUM > 0 ? 1 : 0;// 使用するInstrumentセットの総数(0～)
+            n = instSets > 0 ? 1 : 0;// 使用するInstrumentセットの総数(0～)
             if (n > 0)
             {
                 dat.Add(new MmlDatum((byte)mucInfo.bufUseVoice.Count));
@@ -819,23 +877,22 @@ namespace mucomDotNET.Compiler
 
             //ページデータ出力
 
-            for (int i = 0; i < Muc88.MAXCH; i++)
-            {
-                for (int j = 0; j < 10; j++)
-                {
-                    if (work.bufCount[i][j] < 2) continue;
-                    for (int p = 0; p < work.bufCount[i][j]; p++)
+            for (int i = 0; i < work.MAXChips; i++)
+                for (int j = 0; j < work.MAXCH; j++)
+                    for (int pg = 0; pg < work.MAXPG; pg++)
                     {
-                        dat.Add(mucInfo.bufPage[i][j].Get(p));
+                        if (work.bufCount[i][j][pg] < 2) continue;
+                        for (int p = 0; p < work.bufCount[i][j][pg]; p++)
+                        {
+                            dat.Add(mucInfo.bufPage[i][j][pg].Get(p));
+                        }
                     }
-                }
-            }
 
 
 
             //Instrumentデータ出力
 
-            if (work.OTONUM > 0)
+            if (instSets > 0)
             {
                 for (int i = 0; i < mucInfo.bufUseVoice.Count; i++)
                 {

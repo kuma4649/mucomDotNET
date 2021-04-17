@@ -47,6 +47,7 @@ namespace mucomDotNET.Player
         private static short[] emuRenderBuf = new short[2];
         private static musicDriverInterface.iDriver drv = null;
         private static readonly uint opnaMasterClock = 7987200;
+        private static readonly uint opnbMasterClock = 8000000;
         private static int device = 0;
         private static int loop = 0;
 
@@ -62,7 +63,7 @@ namespace mucomDotNET.Player
             Log.writeLine += WriteLine;
 #if DEBUG
             //Log.writeLine += WriteLineF;
-            Log.level = LogLevel.INFO;// TRACE;
+            Log.level = LogLevel.TRACE;// TRACE;
 #else
             Log.level = LogLevel.INFO;
 #endif
@@ -106,22 +107,49 @@ namespace mucomDotNET.Player
                         break;
                 }
 
+                List<MDSound.MDSound.Chip> lstChips = new List<MDSound.MDSound.Chip>();
+                MDSound.MDSound.Chip chip = null;
+
                 MDSound.ym2608 ym2608 = new MDSound.ym2608();
-                MDSound.MDSound.Chip chip = new MDSound.MDSound.Chip
+                for (int i = 0; i < 2; i++)
                 {
-                    type = MDSound.MDSound.enmInstrumentType.YM2608,
-                    ID = 0,
-                    Instrument = ym2608,
-                    Update = ym2608.Update,
-                    Start = ym2608.Start,
-                    Stop = ym2608.Stop,
-                    Reset = ym2608.Reset,
-                    SamplingRate = SamplingRate,
-                    Clock = opnaMasterClock,
-                    Volume = 0,
-                    Option = new object[] { GetApplicationFolder() }
-                };
-                mds = new MDSound.MDSound(SamplingRate, samplingBuffer, new MDSound.MDSound.Chip[] { chip });
+                    chip = new MDSound.MDSound.Chip
+                    {
+                        type = MDSound.MDSound.enmInstrumentType.YM2608,
+                        ID = (byte)i,
+                        Instrument = ym2608,
+                        Update = ym2608.Update,
+                        Start = ym2608.Start,
+                        Stop = ym2608.Stop,
+                        Reset = ym2608.Reset,
+                        SamplingRate = SamplingRate,
+                        Clock = opnaMasterClock,
+                        Volume = 0,
+                        Option = new object[] { GetApplicationFolder() }
+                    };
+                    lstChips.Add(chip);
+                }
+                MDSound.ym2610 ym2610 = new MDSound.ym2610();
+                for (int i = 0; i < 2; i++)
+                {
+                    chip = new MDSound.MDSound.Chip
+                    {
+                        type = MDSound.MDSound.enmInstrumentType.YM2610,
+                        ID = (byte)i,
+                        Instrument = ym2610,
+                        Update = ym2610.Update,
+                        Start = ym2610.Start,
+                        Stop = ym2610.Stop,
+                        Reset = ym2610.Reset,
+                        SamplingRate = SamplingRate,
+                        Clock = opnbMasterClock,
+                        Volume = 0,
+                        Option = new object[] { GetApplicationFolder() }
+                    };
+                    lstChips.Add(chip);
+                }
+                mds = new MDSound.MDSound(SamplingRate, samplingBuffer
+                    , lstChips.ToArray());
 
 #if NETCOREAPP
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
@@ -129,7 +157,18 @@ namespace mucomDotNET.Player
                 drv = new Driver.Driver();
                 ((Driver.Driver)drv).Init(
                     args[fnIndex]
-                    , OPNAWrite
+                    , new List<Action<ChipDatum>>(){
+                        OPNAWriteP
+                        , OPNAWriteS
+                        , OPNBWriteP
+                        , OPNBWriteS
+                    }
+                    , new List<Action<byte[]>>() { 
+                         OPNBWriteAdpcmAP
+                        , OPNBWriteAdpcmBP
+                        , OPNBWriteAdpcmAS
+                        , OPNBWriteAdpcmBS
+                    }
                     , OPNAWaitSend
                     , false
                     , isLoadADPCM
@@ -151,6 +190,9 @@ namespace mucomDotNET.Player
                 drv.StartRendering((int)SamplingRate,
                     new Tuple<string, int>[]{
                         new Tuple<string, int>("YM2608",(int)opnaMasterClock)
+                        ,new Tuple<string, int>("YM2608",(int)opnaMasterClock)
+                        ,new Tuple<string, int>("YM2610B",(int)opnbMasterClock)
+                        ,new Tuple<string, int>("YM2610B",(int)opnbMasterClock)
                     }
                     );
 
@@ -524,30 +566,124 @@ namespace mucomDotNET.Player
             drv.Rendering();
         }
 
-        private static void OPNAWrite(ChipDatum dat)
+        private static void OPNAWriteP(ChipDatum dat)
+        {
+            OPNAWrite(0, dat);
+        }
+        private static void OPNAWriteS(ChipDatum dat)
+        {
+            OPNAWrite(1, dat);
+        }
+        private static void OPNBWriteP(ChipDatum dat)
+        {
+            OPNBWrite(0, dat);
+        }
+        private static void OPNBWriteS(ChipDatum dat)
+        {
+            OPNBWrite(1, dat);
+        }
+        private static void OPNBWriteAdpcmAS(byte[] pcmData)
+        {
+            OPNBWrite_AdpcmA(1, pcmData);
+        }
+        private static void OPNBWriteAdpcmBS(byte[] pcmData)
+        {
+            OPNBWrite_AdpcmB(1, pcmData);
+        }
+        private static void OPNBWriteAdpcmAP(byte[] pcmData)
+        {
+            OPNBWrite_AdpcmA(0, pcmData);
+        }
+        private static void OPNBWriteAdpcmBP(byte[] pcmData)
+        {
+            OPNBWrite_AdpcmB(0, pcmData);
+        }
+
+
+        private static void OPNAWrite(int chipId, ChipDatum dat)
         {
             if (dat != null && dat.addtionalData != null)
             {
                 MmlDatum md = (MmlDatum)dat.addtionalData;
                 if (md.linePos != null)
                 {
-                    Log.WriteLine(LogLevel.TRACE, string.Format("! r{0} c{1}"
+                    Log.WriteLine(LogLevel.TRACE, string.Format("! OPNA i{0} r{1} c{2}"
+                        , chipId
                         , md.linePos.row
                         , md.linePos.col
                         ));
                 }
             }
-            //Log.WriteLine(LogLevel.TRACE, string.Format("FM P{2} Out:Adr[{0:x02}] val[{1:x02}]", (int)dat.address, (int)dat.data,dat.port));
-            switch(device)
+
+            Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipA:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
+            
+            switch (device)
             {
                 case 0:
-                    mds.WriteYM2608(0, (byte)dat.port, (byte)dat.address, (byte)dat.data);
+                    mds.WriteYM2608((byte)chipId, (byte)dat.port, (byte)dat.address, (byte)dat.data);
                     break;
                 case 1:
                 case 2:
                     rsc.setRegister(dat.port * 0x100 + dat.address, dat.data);
                     break;
             }
+        }
+
+        private static void OPNBWrite(int chipId, ChipDatum dat)
+        {
+            if (dat != null && dat.addtionalData != null)
+            {
+                MmlDatum md = (MmlDatum)dat.addtionalData;
+                if (md.linePos != null)
+                {
+                    Log.WriteLine(LogLevel.TRACE, string.Format("! OPNB i{0} r{1} c{2}"
+                        , chipId
+                        , md.linePos.row
+                        , md.linePos.col
+                        ));
+                }
+            }
+
+            Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipB:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
+
+            switch (device)
+            {
+                case 0:
+                    mds.WriteYM2610((byte)chipId, (byte)dat.port, (byte)dat.address, (byte)dat.data);
+                    break;
+                case 1:
+                case 2:
+                    rsc.setRegister(dat.port * 0x100 + dat.address, dat.data);
+                    break;
+            }
+        }
+
+        private static void OPNBWrite_AdpcmA(int chipId,byte[] pcmData)
+        {
+            switch (device)
+            {
+                case 0:
+                    mds.WriteYM2610_SetAdpcmA((byte)chipId, pcmData);
+                    break;
+                case 1:
+                case 2:
+                    break;
+            }
+
+        }
+
+        private static void OPNBWrite_AdpcmB(int chipId, byte[] pcmData)
+        {
+            switch (device)
+            {
+                case 0:
+                    mds.WriteYM2610_SetAdpcmB((byte)chipId, pcmData);
+                    break;
+                case 1:
+                case 2:
+                    break;
+            }
+
         }
 
 

@@ -42,22 +42,23 @@ Chip Define division.
   chips countで設定した数だけ繰り返し定義すること
 
      Ofs  Size Contents             Remark
-    +0000    4 Chip Identify number 後述。音源Chip毎に割り当てられた数値を記録する。
+    +0000    2 Chip Index           音源Chipの構成位置を記録する。
+    +0002    4 Chip Identify number 後述。音源Chip毎に割り当てられた数値を記録する。
                                     同じChip Identify numberで複数回定義可能。
                                     (これによって複数個の同じChipを使用した演奏ができる。)
-    +0004    4 chip clock           音源Chipのマスタークロック
-    +0008    4 chip option          音源Chipのオプション情報
-    +000C    4 Heat Beat            タイマー
+    +0006    4 chip clock           音源Chipのマスタークロック
+    +000A    4 chip option          音源Chipのオプション情報
+    +000E    4 Heat Beat            タイマー
                                     最上位ビットが立っていない時 : 種類を示す。( 0:Unuse 1:OPNA Timer 2:NTSC 3:PAL ... )
                                     最上位ビットが立っている時   : 31ビットの即値(固定)になる。
-    +0010    4 Heat Beat2           タイマー(サブ)(TBD)
+    +0012    4 Heat Beat2           タイマー(サブ)(TBD)
                                     最上位ビットが立っていない時 : 種類を示す。( 0:Unuse 1:OPNA Timer 2:NTSC 3:PAL ... )
                                     最上位ビットが立っている時   : 31ビットの即値(固定)になる。
                                     タイマーは曲のテンポとして使用したいChipに対して設定する。
                                     複数指定した場合は最初のChipが採用される。
-    +0014    1 part count           この音源Chipで使用するパートの数(0～)
-    +0015    1 Use Inst.set Count   この音源Chipで使用するInstrumentセットの個数
-    +0016  2*n Use Inst.set Number  この音源Chipで使用するInstrumentセットの番号。上記パラメータの個数だけ繰り返す。
+    +0016    1 part count           この音源Chipで使用するパートの数(0～)
+    +0017    1 Use Inst.set Count   この音源Chipで使用するInstrumentセットの個数
+    +0018  2*n Use Inst.set Number  この音源Chipで使用するInstrumentセットの番号。上記パラメータの個数だけ繰り返す。
     略       1 Use PCMset Count     この音源Chipで使用するPCMセットの個数
     略     2*n Use PCMset Number    この音源Chipで使用するPCMセットの番号。上記パラメータの個数だけ繰り返す。
 

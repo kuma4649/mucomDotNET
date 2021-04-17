@@ -1,0 +1,6 @@
+#format OPNB-A
+
+@  0 , バス     ,  .\Crash1.wav    , 100
+@  1 , "スネア" , ".\Guitar.wav"  , 100
+@ 16 , "スネア" , ".\Guitar.wav"  , 100
+

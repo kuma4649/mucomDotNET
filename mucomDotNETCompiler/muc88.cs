@@ -656,9 +656,9 @@ namespace mucomDotNET.Compiler
         private EnmFCOMPNextRtn SETTAG()
         {
 
-            work.JCLOCK = work.tcnt[work.COMNOW][work.pageNow];
+            work.JCLOCK = work.tcnt[work.ChipIndex][work.CHIP_CH][work.pageNow];
             work.JCHCOM = new List<int>();
-            work.JCHCOM.Add(work.COMNOW);
+            work.JCHCOM.Add(work.CHIP_CH);
             if (work.POINTC >= 0)
             {
                 int p = work.POINTC;
@@ -754,8 +754,13 @@ namespace mucomDotNET.Compiler
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
-                , tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM"))
-                , "YM2608", 0, 0, work.COMNOW * 10 + work.pageNow);
+                , work.ChipIndex / 2 == 0 
+                    ? (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM")))
+                    : (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "ADPCM-A" : "ADPCM-B")))
+                , work.ChipIndex / 2 == 0 
+                    ? "YM2608" 
+                    : "YM2610B"
+                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
             msub.MWRITE(
                 new MmlDatum(enmMMLType.Pan, args, lp, 0xf8)
@@ -938,8 +943,8 @@ namespace mucomDotNET.Compiler
             HL += 4;
             work.MDATA += 2;
 
-            mucInfo.bufLoopStack.Set(HL, (byte)work.tcnt[work.COMNOW][work.pageNow]);
-            mucInfo.bufLoopStack.Set(HL + 1, (byte)(work.tcnt[work.COMNOW][work.pageNow] >> 8));
+            mucInfo.bufLoopStack.Set(HL, (byte)work.tcnt[work.ChipIndex][work.CHIP_CH][work.pageNow]);
+            mucInfo.bufLoopStack.Set(HL + 1, (byte)(work.tcnt[work.ChipIndex][work.CHIP_CH][work.pageNow] >> 8));
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -1055,12 +1060,12 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn TIMEB2(byte n)
         {
-            if (!mucInfo.usePageFunction)
+            if (!mucInfo.isExtendFormat)
             {
                 mucInfo.bufDst.Set(work.DATTBL - 1, new MmlDatum(n));// TIMER_B ﾆ ｱﾜｾﾙ
             }
 
-            if (work.COMNOW >= 3 && work.COMNOW < 6)
+            if (work.CHIP_CH >= 3 && work.CHIP_CH < 6)
             {
                 WriteWarning(msg.get("W0412"), mucInfo.row, mucInfo.col);
                 return EnmFCOMPNextRtn.fcomp1;
@@ -1188,9 +1193,9 @@ namespace mucomDotNET.Compiler
 
             int HL = work.MDATA;
             int DE = HL - work.MU_TOP;
-            int c = work.COMNOW;
+            int c = work.CHIP_CH;
 
-            if (!mucInfo.usePageFunction)
+            if (!mucInfo.isExtendFormat)
             {
                 //Jump先となるアドレスをDATTBLに書き込む
                 HL = work.DATTBL + c * 4 + 2;
@@ -1200,10 +1205,10 @@ namespace mucomDotNET.Compiler
             }
             else
             {
-                work.loopPoint[c][work.pageNow] = HL;
+                work.loopPoint[work.ChipIndex][c][work.pageNow] = HL;
             }
 
-            work.lcnt[c][work.pageNow] = work.tcnt[c][work.pageNow] + 1;// +1('L'ﾌﾗｸﾞﾉ ｶﾜﾘ)
+            work.lcnt[work.ChipIndex][c][work.pageNow] = work.tcnt[work.ChipIndex][c][work.pageNow] + 1;// +1('L'ﾌﾗｸﾞﾉ ｶﾜﾘ)
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -1213,7 +1218,7 @@ namespace mucomDotNET.Compiler
         private EnmFCOMPNextRtn SETSE()
         {
 
-            if (work.COMNOW != 2)
+            if (work.CHIP_CH != 2)
             {
                 // 3 Ch ｲｶﾞｲﾅﾗ ERROR
                 throw new MucException(
@@ -1373,18 +1378,18 @@ namespace mucomDotNET.Compiler
 
             int backupAdr = mucInfo.bufLoopStack.Get(loopStackPtr + 6)
                 + mucInfo.bufLoopStack.Get(loopStackPtr + 7) * 0x100;
-            backupAdr += work.tcnt[work.COMNOW][work.pageNow] * (rep - 1);
+            backupAdr += work.tcnt[work.ChipIndex][work.CHIP_CH][work.pageNow] * (rep - 1);
 
             int ofs = mucInfo.bufLoopStack.Get(loopStackPtr + 8)
                 + mucInfo.bufLoopStack.Get(loopStackPtr + 9) * 0x100;
             if (ofs == 0)
             {
                 // '/'ﾊ ｶｯｺﾅｲﾆ ﾂｶﾜﾚﾃﾅｲ
-                ofs = work.tcnt[work.COMNOW][work.pageNow];
+                ofs = work.tcnt[work.ChipIndex][work.CHIP_CH][work.pageNow];
             }
 
             backupAdr += ofs;
-            work.tcnt[work.COMNOW][work.pageNow] = backupAdr;
+            work.tcnt[work.ChipIndex][work.CHIP_CH][work.pageNow] = backupAdr;
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -1408,12 +1413,12 @@ namespace mucomDotNET.Compiler
             mucInfo.bufLoopStack.Set(work.POINTC + 3, (byte)(work.MDATA >> 8));
             mucInfo.bufLoopStack.Set(work.POINTC + 4, 0);
             mucInfo.bufLoopStack.Set(work.POINTC + 5, 0);
-            mucInfo.bufLoopStack.Set(work.POINTC + 6, (byte)work.tcnt[work.COMNOW][work.pageNow]);
-            mucInfo.bufLoopStack.Set(work.POINTC + 7, (byte)(work.tcnt[work.COMNOW][work.pageNow] >> 8));
+            mucInfo.bufLoopStack.Set(work.POINTC + 6, (byte)work.tcnt[work.ChipIndex][work.CHIP_CH][work.pageNow]);
+            mucInfo.bufLoopStack.Set(work.POINTC + 7, (byte)(work.tcnt[work.ChipIndex][work.CHIP_CH][work.pageNow] >> 8));
             mucInfo.bufLoopStack.Set(work.POINTC + 8, 0);
             mucInfo.bufLoopStack.Set(work.POINTC + 9, 0);
 
-            work.tcnt[work.COMNOW][work.pageNow] = 0;//ﾄｰﾀﾙ ｸﾛｯｸ ｸﾘｱ
+            work.tcnt[work.ChipIndex][work.CHIP_CH][work.pageNow] = 0;//ﾄｰﾀﾙ ｸﾛｯｸ ｸﾘｱ
 
             work.REPCOUNT++;
             if (work.REPCOUNT > 16)
@@ -1523,7 +1528,7 @@ namespace mucomDotNET.Compiler
                 }
             }
 
-            work.tcnt[work.COMNOW][work.pageNow] += kotae;
+            work.tcnt[work.ChipIndex][work.CHIP_CH][work.pageNow] += kotae;
 
             if (work.BEFRST != 0)// ｾﾞﾝｶｲｶｳﾝﾀ ﾜｰｸ(ﾌﾗｸﾞ)
             {
@@ -1550,8 +1555,10 @@ namespace mucomDotNET.Compiler
                     , mucInfo.col
                     , mucInfo.srcCPtr - mucInfo.col + 1
                     , ""
-                    , "YM2608", 0, 0
-                    , work.COMNOW * 10 + work.pageNow);
+                    , work.ChipIndex / 2 == 0
+                        ? "YM2608"
+                        : "YM2610B"
+                    , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
                 msub.MWRIT2(new MmlDatum(
                     enmMMLType.Rest
                     , args
@@ -1567,8 +1574,10 @@ namespace mucomDotNET.Compiler
                 , mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
                 , ""
-                , "YM2608", 0, 0
-                , work.COMNOW * 10 + work.pageNow);
+                , work.ChipIndex / 2 == 0
+                    ? "YM2608"
+                    : "YM2610B"
+                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
             msub.MWRIT2(new MmlDatum(
                     enmMMLType.Rest
                     , args
@@ -2022,7 +2031,7 @@ namespace mucomDotNET.Compiler
             n--;
             n *= 4;
 
-            byte ch = (byte)work.COMNOW;
+            byte ch = (byte)work.CHIP_CH;
             if (ch < 0 || (ch >= 3 && ch < 7) || ch >= 10)
             {
                 throw new MucException(
@@ -2142,7 +2151,7 @@ namespace mucomDotNET.Compiler
 
             if (mucInfo.DriverType == MUCInfo.enmDriverType.DotNet)
             {
-                if (work.COMNOW == 6)//KUMA:Rhythmの場合のみ特殊処理
+                if (work.CHIP_CH == 6)//KUMA:Rhythmの場合のみ特殊処理
                 {
                     n = Math.Min(Math.Max(n, (sbyte)-63), (sbyte)63);
                     byte m = (byte)n;
@@ -2239,7 +2248,7 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETVOL()
         {
-            if (work.COMNOW == 10)
+            if (work.CHIP_CH == 10)
             {
                 return SETVOL_ADPCM();
             }
@@ -2260,7 +2269,7 @@ namespace mucomDotNET.Compiler
                 if (mucInfo.DriverType == MUCInfo.enmDriverType.DotNet)
                 {
                     char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr - 1 ? mucInfo.lin.Item2[mucInfo.srcCPtr - 1] : (char)0;
-                    if (c == 'm' && work.COMNOW == 6)
+                    if (c == 'm' && work.CHIP_CH == 6)
                     {
                         ptr = mucInfo.srcCPtr;
                         n = msub.REDATA(mucInfo.lin, ref ptr);
@@ -2292,13 +2301,18 @@ namespace mucomDotNET.Compiler
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
-                , tp == ChannelType.FM ? "FM" : "SSG"
-                , "YM2608", 0, 0, work.COMNOW * 10 + work.pageNow);
+                , work.ChipIndex / 2 == 0
+                    ? (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM")))
+                    : (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "ADPCM-A" : "ADPCM-B")))
+                , work.ChipIndex / 2 == 0
+                    ? "YM2608"
+                    : "YM2610B"
+                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
-            if (work.COMNOW != 6)
+            if (work.CHIP_CH != 6)
             {
                 n += work.TV_OFS;
-                if (work.COMNOW < 3 || work.COMNOW > 6)
+                if (work.CHIP_CH < 3 || work.CHIP_CH> 6)
                 {
                     n += 4;
                 }
@@ -2321,8 +2335,13 @@ namespace mucomDotNET.Compiler
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
-                , "RHYTHM"
-                , "YM2608", 0, 0, work.COMNOW * 10 + work.pageNow);
+                , work.ChipIndex / 2 == 0
+                    ? "RHYTHM"
+                    : "ADPCM-A"
+                , work.ChipIndex / 2 == 0
+                    ? "YM2608"
+                    : "YM2610B"
+                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
             // -	DRAM V. -
             n += work.TV_OFS;
@@ -2398,7 +2417,7 @@ namespace mucomDotNET.Compiler
                     , mucInfo.row, mucInfo.col
                     , mucInfo.srcCPtr - mucInfo.col + 1
                     , "ADPCM"
-                    , "YM2608", 0, 0, work.COMNOW * 10 + work.pageNow);
+                    , "YM2608", 0, 0, work.CHIP_CH * 10 + work.pageNow);
 
                 n = (byte)n;
                 work.VOLUME = n;
@@ -2475,8 +2494,13 @@ namespace mucomDotNET.Compiler
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
-                , tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM"))
-                , "YM2608", 0, 0, work.COMNOW * 10 + work.pageNow);
+                , work.ChipIndex / 2 == 0
+                    ? (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM")))
+                    : (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "ADPCM-A" : "ADPCM-B")))
+                , work.ChipIndex / 2 == 0
+                    ? "YM2608"
+                    : "YM2610B"
+                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
             msub.MWRITE(new MmlDatum(
                  enmMMLType.Detune
                  , args
@@ -2757,7 +2781,10 @@ namespace mucomDotNET.Compiler
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
                 , "FM"
-                , "YM2608", 0, 0, work.COMNOW * 10 + work.pageNow);
+                , work.ChipIndex / 2 == 0
+                    ? "YM2608"
+                    : "YM2610B"
+                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
             int voiceIndex = CCVC(num, mucInfo.bufDefVoice);// --	VOICE ｶﾞ ﾄｳﾛｸｽﾞﾐｶ?	--
             if (voiceIndex != -1)
@@ -2797,7 +2824,10 @@ namespace mucomDotNET.Compiler
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
                 , "SSG"
-                , "YM2608", 0, 0, work.COMNOW * 10 + work.pageNow);
+                , work.ChipIndex / 2 == 0
+                    ? "YM2608"
+                    : "YM2610B"
+                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
             msub.MWRITE(
                 new MmlDatum(enmMMLType.Instrument, args, lp, 0xf0)
@@ -2842,8 +2872,13 @@ namespace mucomDotNET.Compiler
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
-                , tp == ChannelType.ADPCM ? "ADPCM" : "RHYTHM"
-                , "YM2608", 0, 0, work.COMNOW * 10 + work.pageNow);
+                , work.ChipIndex / 2 == 0
+                    ? (tp == ChannelType.ADPCM ? "ADPCM" : "RHYTHM")
+                    : (tp == ChannelType.ADPCM ? "ADPCM-B" : "ADPCM-A")
+                , work.ChipIndex / 2 == 0
+                    ? "YM2608"
+                    : "YM2610B"
+                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH* work.MAXPG + work.pageNow);
 
             msub.MWRITE(new MmlDatum(enmMMLType.Instrument, args, lp, 0xf0), new MmlDatum((byte)num));
 
@@ -2955,14 +2990,14 @@ namespace mucomDotNET.Compiler
 
         public ChannelType CHCHK()
         {
-            if (work.COMNOW >= 3 && work.COMNOW < 6)
+            if (work.CHIP_CH >= 3 && work.CHIP_CH < 6)
             {
                 return ChannelType.SSG;
             }
 
-            if (work.COMNOW == 6) return ChannelType.RHYTHM;
+            if (work.CHIP_CH == 6) return ChannelType.RHYTHM;
 
-            if (work.COMNOW < 10)
+            if (work.CHIP_CH < 10)
             {
                 return ChannelType.FM;
             }
@@ -3001,10 +3036,10 @@ namespace mucomDotNET.Compiler
                     ,mucInfo.col
                     ,len
                     ,""
-                    ,"YM2608"
-                    ,0,0
-                    ,work.COMNOW * 10 + work.pageNow
-                    );
+                    , work.ChipIndex / 2 == 0
+                        ? "YM2608"
+                        : "YM2610B"
+                    , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
                 msub.MWRITE(
                     new MmlDatum(
                         enmMMLType.ClockCounter
@@ -3026,30 +3061,32 @@ namespace mucomDotNET.Compiler
 
         internal int COMPIL()
         {
-            work.COMNOW = 0;
-            work.MAXCH = 11;
+            work.ChipIndex = 0;
+            work.CHIP_CH = 0;
+            //work.MAXCH = 11;
             work.ADRSTC = 0;
             work.VPCO = 0;
 
             work.JPLINE = -1;
             work.JPCOL = -1;
 
-            mucInfo.usePageFunction = CheckUsePageFunction();
+            mucInfo.isExtendFormat = CheckExtendFormat();
 
             INIT();
             if (work.LINCFG != 0)
             {
                 return COMPI3();
             }
-            for (int i = 0; i < work.MAXCH; i++)
-            {
-                for (int j = 0; j < 10; j++)
+            for (int i = 0; i < work.MAXChips; i++)
+                for (int j = 0; j < work.MAXCH; j++)
                 {
-                    work.tcnt[i][j] = 0;
-                    work.lcnt[i][j] = 0;
-                    work.loopPoint[i][j] = -1;
+                    for (int pg = 0; pg < 10; pg++)
+                    {
+                        work.tcnt[i][j][pg] = 0;
+                        work.lcnt[i][j][pg] = 0;
+                        work.loopPoint[i][j][pg] = -1;
+                    }
                 }
-            }
             work.pcmFlag = 0;
             work.JCLOCK = 0;
             work.JCHCOM = null;
@@ -3063,16 +3100,16 @@ namespace mucomDotNET.Compiler
             work.MDATA = work.MU_TOP + 0x2f;// 11ch * 4byte + 3byte    (DATTBLの大きさ?)
 
             //KUMA:ページ機能を使う場合は0番地からデータを配置する
-            if (mucInfo.usePageFunction) work.MDATA = 0;
+            if (mucInfo.isExtendFormat) work.MDATA = 0;
 
             work.backupMDATA = work.MDATA;
             work.REPCOUNT = 0;
             work.title = work.titleFmt;
 
-            if (!mucInfo.usePageFunction)
+            if (!mucInfo.isExtendFormat)
             {
-                mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 0, new MmlDatum((byte)(work.MDATA - work.DATTBL + 1)));
-                mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 1, new MmlDatum((byte)((work.MDATA - work.DATTBL + 1) >> 8)));
+                mucInfo.bufDst.Set(work.DATTBL + 4 * work.CHIP_CH + 0, new MmlDatum((byte)(work.MDATA - work.DATTBL + 1)));
+                mucInfo.bufDst.Set(work.DATTBL + 4 * work.CHIP_CH + 1, new MmlDatum((byte)((work.MDATA - work.DATTBL + 1) >> 8)));
             }
 
             work.POINTC = work.LOOPSP - 10;// LOOP ﾖｳ ｽﾀｯｸ
@@ -3089,10 +3126,10 @@ namespace mucomDotNET.Compiler
             work.MACFG = 0xff;
             COMPST();//KUMA:先ずマクロの解析
 
-            if (!mucInfo.usePageFunction)
+            if (!mucInfo.isExtendFormat)
             {
-                mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 0, new MmlDatum((byte)(work.MDATA - work.DATTBL + 1)));
-                mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 1, new MmlDatum((byte)((work.MDATA - work.DATTBL + 1) >> 8)));
+                mucInfo.bufDst.Set(work.DATTBL + 4 * work.CHIP_CH + 0, new MmlDatum((byte)(work.MDATA - work.DATTBL + 1)));
+                mucInfo.bufDst.Set(work.DATTBL + 4 * work.CHIP_CH + 1, new MmlDatum((byte)((work.MDATA - work.DATTBL + 1) >> 8)));
             }
 
             mucInfo.srcCPtr = 0;
@@ -3109,7 +3146,7 @@ namespace mucomDotNET.Compiler
                 work.MACFG = 0x00;
 
                 //KUMA:ページ機能を使う場合は0番地からデータを配置する
-                if (mucInfo.usePageFunction) work.MDATA = 0;
+                if (mucInfo.isExtendFormat) work.MDATA = 0;
 
                 work.bufStartPtr = work.MDATA;
 
@@ -3119,7 +3156,7 @@ namespace mucomDotNET.Compiler
                 CMPEND();// ﾘﾝｸ ﾎﾟｲﾝﾀ = 0->BASIC END
                 if (mucInfo.ErrSign) return;
 
-            } while (work.COMNOW != work.MAXCH);
+            } while (mucInfo.isExtendFormat ? (work.ChipIndex != work.MAXChips) : (!work.isEnd));
         }
 
         public void COMPST()
@@ -3127,7 +3164,7 @@ namespace mucomDotNET.Compiler
             do
             {
                 mucInfo.srcLinPtr++;
-                if (mucInfo.basSrc.Count == mucInfo.srcLinPtr) return;
+                if (mucInfo.basSrc.Count <= mucInfo.srcLinPtr) return;
                 mucInfo.lin = mucInfo.basSrc[mucInfo.srcLinPtr];
                 if (mucInfo.lin.Item2.Length < 1) continue;
                 mucInfo.srcCPtr = 0;
@@ -3152,14 +3189,14 @@ namespace mucomDotNET.Compiler
 
                 //if (c == 0)
                 //{
-                    ////goto RECOM
-                    //continue;
+                ////goto RECOM
+                //continue;
                 //}
 
                 //if (c < 'A' || c > ('A' + work.MAXCH))
                 //{
-                    ////goto RECOM
-                    //continue;
+                ////goto RECOM
+                //continue;
                 //}
 
                 //char ch = c;
@@ -3180,72 +3217,178 @@ namespace mucomDotNET.Compiler
                 //    continue;
                 //}
 
+                bool isFirst = true;
+
+                //先ずパート文字を探す
                 bool fnd = false;
                 char c;
                 do
                 {
-                    c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
-                        ? mucInfo.lin.Item2[mucInfo.srcCPtr]
-                        : (char)0;
-                    if (c == 0) break;
-
-                    if (c >= '0' && c <= '9')
+                    do
                     {
+                        c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                            ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                            : (char)0;
+                        if (c == 0 || c == ' ' || c == '\t') goto errCase;
+
+                        if (c >= '0' && c <= '9')
+                        {
+                            if (isFirst) goto errCase;//最初に数字があった場合はパート表記と認めない
+                            isFirst = false;
+                            mucInfo.srcCPtr++;
+                            continue;
+                        }
+                        isFirst = false;
+
+                        if ((c < (char)0x41 || c > (char)0x5a) //大文字の範囲外
+                            && (c < (char)0x61 || c > (char)0x7a) //小文字の範囲外
+                            ) goto errCase;//アルファベット文字以外はパート表記と認めない
+
+                        int trackNum = work.GetTrackNo(c);
+                        if (trackNum < 0) goto errCase;//パート文字以外のアルファベットは認めない
+
+                        //探しているパートかどうかチェック
+                        if (trackNum == work.ChipIndex * work.MAXCH + work.CHIP_CH)
+                        {
+                            fnd = true;
+                            mucInfo.srcCPtr++;
+                            break;
+                        }
+
+                        //違う場合は次の文字を検索
                         mucInfo.srcCPtr++;
-                        continue;
-                    }
+                    } while (true);
+                    //パート文字が見つからない場合は次の文字へ
+                    if (!fnd) continue;
 
-                    if ((c < (char)0x41 || c > (char)0x5a) //大文字の範囲外
-                        && (c < (char)0x61 || c > (char)0x7a) //小文字の範囲外
-                        ) break;
-
-                    if (c < 'A' || c > ('A' + work.MAXCH))
+                    //ページ文字を探す
+                    fnd = false;
+                    bool isPageFirst = true;
+                    do
                     {
-                        //goto RECOM
-                        //continue;
-                        break;
-                    }
+                        c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                            ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                            : (char)0;
+                        if (c == 0) break;
+                        if (c == ' ' || c == '\t')
+                        {
+                            if (work.pageNow == 0 && isPageFirst)
+                            {
+                                fnd = true;
+                                c = (char)0;
+                                break;
+                            }
+                            break;
+                        }
 
-                    if ((c - 'A') == work.COMNOW)
-                    {
-                        fnd = true;
-                        break;
-                    }
+                        //もし、次のパート文字が並んでいた場合はページ0とする
+                        int trackNum = work.GetTrackNo(c);
+                        if (trackNum >= 0)
+                        {
+                            if (isPageFirst)
+                            {
+                                if (work.pageNow == 0)
+                                {
+                                    fnd = true;
+                                    c = (char)0;
+                                }
+                            }
+                            break;
+                        }
+                        isPageFirst = false;
 
-                    mucInfo.srcCPtr++;
-                } while (true);
+                        //パート文字でもページ文字でもない場合はエラー
+                        if (c < '0' || c > '9')
+                        {
+                            goto errCase;
+                        }
+
+                        //目的のページ文字か
+                        if (work.pageNow == c - '0')
+                        {
+                            fnd = true;
+                            c = (char)0;
+                            break;
+                        }
+
+                        //違う場合は次の文字を検索
+                        mucInfo.srcCPtr++;
+                    } while (true);
+
+                    if (c == 0 || c == ' ' || c == '\t') break;
+                    //ページ文字が見つからない場合は次の文字へ
+                    if (!fnd) continue;
+
+                } while (!fnd);
+            errCase:;
+
+                //bool fnd = false;
+                //char c;
+                //do
+                //{
+                //    c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                //        ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                //        : (char)0;
+                //    if (c == 0) break;
+
+                //    if (c >= '0' && c <= '9')
+                //    {
+                //        mucInfo.srcCPtr++;
+                //        continue;
+                //    }
+
+                //    if ((c < (char)0x41 || c > (char)0x5a) //大文字の範囲外
+                //        && (c < (char)0x61 || c > (char)0x7a) //小文字の範囲外
+                //        ) break;
+
+                //    int trackNum = work.GetTrackNo(c);
+                //    if (trackNum < 0)
+                //    {
+                //        //goto RECOM
+                //        //continue;
+                //        break;
+                //    }
+
+                //    if (trackNum == work.ChipIndex * work.MAXCH + work.CHIP_CH)
+                //    {
+                //        fnd = true;
+                //        break;
+                //    }
+
+                //    mucInfo.srcCPtr++;
+                //} while (true);
                 if (!fnd) continue;
 
 
-                //page番号を得る
-                int p = -1;
-                mucInfo.srcCPtr++;
-                int fndNum = 0;
-                do
-                {
-                    char cb = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
-                        ? mucInfo.lin.Item2[mucInfo.srcCPtr]
-                        : (char)0;
-                    if (cb == 0) break;
-                    if (cb >= '0' && cb <= '9')
-                    {
-                        p = cb - '0';
-                        if (p == work.pageNow) break;
-                        mucInfo.srcCPtr++;
-                        fndNum++;
-                        continue;
-                    }
-                    else
-                    {
-                        //数字がひとつもない場合,カレントが0ページかどうかチェック後break
-                        if (0 == work.pageNow && fndNum == 0) p = 0;
-                        break;
-                    }
-                } while (true);
-                if (p == -1) continue;
-                if (p != work.pageNow) continue;
+                ////page番号を得る
+                //int p = -1;
+                //mucInfo.srcCPtr++;
+                //int fndNum = 0;
+                //do
+                //{
+                //    char cb = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                //        ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                //        : (char)0;
+                //    if (cb == 0) break;
+                //    if (cb >= '0' && cb <= '9')
+                //    {
+                //        p = cb - '0';
+                //        if (p == work.pageNow) break;
+                //        mucInfo.srcCPtr++;
+                //        fndNum++;
+                //        continue;
+                //    }
+                //    else
+                //    {
+                //        //数字がひとつもない場合,カレントが0ページかどうかチェック後break
+                //        if (0 == work.pageNow && fndNum == 0) p = 0;
+                //        break;
+                //    }
+                //} while (true);
+                //if (p == -1) continue;
+                //if (p != work.pageNow) continue;
 
-                Log.WriteLine(LogLevel.TRACE, string.Format(msg.get("I0402"), c, p));
+                Log.WriteLine(LogLevel.TRACE, string.Format(msg.get("I0402"), work.ChipIndex * work.MAXCH + work.CHIP_CH, work.pageNow));
 
                 EnmFMCOMPrtn ret = FMCOMP();// TO FM COMPILE
                 if (mucInfo.ErrSign) break;
@@ -3261,12 +3404,12 @@ namespace mucomDotNET.Compiler
             } while (true);
         }
 
-        public bool CheckUsePageFunction()
+        public bool CheckExtendFormat()
         {
             int srcLinPtr = -1;
             int srcCPtr;
             Tuple<int, string> lin;
-            int f = 0;
+            int f = 0x800;
 
             do
             {
@@ -3276,48 +3419,43 @@ namespace mucomDotNET.Compiler
                 if (lin.Item2.Length < 1) continue;
                 srcCPtr = 0;
 
-                bool fnd = false;
                 char c;
+
                 do
                 {
                     c = srcCPtr < lin.Item2.Length
-                        ? lin.Item2[srcCPtr]
+                        ? lin.Item2[srcCPtr++]
                         : (char)0;
-                    if (c == 0) break;
+                    if (c == 0 || c == ' ' || c == '\t') break;
+                    int trkNo = work.GetTrackNo(c);
+                    if (trkNo < 0) break;
+                    if (trkNo > 10) 
+                        return true; //L以降のパート名を使用している時はここでチェック完了
 
-                    if (c >= '0' && c <= '9')
+                    //ここまできてパート文字発見
+                    //page番号を得る
+                    int pgNo = 0;
+                    c = srcCPtr < lin.Item2.Length
+                        ? lin.Item2[srcCPtr++]
+                        : (char)0;
+                    if (c < '0' || c > '9')
                     {
-                        srcCPtr++;
-                        continue;
+                        if (c == 0 || c == ' ' || c == '\t' || work.GetTrackNo(c) < 0)
+                        {
+                            f |= 1 << pgNo;
+                            break;
+                        }
                     }
 
-                    if ((c < (char)0x41 || c > (char)0x5a) //大文字の範囲外
-                        && (c < (char)0x61 || c > (char)0x7a) //小文字の範囲外
-                        ) break;
-
-                    if (c < 'A' || c > ('A' + work.MAXCH)) break;
-
-                    fnd = true;
-                    break;
+                    trkNo = work.GetTrackNo(c);
+                    if (c >= '0' && c <= '9') pgNo = (int)(c - '0');
+                    if (trkNo >= 0) srcCPtr--;
+                    f |= 1 << pgNo;//見つけたページ番号のビットを立てる
+                    f &= 0x7ff;
                 } while (true);
-                if (!fnd) continue;
-
-                //page番号を得る
-                srcCPtr++;
-                do
-                {
-                    char cb = srcCPtr < lin.Item2.Length
-                        ? lin.Item2[srcCPtr]
-                        : (char)0;
-                    if (cb == 0) break;
-                    if (cb >= '0' && cb <= '9')
-                        f |= 1 << (int)(cb - '0');//見つけたページ番号のビットを立てる
-                    break;
-                } while (true);
-
             } while (true);
 
-            return (f & 0x3fe) != 0;//全く使用していない or 0ページのみの使用 の場合は ページ未使用 と判定する
+            return ((f & 0x800) == 0 && (f & 0x7ff) != 0);//全く使用していない 場合は ページ未使用 と判定する
         }
 
 
@@ -3430,15 +3568,15 @@ namespace mucomDotNET.Compiler
         {
             mucInfo.ErrSign = false;
 
-            if (work.tcnt[work.COMNOW][work.pageNow] != 0 && mucInfo.bufDst.Get(work.DATTBL + 4 * work.COMNOW + 2)!=null)
+            if (work.tcnt[work.ChipIndex][work.CHIP_CH][work.pageNow] != 0 && mucInfo.bufDst.Get(work.DATTBL + 4 * work.CHIP_CH + 2)!=null)
             {
                 goto CMPE2;
             }
 
-            if (!mucInfo.usePageFunction)
+            if (!mucInfo.isExtendFormat)
             {
-                mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 2, new MmlDatum(0));
-                mucInfo.bufDst.Set(work.DATTBL + 4 * work.COMNOW + 3, new MmlDatum(0));
+                mucInfo.bufDst.Set(work.DATTBL + 4 * work.CHIP_CH + 2, new MmlDatum(0));
+                mucInfo.bufDst.Set(work.DATTBL + 4 * work.CHIP_CH + 3, new MmlDatum(0));
             }
 
         CMPE2:
@@ -3448,22 +3586,22 @@ namespace mucomDotNET.Compiler
 
 
             //KUMA:Result表示用のbufCountをセット
-            if (!mucInfo.usePageFunction)
+            if (!mucInfo.isExtendFormat)
             {
-                work.bufCount[0][0] = work.MDATA - work.bufStartPtr;
+                work.bufCount[0][0][0] = work.MDATA - work.bufStartPtr;
             }
             else
             {
-                work.bufCount[work.COMNOW][work.pageNow] = work.MDATA - work.bufStartPtr;
+                work.bufCount[work.ChipIndex][work.CHIP_CH][work.pageNow] = work.MDATA - work.bufStartPtr;
             }
             
             //KUMA:ページ数を+1する。10ページ作成したら次のChにする。ヘッダにはmmlデータの大きさを書き込む
-            if (!mucInfo.usePageFunction) work.pageNow = 10;//ページ機能を利用しないなら一気に10ページ進める
+            if (!mucInfo.isExtendFormat) work.pageNow = 10;//ページ機能を利用しないなら一気に10ページ進める
             else work.pageNow++;
 
             if (work.pageNow == 10)
             {
-                work.COMNOW++;  // Ch.=Ch.+ 1
+                work.CHIP_CH++;  // Ch.=Ch.+ 1
                 work.pageNow = 0;
             }
 
@@ -3477,28 +3615,37 @@ namespace mucomDotNET.Compiler
             }
             else
             {
-                if (mucInfo.usePageFunction) work.MDATA = work.lastMDATA;
+                if (mucInfo.isExtendFormat) work.MDATA = work.lastMDATA;
 
-                if (!mucInfo.usePageFunction)
+                if (!mucInfo.isExtendFormat)
                 {
                     //↓TBLSET();相当
-                    mucInfo.bufPage[0][0].Set(work.DATTBL + 4 * work.COMNOW + 0, new MmlDatum((byte)(work.MDATA - work.DATTBL + 1)));
-                    mucInfo.bufPage[0][0].Set(work.DATTBL + 4 * work.COMNOW + 1, new MmlDatum((byte)((work.MDATA - work.DATTBL + 1) >> 8)));
+                    mucInfo.bufPage[work.ChipIndex][0][0].Set(work.DATTBL + 4 * work.CHIP_CH + 0, new MmlDatum((byte)(work.MDATA - work.DATTBL + 1)));
+                    mucInfo.bufPage[work.ChipIndex][0][0].Set(work.DATTBL + 4 * work.CHIP_CH + 1, new MmlDatum((byte)((work.MDATA - work.DATTBL + 1) >> 8)));
+                }
+
+                if (work.CHIP_CH == work.MAXCH)
+                {
+
+                    mucInfo.bufDst = mucInfo.bufPage[mucInfo.isExtendFormat ? work.ChipIndex : 0][0][0];//KUMA:最初のバッファへ切り替え
+
+                    CMPEN1();
+
+                    work.ChipIndex++;
+                    work.CHIP_CH = 0;
                 }
 
                 //KUMA:最後のCh、ページまでコンパイルしたか
-                if (work.COMNOW == work.MAXCH)
+                if (work.ChipIndex == (mucInfo.isExtendFormat ? work.MAXChips : 1))
                 {
-                    mucInfo.bufDst = mucInfo.bufPage[0][0];//KUMA:最初のバッファへ切り替え
-                    CMPEN1();
                     return;
                 }
 
             }
 
-            if (mucInfo.usePageFunction)
+            if (mucInfo.isExtendFormat)
             {
-                mucInfo.bufDst = mucInfo.bufPage[work.COMNOW][work.pageNow];//KUMA:バッファの切り替え
+                mucInfo.bufDst = mucInfo.bufPage[work.ChipIndex][work.CHIP_CH][work.pageNow];//KUMA:バッファの切り替え
             }
 
             work.backupMDATA = work.MDATA;
@@ -3561,7 +3708,7 @@ namespace mucomDotNET.Compiler
 
             work.ENDADR = work.MDATA;
             work.OTODAT = work.MDATA - work.MU_NUM;
-
+            work.isEnd = true;
             //START ADRは0固定なのでわざわざ表示を更新する必要なし
             //string h = Convert.ToString(0, 16);//START ADRは0固定
 
@@ -3571,7 +3718,7 @@ namespace mucomDotNET.Compiler
         public void VOICECONV1()
         {
             // --   25 BYTE VOICE DATA ﾉ ｾｲｾｲ   --
-            if (!mucInfo.usePageFunction)
+            if (!mucInfo.isExtendFormat)
             {
                 mucInfo.useOtoAdr = work.ENDADR;
                 work.ENDADR++;
@@ -3690,7 +3837,7 @@ namespace mucomDotNET.Compiler
                 B--;
             } while (B != 0);
 
-            work.OTONUM = useOto;// ﾂｶﾜﾚﾃﾙ ｵﾝｼｮｸ ﾉ ｶｽﾞ
+            work.OTONUM[work.ChipIndex] = useOto;// ﾂｶﾜﾚﾃﾙ ｵﾝｼｮｸ ﾉ ｶｽﾞ
             mucInfo.bufDst.Set(mucInfo.useOtoAdr, new MmlDatum((byte)useOto));
 
             work.SSGDAT = work.ENDADR - work.MU_NUM;
@@ -3704,6 +3851,7 @@ namespace mucomDotNET.Compiler
             DispHex4(n, pos);
 
             work.ESCAPE = 1;
+            //mucInfo.bufDefVoice.Clear();
         }
 
         public void DispHex4(int n, int pos)
@@ -3802,7 +3950,7 @@ namespace mucomDotNET.Compiler
             {
                 if (mucInfo.skipPoint.Y == mucInfo.row)
                 {
-                    mucInfo.skipChannel = work.COMNOW;
+                    mucInfo.skipChannel = work.CHIP_CH;
 
                     if (mucInfo.skipPoint.X <= mucInfo.col)
                     {
@@ -3813,7 +3961,7 @@ namespace mucomDotNET.Compiler
                     }
                 }
 
-                if (mucInfo.skipPoint.Y < mucInfo.row && mucInfo.skipChannel == work.COMNOW)
+                if (mucInfo.skipPoint.Y < mucInfo.row && mucInfo.skipChannel == work.CHIP_CH)
                 {
                     SETTAG();
                     mucInfo.srcCPtr--;
@@ -3952,7 +4100,7 @@ namespace mucomDotNET.Compiler
 
         private void TCLKSUB(int clk)
         {
-            work.tcnt[work.COMNOW][work.pageNow] += clk;
+            work.tcnt[work.ChipIndex][work.CHIP_CH][work.pageNow] += clk;
         }
 
         public void FCOMP17(int note, int clk)
@@ -3980,12 +4128,13 @@ namespace mucomDotNET.Compiler
                 , mucInfo.row
                 , mucInfo.col
                 , ptr - mucInfo.col + 1
-                , tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM"))
-                , "YM2608"
-                , 0
-                , 0
-                , work.COMNOW * 10 + work.pageNow
-                );
+                , work.ChipIndex / 2 == 0
+                    ? (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM")))
+                    : (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "ADPCM-A" : "ADPCM-B")))
+                , work.ChipIndex / 2 == 0
+                    ? "YM2608"
+                    : "YM2610B"
+                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
             // --	ｶｳﾝﾄ ｵｰﾊﾞｰ ｼｮﾘ	--
             clk -= 127;
@@ -4025,12 +4174,13 @@ namespace mucomDotNET.Compiler
                 , mucInfo.row
                 , mucInfo.col
                 , ptr - mucInfo.col + 1
-                , tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM"))
-                , "YM2608"
-                , 0
-                , 0
-                , work.COMNOW * 10 + work.pageNow
-                );
+                , work.ChipIndex / 2 == 0
+                    ? (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM")))
+                    : (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "ADPCM-A" : "ADPCM-B")))
+                , work.ChipIndex / 2 == 0
+                    ? "YM2608"
+                    : "YM2610B"
+                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
             mucInfo.bufDst.Set(work.MDATA++, new MmlDatum(
                 enmMMLType.Note

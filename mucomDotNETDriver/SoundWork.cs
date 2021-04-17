@@ -13,41 +13,78 @@ namespace mucomDotNET.Driver
     /// </summary>
     public class SoundWork
     {
-        public List< CHDAT> CHDAT = new List<CHDAT>()
+        public List<List< CHDAT>> CHDAT = new List<List<CHDAT>>()
         {
-            new CHDAT()//FM Ch1
-            ,new CHDAT()//FM Ch2
-            ,new CHDAT()//FM Ch3
-
-            ,new CHDAT()//SSG Ch1
-            ,new CHDAT()//SSG Ch2
-            ,new CHDAT()//SSG Ch3
-
-            ,new CHDAT()//Drums Ch
-
-            ,new CHDAT()//FM Ch4
-            ,new CHDAT()//FM Ch5
-            ,new CHDAT()//FM Ch6
-
-            ,new CHDAT()//ADPCM Ch
+            new List<CHDAT>(){
+                new CHDAT()//FM Ch1
+                ,new CHDAT()//FM Ch2
+                ,new CHDAT()//FM Ch3
+                ,new CHDAT()//SSG Ch1
+                ,new CHDAT()//SSG Ch2
+                ,new CHDAT()//SSG Ch3
+                ,new CHDAT()//Drums Ch
+                ,new CHDAT()//FM Ch4
+                ,new CHDAT()//FM Ch5
+                ,new CHDAT()//FM Ch6
+                ,new CHDAT()//ADPCM Ch
+            },
+            new List<CHDAT>(){
+                new CHDAT()//FM Ch1
+                ,new CHDAT()//FM Ch2
+                ,new CHDAT()//FM Ch3
+                ,new CHDAT()//SSG Ch1
+                ,new CHDAT()//SSG Ch2
+                ,new CHDAT()//SSG Ch3
+                ,new CHDAT()//Drums Ch
+                ,new CHDAT()//FM Ch4
+                ,new CHDAT()//FM Ch5
+                ,new CHDAT()//FM Ch6
+                ,new CHDAT()//ADPCM Ch
+            },
+            new List<CHDAT>(){
+                new CHDAT()//FM Ch1
+                ,new CHDAT()//FM Ch2
+                ,new CHDAT()//FM Ch3
+                ,new CHDAT()//SSG Ch1
+                ,new CHDAT()//SSG Ch2
+                ,new CHDAT()//SSG Ch3
+                ,new CHDAT()//Drums Ch
+                ,new CHDAT()//FM Ch4
+                ,new CHDAT()//FM Ch5
+                ,new CHDAT()//FM Ch6
+                ,new CHDAT()//ADPCM Ch
+            },
+            new List<CHDAT>(){
+                new CHDAT()//FM Ch1
+                ,new CHDAT()//FM Ch2
+                ,new CHDAT()//FM Ch3
+                ,new CHDAT()//SSG Ch1
+                ,new CHDAT()//SSG Ch2
+                ,new CHDAT()//SSG Ch3
+                ,new CHDAT()//Drums Ch
+                ,new CHDAT()//FM Ch4
+                ,new CHDAT()//FM Ch5
+                ,new CHDAT()//FM Ch6
+                ,new CHDAT()//ADPCM Ch
+            }
         };
 
         public byte[] PREGBF = null;
         public byte[] INITPM = null;
         public ushort[] DETDAT = null;
-        public byte[] DRMVOL = null;
-        public byte[] DrmPanEnable = null;
-        public byte[] DrmPanMode = null;
-        public byte[] DrmPanCounter = null;
-        public byte[] DrmPanCounterWork = null;
-        public byte[] DrmPanValue = null;
+        public byte[][] DRMVOL = new byte[4][] { null, null, null, null };
+        public byte[][] DrmPanEnable = new byte[4][] { null, null, null, null };
+        public byte[][] DrmPanMode = new byte[4][] { null, null, null, null };
+        public byte[][] DrmPanCounter = new byte[4][] { null, null, null, null };
+        public byte[][] DrmPanCounterWork = new byte[4][] { null, null, null, null };
+        public byte[][] DrmPanValue = new byte[4][] { null, null, null, null };
         public byte[] OP_SEL = null;
         public byte[] TYPE1 = null;
         public byte[] TYPE2 = null;
         public byte DMY = 0;       //DB    8
-        public ushort[] FNUMB = null;
-        public ushort[] SNUMB = null;
-        public ushort[] PCMNMB = null;
+        public ushort[][] FNUMB = null;
+        public ushort[][] SNUMB = null;
+        public ushort[][] PCMNMB = null;
         public byte[] SSGDAT = null;
 
         public int MUSNUM { get; internal set; }
@@ -67,14 +104,14 @@ namespace mucomDotNET.Driver
         public int PCMFLG { get; internal set; }
         public int READY { get; internal set; } = 0xff;
         public int RHYTHM { get; internal set; }
-        public uint DELT_N { get; internal set; }
+        public uint[] DELT_N { get; internal set; } = new uint[4];
         public uint FNUM { get; internal set; }
         public uint FMSUB8_VAL { get; internal set; }
         public byte FPORT_VAL { get; internal set; } = 0xa4;
         public byte PCMNUM { get; internal set; }
         public byte P_OUT { get; internal set; }
-        public int STTADR { get; internal set; }
-        public int ENDADR { get; internal set; }
+        public int[] STTADR { get; internal set; } = new int[4];
+        public int[] ENDADR { get; internal set; } = new int[4];
         public byte TOTALV { get; internal set; }
         public int OTODAT { get; internal set; } = 1;
         public byte LFOP6_VAL { get; internal set; }
@@ -82,6 +119,9 @@ namespace mucomDotNET.Driver
         public int NEWFNM { get; internal set; }
         public ushort RANDUM { get; internal set; } = 0;
         public int KEY_FLAG { get; internal set; } = 0;
+        public int currentChip { get; internal set; }
+        public int[][] PCMaSTTADR { get; internal set; } = new int[2][] { new int[6], new int[6] };
+        public int[][] PCMaENDADR { get; internal set; } = new int[2][] { new int[6], new int[6] };
 
         // **	PMS/AMS/LR DATA	**
         public byte[] PALDAT = new byte[] {
@@ -117,119 +157,147 @@ namespace mucomDotNET.Driver
 
         internal void Init()
         {
-            for (int i = 0; i < CHDAT[0].PGDAT.Count; i++)
+            for (int chipIndex = 0; chipIndex < 4; chipIndex++)
             {
-                CHDAT[0].PGDAT[i].lengthCounter = 1;
-                CHDAT[0].PGDAT[i].instrumentNumber = 24;
-                CHDAT[0].PGDAT[i].volume = 10;
-            }
+                for (int i = 0; i < CHDAT[chipIndex][0].PGDAT.Count; i++)
+                {
+                    CHDAT[chipIndex][0].PGDAT[i].lengthCounter = 1;
+                    CHDAT[chipIndex][0].PGDAT[i].instrumentNumber = 24;
+                    CHDAT[chipIndex][0].PGDAT[i].volume = 10;
+                }
 
-            for (int i = 0; i < CHDAT[1].PGDAT.Count; i++)
-            {
-                CHDAT[1].PGDAT[i].lengthCounter = 1;
-                CHDAT[1].PGDAT[i].instrumentNumber = 24;
-                CHDAT[1].PGDAT[i].volume = 10;
-                CHDAT[1].PGDAT[i].channelNumber = 1;
-            }
+                for (int i = 0; i < CHDAT[chipIndex][1].PGDAT.Count; i++)
+                {
+                    CHDAT[chipIndex][1].PGDAT[i].lengthCounter = 1;
+                    CHDAT[chipIndex][1].PGDAT[i].instrumentNumber = 24;
+                    CHDAT[chipIndex][1].PGDAT[i].volume = 10;
+                    CHDAT[chipIndex][1].PGDAT[i].channelNumber = 1;
+                }
 
-            for (int i = 0; i < CHDAT[2].PGDAT.Count; i++)
-            {
-                CHDAT[2].PGDAT[i].lengthCounter = 1;
-                CHDAT[2].PGDAT[i].instrumentNumber = 24;
-                CHDAT[2].PGDAT[i].volume = 10;
-                CHDAT[2].PGDAT[i].channelNumber = 2;
-            }
+                for (int i = 0; i < CHDAT[chipIndex][2].PGDAT.Count; i++)
+                {
+                    CHDAT[chipIndex][2].PGDAT[i].lengthCounter = 1;
+                    CHDAT[chipIndex][2].PGDAT[i].instrumentNumber = 24;
+                    CHDAT[chipIndex][2].PGDAT[i].volume = 10;
+                    CHDAT[chipIndex][2].PGDAT[i].channelNumber = 2;
+                }
 
-            for (int i = 0; i < CHDAT[3].PGDAT.Count; i++)
-            {
-                CHDAT[3].PGDAT[i].lengthCounter = 1;
-                CHDAT[3].PGDAT[i].instrumentNumber = 0;
-                CHDAT[3].PGDAT[i].volume = 8;
-                CHDAT[3].PGDAT[i].volReg = 8;
-                CHDAT[3].PGDAT[i].channelNumber = 0;
-            }
+                for (int i = 0; i < CHDAT[chipIndex][3].PGDAT.Count; i++)
+                {
+                    CHDAT[chipIndex][3].PGDAT[i].lengthCounter = 1;
+                    CHDAT[chipIndex][3].PGDAT[i].instrumentNumber = 0;
+                    CHDAT[chipIndex][3].PGDAT[i].volume = 8;
+                    CHDAT[chipIndex][3].PGDAT[i].volReg = 8;
+                    CHDAT[chipIndex][3].PGDAT[i].channelNumber = 0;
+                }
 
-            for (int i = 0; i < CHDAT[4].PGDAT.Count; i++)
-            {
-                CHDAT[4].PGDAT[i].lengthCounter = 1;
-                CHDAT[4].PGDAT[i].instrumentNumber = 0;
-                CHDAT[4].PGDAT[i].volume = 8;
-                CHDAT[4].PGDAT[i].volReg = 9;
-                CHDAT[4].PGDAT[i].channelNumber = 2;
-            }
+                for (int i = 0; i < CHDAT[chipIndex][4].PGDAT.Count; i++)
+                {
+                    CHDAT[chipIndex][4].PGDAT[i].lengthCounter = 1;
+                    CHDAT[chipIndex][4].PGDAT[i].instrumentNumber = 0;
+                    CHDAT[chipIndex][4].PGDAT[i].volume = 8;
+                    CHDAT[chipIndex][4].PGDAT[i].volReg = 9;
+                    CHDAT[chipIndex][4].PGDAT[i].channelNumber = 2;
+                }
 
-            for (int i = 0; i < CHDAT[5].PGDAT.Count; i++)
-            {
-                CHDAT[5].PGDAT[i].lengthCounter = 1;
-                CHDAT[5].PGDAT[i].instrumentNumber = 0;
-                CHDAT[5].PGDAT[i].volume = 8;
-                CHDAT[5].PGDAT[i].volReg = 10;
-                CHDAT[5].PGDAT[i].channelNumber = 4;
-            }
+                for (int i = 0; i < CHDAT[chipIndex][5].PGDAT.Count; i++)
+                {
+                    CHDAT[chipIndex][5].PGDAT[i].lengthCounter = 1;
+                    CHDAT[chipIndex][5].PGDAT[i].instrumentNumber = 0;
+                    CHDAT[chipIndex][5].PGDAT[i].volume = 8;
+                    CHDAT[chipIndex][5].PGDAT[i].volReg = 10;
+                    CHDAT[chipIndex][5].PGDAT[i].channelNumber = 4;
+                }
 
-            for (int i = 0; i < CHDAT[6].PGDAT.Count; i++)
-            {
-                CHDAT[6].PGDAT[i].lengthCounter = 1;
-                CHDAT[6].PGDAT[i].volume = 10;
-                CHDAT[6].PGDAT[i].channelNumber = 2;
-            }
+                for (int i = 0; i < CHDAT[chipIndex][6].PGDAT.Count; i++)
+                {
+                    CHDAT[chipIndex][6].PGDAT[i].lengthCounter = 1;
+                    CHDAT[chipIndex][6].PGDAT[i].volume = 10;
+                    CHDAT[chipIndex][6].PGDAT[i].channelNumber = 2;
+                }
 
-            for (int i = 0; i < CHDAT[7].PGDAT.Count; i++)
-            {
-                CHDAT[7].PGDAT[i].lengthCounter = 1;
-                CHDAT[7].PGDAT[i].volume = 10;
-                CHDAT[7].PGDAT[i].channelNumber = 2;
-            }
+                for (int i = 0; i < CHDAT[chipIndex][7].PGDAT.Count; i++)
+                {
+                    CHDAT[chipIndex][7].PGDAT[i].lengthCounter = 1;
+                    CHDAT[chipIndex][7].PGDAT[i].volume = 10;
+                    CHDAT[chipIndex][7].PGDAT[i].channelNumber = 2;
+                }
 
-            for (int i = 0; i < CHDAT[8].PGDAT.Count; i++)
-            {
-                CHDAT[8].PGDAT[i].lengthCounter = 1;
-                CHDAT[8].PGDAT[i].volume = 10;
-                CHDAT[8].PGDAT[i].channelNumber = 2;
-            }
+                for (int i = 0; i < CHDAT[chipIndex][8].PGDAT.Count; i++)
+                {
+                    CHDAT[chipIndex][8].PGDAT[i].lengthCounter = 1;
+                    CHDAT[chipIndex][8].PGDAT[i].volume = 10;
+                    CHDAT[chipIndex][8].PGDAT[i].channelNumber = 2;
+                }
 
-            for (int i = 0; i < CHDAT[9].PGDAT.Count; i++)
-            {
-                CHDAT[9].PGDAT[i].lengthCounter = 1;
-                CHDAT[9].PGDAT[i].volume = 10;
-                CHDAT[9].PGDAT[i].channelNumber = 2;
-            }
+                for (int i = 0; i < CHDAT[chipIndex][9].PGDAT.Count; i++)
+                {
+                    CHDAT[chipIndex][9].PGDAT[i].lengthCounter = 1;
+                    CHDAT[chipIndex][9].PGDAT[i].volume = 10;
+                    CHDAT[chipIndex][9].PGDAT[i].channelNumber = 2;
+                }
 
-            for (int i = 0; i < CHDAT[10].PGDAT.Count; i++)
-            {
-                CHDAT[10].PGDAT[i].lengthCounter = 1;
-                CHDAT[10].PGDAT[i].volume = 10;
-                CHDAT[10].PGDAT[i].channelNumber = 2;
+                for (int i = 0; i < CHDAT[chipIndex][10].PGDAT.Count; i++)
+                {
+                    CHDAT[chipIndex][10].PGDAT[i].lengthCounter = 1;
+                    CHDAT[chipIndex][10].PGDAT[i].volume = 10;
+                    CHDAT[chipIndex][10].PGDAT[i].channelNumber = 2;
+                }
             }
 
             PREGBF = new byte[9];
             INITPM = new byte[] { 0, 0, 0, 0, 0, 56, 0, 0, 0 };
             DETDAT = new ushort[4] { 0, 0, 0, 0 };
-            DRMVOL = new byte[6] { 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0 };
-            DrmPanCounter = new byte[6] { 0, 0, 0, 0, 0, 0 };
-            DrmPanCounterWork = new byte[6] { 0, 0, 0, 0, 0, 0 };
-            DrmPanEnable = new byte[6] { 0, 0, 0, 0, 0, 0 };
-            DrmPanMode = new byte[6] { 0, 0, 0, 0, 0, 0 };
-            DrmPanValue = new byte[6] { 0, 0, 0, 0, 0, 0 };
+            for (int i = 0; i < 4; i++)
+            {
+                DRMVOL[i] = new byte[6] { 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0 };
+                DrmPanCounter[i] = new byte[6] { 0, 0, 0, 0, 0, 0 };
+                DrmPanCounterWork[i] = new byte[6] { 0, 0, 0, 0, 0, 0 };
+                DrmPanEnable[i] = new byte[6] { 0, 0, 0, 0, 0, 0 };
+                DrmPanMode[i] = new byte[6] { 0, 0, 0, 0, 0, 0 };
+                DrmPanValue[i] = new byte[6] { 0, 0, 0, 0, 0, 0 };
+            }
             OP_SEL = new byte[4] { 0xa6, 0xac, 0xad, 0xae };
             DMY = 8;
             TYPE1 = new byte[] { 0x032, 0x044, 0x046 };
             TYPE2 = new byte[] { 0x0AA, 0x0A8, 0x0AC };
-            FNUMB = new ushort[] {
+            FNUMB = new ushort[2][]{
+                new ushort[] {
                  0x026A    ,0x028F    ,0x02B6    ,0x02DF
                 ,0x030B    ,0x0339    ,0x036A    ,0x039E
                 ,0x03D5    ,0x0410    ,0x044E    ,0x048F
+                },
+                new ushort[] {
+                 0x0269    ,0x028E    ,0x02b4    ,0x02De
+                ,0x0309    ,0x0337    ,0x0368    ,0x039c
+                ,0x03d3    ,0x040e    ,0x044b    ,0x048d
+                }
             };
-            SNUMB = new ushort[] {
-                0x0EE8    ,0x0E12    ,0x0D48    ,0x0C89
-                ,0x0BD5    ,0x0B2B    ,0x0A8A    ,0x09F3
-                ,0x0964    ,0x08DD    ,0x085E    ,0x07E6
+            SNUMB = new ushort[2][]{
+                new ushort[] {
+                    0x0EE8    ,0x0E12    ,0x0D48    ,0x0C89
+                    ,0x0BD5    ,0x0B2B    ,0x0A8A    ,0x09F3
+                    ,0x0964    ,0x08DD    ,0x085E    ,0x07E6
+                },
+                new ushort[] {
+                    0x0EEe    ,0x0E18    ,0x0D4d    ,0x0C8e
+                    ,0x0BDa    ,0x0B30    ,0x0A8f    ,0x09F7
+                    ,0x0968    ,0x08e1    ,0x0861    ,0x07E9
+                }
             };
-            PCMNMB = new ushort[] {
-                0x49BA+200,0x4E1C+200,0x52C1+200,0x57AD+200
-                ,0x5CE4+200,0x626A+200,0x6844+200,0x6E77+200
-                ,0x7509+200,0x7BFE+200,0x835E+200,0x8B2D+200
+            PCMNMB = new ushort[2][]{
+                new ushort[] {
+                    0x49BA+200,0x4E1C+200,0x52C1+200,0x57AD+200
+                    ,0x5CE4+200,0x626A+200,0x6844+200,0x6E77+200
+                    ,0x7509+200,0x7BFE+200,0x835E+200,0x8B2D+200
+                },
+                new ushort[] {
+                    0x49BA+200,0x4E1C+200,0x52C1+200,0x57AD+200
+                    ,0x5CE4+200,0x626A+200,0x6844+200,0x6E77+200
+                    ,0x7509+200,0x7BFE+200,0x835E+200,0x8B2D+200
+                }
             };
+
             SSGDAT = new byte[]{
                 255,255,255,255,0,255 // E
                 ,255,255,255,200,0,10

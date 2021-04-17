@@ -62,7 +62,7 @@ namespace mucomDotNET.Common
         public AutoExtendList<MmlDatum> bufDst { get; set; }
 
         //KUMA:ページ毎のメモリ
-        public AutoExtendList<MmlDatum>[][] bufPage { get; set; }
+        public AutoExtendList<MmlDatum>[][][] bufPage { get; set; }
 
         //KUMA:音色用のメモリ(ページ機能使用時のみ)
         public AutoExtendList<MmlDatum> bufUseVoice { get; set; }
@@ -127,7 +127,7 @@ namespace mucomDotNET.Common
         public bool isIDE { get; set; } = false;
         public Point skipPoint { get; set; } = Point.Empty;
         public int skipChannel { get; set; } = -1;
-        public bool usePageFunction { get; set; } = false;
+        public bool isExtendFormat { get; set; } = false;
 
         public void Clear()
         {
@@ -150,16 +150,20 @@ namespace mucomDotNET.Common
             fnDst = "";
 
             //バッファの作成
-            bufPage = new AutoExtendList<MmlDatum>[11][];
-            for (int i = 0; i < 11; i++)
+            bufPage = new AutoExtendList<MmlDatum>[4][][];
+            for (int i = 0; i < 4; i++)
             {
-                bufPage[i] = new AutoExtendList<MmlDatum>[10];
-                for (int j = 0; j < 10; j++)
+                bufPage[i] = new AutoExtendList<MmlDatum>[11][];
+                for (int j = 0; j < 11; j++)
                 {
-                    bufPage[i][j] = new AutoExtendList<MmlDatum>();
+                    bufPage[i][j] = new AutoExtendList<MmlDatum>[10];
+                    for (int pg = 0; pg < 10; pg++)
+                    {
+                        bufPage[i][j][pg] = new AutoExtendList<MmlDatum>();
+                    };
                 };
-            };
-            bufDst = bufPage[0][0];
+            }
+            bufDst = bufPage[0][0][0];
 
             srcLinPtr = 0;
             srcCPtr = 0;
@@ -173,7 +177,7 @@ namespace mucomDotNET.Common
             DriverType = enmDriverType.DotNet;//.normal;
             //needNormalMucom = false;
             isIDE = false;
-            usePageFunction = false;
+            isExtendFormat = false;
         }
 
     }

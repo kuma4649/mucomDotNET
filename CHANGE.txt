@@ -1,4 +1,10 @@
 更新履歴
+TAG075 2021/04/17
+  Compiler&Driver
+    OPNAx2,OPNBx2の4chip処理機能暫定追加。
+  PCMTool追加
+    mucomDotNET向けのPCMのパッケージを作るツールです。(usage.txt参照)
+
 TAG074 2021/04/03
   Driver
     リズムパートにてキーオフの制御が出来ていなかったのを修正

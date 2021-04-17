@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace mucomDotNET.Common
 {
@@ -39,6 +40,11 @@ namespace mucomDotNET.Common
         public T[] GetByteArray()
         {
             return buf.ToArray();
+        }
+
+        public void Clear()
+        {
+            buf = new List<T>();
         }
     }
 }

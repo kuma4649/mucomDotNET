@@ -27,6 +27,7 @@ namespace mucomDotNET.Driver
 
         public class ChipDefine
         {
+            public uint indexNumber { get; set; }
             public uint identifyNumber { get; set; }
             public uint masterClock { get; set; }
             public uint option { get; set; }

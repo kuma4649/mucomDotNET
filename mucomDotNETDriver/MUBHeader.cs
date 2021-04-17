@@ -15,8 +15,8 @@ namespace mucomDotNET.Driver
         public uint datasize = 0;
         public uint tagdata = 0;
         public uint tagsize = 0;
-        public uint pcmdata = 0;
-        public uint pcmsize = 0;
+        public uint[] pcmdataPtr = new uint[] { 0, 0, 0, 0, 0, 0 };
+        public uint[] pcmsize = new uint[] { 0, 0, 0, 0, 0, 0 };
         public uint jumpcount = 0;
         public uint jumpline = 0;
         public uint ext_flags = 0;
@@ -44,8 +44,8 @@ namespace mucomDotNET.Driver
                 datasize = Cmn.getLE32(buf, 0x0008);
                 tagdata = Cmn.getLE32(buf, 0x000c);
                 tagsize = Cmn.getLE32(buf, 0x0010);
-                pcmdata = Cmn.getLE32(buf, 0x0014);
-                pcmsize = Cmn.getLE32(buf, 0x0018);
+                pcmdataPtr[0] = Cmn.getLE32(buf, 0x0014);
+                pcmsize[0] = Cmn.getLE32(buf, 0x0018);
                 jumpcount = Cmn.getLE16(buf, 0x001c);
                 jumpline = Cmn.getLE16(buf, 0x001e);
             }
@@ -55,8 +55,8 @@ namespace mucomDotNET.Driver
                 datasize = Cmn.getLE32(buf, 0x0008);
                 tagdata = Cmn.getLE32(buf, 0x000c);
                 tagsize = Cmn.getLE32(buf, 0x0010);
-                pcmdata = Cmn.getLE32(buf, 0x0014);
-                pcmsize = Cmn.getLE32(buf, 0x0018);
+                pcmdataPtr[0] = Cmn.getLE32(buf, 0x0014);
+                pcmsize[0] = Cmn.getLE32(buf, 0x0018);
                 jumpcount = Cmn.getLE16(buf, 0x001c);
                 jumpline = Cmn.getLE16(buf, 0x001e);
 
@@ -95,6 +95,7 @@ namespace mucomDotNET.Driver
                 {
                     mupb.chips[i] = new MupbInfo.ChipDefine();
                     MupbInfo.ChipDefine cd = mupb.chips[i];
+                    cd.indexNumber = Cmn.getLE16(buf, ptr); ptr += 2;
                     cd.identifyNumber = Cmn.getLE32(buf, ptr); ptr += 4;
                     cd.masterClock = Cmn.getLE32(buf, ptr); ptr += 4;
                     cd.option = Cmn.getLE32(buf, ptr); ptr += 4;
@@ -253,17 +254,17 @@ namespace mucomDotNET.Driver
             }
         }
 
-        public byte[] GetPCM()
+        public byte[] GetPCM(int id)
         {
             try
             {
-                if (pcmdata == 0) return null;
+                if (pcmdataPtr[id] == 0) return null;
                 if (srcBuf == null) return null;
 
                 List<byte> lb = new List<byte>();
-                for (int i = 0; i < pcmsize; i++)
+                for (int i = 0; i < pcmsize[id]; i++)
                 {
-                    lb.Add((byte)srcBuf[pcmdata + i].dat);
+                    lb.Add((byte)srcBuf[pcmdataPtr[id] + i].dat);
                 }
 
                 return lb.ToArray();

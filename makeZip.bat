@@ -5,6 +5,7 @@ mkdir output\compiler
 mkdir output\player
 mkdir output\toWav
 mkdir output\toVgm
+mkdir output\PCMTool
 
 del /Q .\output\*.*
 del /Q .\output\compiler\*.*
@@ -15,6 +16,7 @@ xcopy .\mucomDotNETConsole.Net4\bin\Release\net472\*.* .\output\compiler\ /E /R 
 xcopy .\mucomDotNETPlayer\bin\Release\net472\*.* .\output\player\ /E /R /Y /I /K
 xcopy .\Wav.Net4\bin\Release\net472\*.* .\output\toWav\ /E /R /Y /I /K
 xcopy .\Vgm.Net4\bin\Release\net472\*.* .\output\toVgm\ /E /R /Y /I /K
+xcopy .\PCMTool\bin\Release\net5.0\*.* .\output\PCMTool\ /E /R /Y /I /K
 del /Q .\output\*.pdb
 del /Q .\output\*.config
 del /Q .\output\compiler\*.pdb
@@ -36,6 +38,8 @@ copy .\play.bat .\output\
 copy .\playOnGIMIC.bat .\output\
 copy .\playOnSCCI.bat .\output\
 copy .\toWav.bat .\output\
+copy .\PCMtool.bat .\output\
+copy .\test.pxt .\output\
 copy .\removeZoneIdent.bat .\output\
 
 pause

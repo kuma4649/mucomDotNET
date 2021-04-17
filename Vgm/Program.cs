@@ -55,7 +55,18 @@ namespace Vgm
                 drv = new Driver();
                 ((Driver)drv).Init(
                     args[fnIndex]
-                    , OPNAWrite
+                    , new List<Action<ChipDatum>>(){
+                        OPNAWriteP
+                        , OPNAWriteS
+                        , OPNBWriteP
+                        , OPNBWriteS
+                    }
+                    , new List<Action<byte[]>>() {
+                         OPNBWriteAdpcmAP
+                        , OPNBWriteAdpcmBP
+                        , OPNBWriteAdpcmAS
+                        , OPNBWriteAdpcmBS
+                    }
                     , OPNAWaitSend
                     , false
                     , false
@@ -179,6 +190,32 @@ namespace Vgm
         {
             return;
         }
+
+        private static void OPNAWriteP(ChipDatum dat)
+        {
+        }
+        private static void OPNAWriteS(ChipDatum dat)
+        {
+        }
+        private static void OPNBWriteP(ChipDatum dat)
+        {
+        }
+        private static void OPNBWriteS(ChipDatum dat)
+        {
+        }
+        private static void OPNBWriteAdpcmAS(byte[] pcmData)
+        {
+        }
+        private static void OPNBWriteAdpcmBS(byte[] pcmData)
+        {
+        }
+        private static void OPNBWriteAdpcmAP(byte[] pcmData)
+        {
+        }
+        private static void OPNBWriteAdpcmBP(byte[] pcmData)
+        {
+        }
+
 
     }
 }
