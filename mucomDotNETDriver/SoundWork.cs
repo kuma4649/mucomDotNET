@@ -97,7 +97,7 @@ namespace mucomDotNET.Driver
         public int NOTSB2 { get; internal set; }
         public byte PLSET1_VAL { get; internal set; }
         public byte PLSET2_VAL { get; internal set; }
-        public int PCMLR { get; internal set; }
+        public int[] PCMLR { get; internal set; } = new int[6];
         public int FMPORT { get; internal set; }
         public int SSGF1 { get; internal set; }
         public int DRMF1 { get; internal set; }

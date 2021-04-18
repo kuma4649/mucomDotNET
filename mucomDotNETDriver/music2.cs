@@ -574,7 +574,7 @@ namespace mucomDotNET.Driver
                     work.soundWork.PALDAT[b * 10 + c] = 0xc0;
             }
 
-            work.soundWork.PCMLR = 3;
+            work.soundWork.PCMLR[work.soundWork.currentChip] = 3;
         }
 
         private void WriteRegister(int id, ChipDatum dat)
@@ -1293,7 +1293,7 @@ namespace mucomDotNET.Driver
             //PL2:
             PCMOUT(0xb, e);// VOLUME
 
-            e = (byte)((work.soundWork.PCMLR & 3) << 6);
+            e = (byte)((work.soundWork.PCMLR[work.soundWork.currentChip] & 3) << 6);
             PCMOUT(0x01, e);// 1 bit TYPE, L&R OUT
 
             // ｼﾝｺﾞｳﾀﾞｽ
@@ -1334,7 +1334,7 @@ namespace mucomDotNET.Driver
             //PL2:
             PCMOUT(0,0x1b, e);// VOLUME
 
-            e = (byte)((work.soundWork.PCMLR & 3) << 6);
+            e = (byte)((work.soundWork.PCMLR[work.soundWork.currentChip] & 3) << 6);
             PCMOUT(0,0x11, e);// 1 bit TYPE, L&R OUT
 
             // ｼﾝｺﾞｳﾀﾞｽ
@@ -1952,7 +1952,7 @@ namespace mucomDotNET.Driver
             }
             if (work.soundWork.PCMFLG != 0)
             {
-                work.soundWork.PCMLR = work.pg.mData[work.hl++].dat;
+                work.soundWork.PCMLR[work.soundWork.currentChip] = work.pg.mData[work.hl++].dat;
                 return;
             }
             //STER2:
@@ -2125,7 +2125,7 @@ namespace mucomDotNET.Driver
             if (a < 4)
             {
                 //既存処理
-                work.soundWork.PCMLR = a;
+                work.soundWork.PCMLR[work.soundWork.currentChip] = a;
                 work.pg.panValue = a;
                 work.pg.panEnable = 0;//パーン禁止
                 return;
@@ -2151,7 +2151,7 @@ namespace mucomDotNET.Driver
             }
 
             a = (byte)autoPantable[a];
-            work.soundWork.PCMLR = a;
+            work.soundWork.PCMLR[work.soundWork.currentChip] = a;
 
             if (work.soundWork.currentChip < 2)
             {
@@ -2287,7 +2287,7 @@ namespace mucomDotNET.Driver
             {
                 work.pg.panEnable = 0;//パーン禁止
                 a = work.pg.panValue;
-                work.soundWork.PCMLR = a;
+                work.soundWork.PCMLR[work.soundWork.currentChip] = a;
                 if (work.soundWork.currentChip < 2)
                     PCMOUT(0x01, (byte)(a << 6));
                 else
@@ -2312,7 +2312,7 @@ namespace mucomDotNET.Driver
             }
 
             a = (byte)autoPantable[a];
-            work.soundWork.PCMLR = a;
+            work.soundWork.PCMLR[work.soundWork.currentChip] = a;
             if (work.soundWork.currentChip < 2)
                 PCMOUT(0x01, (byte)(a << 6));
             else
@@ -2384,7 +2384,7 @@ namespace mucomDotNET.Driver
                 return;
             }
 
-            work.soundWork.PCMLR = a;
+            work.soundWork.PCMLR[work.soundWork.currentChip] = a;
             c = (byte)((a << 6) & 0xc0);
 
             if (work.soundWork.currentChip < 2)
