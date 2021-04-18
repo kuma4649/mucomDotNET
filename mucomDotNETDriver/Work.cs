@@ -48,8 +48,8 @@ namespace mucomDotNET.Driver
 
         public OPNATimer timer = null;
         public ulong timeCounter = 0L;
-        public byte[][] fmVoice = new byte[][] { null, null, null, null };
-        public Tuple<string, ushort[]>[][] pcmTables = new Tuple<string, ushort[]>[][] { null, null, null, null, null, null };
+        public byte[][] fmVoice = new byte[4][] { null, null, null, null };
+        public Tuple<string, ushort[]>[][] pcmTables = new Tuple<string, ushort[]>[6][] { null, null, null, null, null, null };
         public MmlDatum[] mData = null;
         public SoundWork soundWork = null;
         public byte[] fmVoiceAtMusData = null;

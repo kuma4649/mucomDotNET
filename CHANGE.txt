@@ -1,4 +1,8 @@
 更新履歴
+TAG076 2021/04/18
+  Compiler&Driver
+    OPNAx2,OPNBx2の4chip処理機能 調整＆バグ修正。
+
 TAG075 2021/04/17
   Compiler&Driver
     OPNAx2,OPNBx2の4chip処理機能暫定追加。

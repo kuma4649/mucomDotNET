@@ -52,25 +52,27 @@ namespace Vgm
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 #endif
 
+                List<ChipAction> lca = new List<ChipAction>();
+                mucomChipAction ca;
+                ca = new mucomChipAction(OPNAWriteP, null, OPNAWaitSend); lca.Add(ca);
+                ca = new mucomChipAction(OPNAWriteS, null, null); lca.Add(ca);
+                ca = new mucomChipAction(OPNBWriteP, OPNBWriteAdpcmP, null); lca.Add(ca);
+                ca = new mucomChipAction(OPNBWriteS, OPNBWriteAdpcmS, null); lca.Add(ca);
+
+                List<MmlDatum> bl = new List<MmlDatum>();
+                byte[] srcBuf = File.ReadAllBytes(args[fnIndex]);
+                foreach (byte b in srcBuf) bl.Add(new MmlDatum(b));
+
                 drv = new Driver();
                 ((Driver)drv).Init(
-                    args[fnIndex]
-                    , new List<Action<ChipDatum>>(){
-                        OPNAWriteP
-                        , OPNAWriteS
-                        , OPNBWriteP
-                        , OPNBWriteS
+                    lca
+                    , bl.ToArray()
+                    , null
+                    , new object[] {
+                        false
+                        , false
+                        , false
                     }
-                    , new List<Action<byte[]>>() {
-                         OPNBWriteAdpcmAP
-                        , OPNBWriteAdpcmBP
-                        , OPNBWriteAdpcmAS
-                        , OPNBWriteAdpcmBS
-                    }
-                    , OPNAWaitSend
-                    , false
-                    , false
-                    , false
                     );
 
                 drv.SetLoopCount(loop);
@@ -203,16 +205,10 @@ namespace Vgm
         private static void OPNBWriteS(ChipDatum dat)
         {
         }
-        private static void OPNBWriteAdpcmAS(byte[] pcmData)
+        private static void OPNBWriteAdpcmP(byte[] pcmData, int s, int e)
         {
         }
-        private static void OPNBWriteAdpcmBS(byte[] pcmData)
-        {
-        }
-        private static void OPNBWriteAdpcmAP(byte[] pcmData)
-        {
-        }
-        private static void OPNBWriteAdpcmBP(byte[] pcmData)
+        private static void OPNBWriteAdpcmS(byte[] pcmData, int s, int e)
         {
         }
 

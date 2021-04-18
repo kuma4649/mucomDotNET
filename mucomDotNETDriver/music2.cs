@@ -1521,13 +1521,10 @@ namespace mucomDotNET.Driver
             a--;
             work.pg.instrumentNumber = a;
 
-            if (work.pcmTables != null && work.pcmTables.Length > a)
+            if (work.pcmTables != null && work.pcmTables[work.soundWork.currentChip] != null && work.pcmTables[work.soundWork.currentChip].Length > a)
             {
-                if (work.pcmTables[work.soundWork.currentChip] != null)
-                {
-                    work.soundWork.STTADR[work.soundWork.currentChip] = work.pcmTables[work.soundWork.currentChip][a].Item2[0];//start address
-                    work.soundWork.ENDADR[work.soundWork.currentChip] = work.pcmTables[work.soundWork.currentChip][a].Item2[1];//end address
-                }
+                work.soundWork.STTADR[work.soundWork.currentChip] = work.pcmTables[work.soundWork.currentChip][a].Item2[0];//start address
+                work.soundWork.ENDADR[work.soundWork.currentChip] = work.pcmTables[work.soundWork.currentChip][a].Item2[1];//end address
             }
 
             if (work.soundWork.PVMODE == 0) return;
@@ -1541,7 +1538,9 @@ namespace mucomDotNET.Driver
             work.soundWork.PCMNUM = (byte)(work.pg.instrumentNumber + 1);
             byte a = (byte)work.pg.instrumentNumber;
 
-            if (work.pcmTables != null && work.pcmTables.Length > a)
+            if (work.pcmTables != null
+                && work.pcmTables[work.soundWork.currentChip] != null
+                && work.pcmTables[work.soundWork.currentChip].Length > a)
             {
                 work.soundWork.STTADR[work.soundWork.currentChip] = work.pcmTables[work.soundWork.currentChip][a].Item2[0];//start address
                 work.soundWork.ENDADR[work.soundWork.currentChip] = work.pcmTables[work.soundWork.currentChip][a].Item2[1];//end address
