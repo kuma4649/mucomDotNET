@@ -1,4 +1,8 @@
 更新履歴
+TAG077 2021/04/19
+  Driver
+    ADPCM/-B:カレントページ以外のデチューン値が送信されていたのを修正
+
 TAG076 2021/04/18
   Compiler&Driver
     OPNAx2,OPNBx2の4chip処理機能 調整＆バグ修正。

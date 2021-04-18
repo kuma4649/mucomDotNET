@@ -1709,6 +1709,7 @@ namespace mucomDotNET.Driver
 
         public void FRQ_DF()
         {
+            
             DummyOUT();
             work.pg.beforeCode = 0;// DETUNE ﾉ ﾊﾞｱｲﾊ BEFORE CODE ｦ CLEAR
             int de = work.pg.mData[work.hl].dat + work.pg.mData[work.hl + 1].dat * 0x100;
@@ -1724,6 +1725,8 @@ namespace mucomDotNET.Driver
             {
                 return;
             }
+
+            if (work.cd.currentPageNo != work.pg.pageNo) return;
 
             ushort hl = (ushort)work.soundWork.DELT_N[work.soundWork.currentChip];
             hl += (ushort)de;
