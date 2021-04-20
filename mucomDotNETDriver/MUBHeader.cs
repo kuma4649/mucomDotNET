@@ -186,10 +186,10 @@ namespace mucomDotNET.Driver
                 for (int i = 0; i < mupb.useInstrumentSetCount; i++)
                 {
                     MupbInfo.InstrumentDefine id = mupb.instruments[i];
-                    id.data = new MmlDatum[id.length];
+                    id.data = new byte[id.length];
                     for (int j = 0; j < id.length; j++)
                     {
-                        id.data[j] = buf[ptr++];
+                        id.data[j] = (byte)buf[ptr++].dat;
                     }
                 }
 
@@ -197,10 +197,10 @@ namespace mucomDotNET.Driver
                 for (int i = 0; i < mupb.usePCMSetCount; i++)
                 {
                     MupbInfo.PCMDefine pd = mupb.pcms[i];
-                    pd.data = new MmlDatum[pd.length];
+                    pd.data = new byte[pd.length];
                     for (int j = 0; j < pd.length; j++)
                     {
-                        pd.data[j] = buf[ptr++];
+                        pd.data[j] = (byte)buf[ptr++].dat;
                     }
                 }
 

@@ -13,13 +13,34 @@ mucomDotNET
 --独自/拡張タグ--
 
 タグ
-    Driver
+    #Driver
 書式
-    Driver str
+    #Driver str
 値の範囲
     str : mucomDotNET
 内容
     mucomDotNETの独自機能を使用することを指定します。デフォルト値です。
+
+タグ
+    #pcm_2nd
+    #pcm_3rd_b
+    #pcm_4th_b
+    #pcm_3rd_a
+    #pcm_4th_a
+書式
+    #pcm_2nd filename
+    (他のタグも同様)
+値の範囲
+    filename : mucom88/mucomDotNET向けpcmファイル
+内容
+    OPNAの2枚目以降で使用するPCMファイルを指定します。
+    それぞれ順番に、
+    OPNA 2枚目のPCMファイル
+    OPNB 1枚目のPCMファイル(ADPCM-B)
+    OPNB 2枚目のPCMファイル(ADPCM-B)
+    OPNB 1枚目のPCMファイル(ADPCM-A)
+    OPNB 2枚目のPCMファイル(ADPCM-A)
+    向けです。
 
 
 

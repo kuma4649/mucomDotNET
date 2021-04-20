@@ -14,7 +14,7 @@ namespace mucomDotNET.Common
         public string mucom88 { get; set; }
         public string date { get; set; }
         public string voice { get; set; }
-        public string pcm { get; set; }
+        public string[] pcm { get; set; } = new string[6];
         public string driver { get; set; }
 
         public string invert { get; set; }
@@ -138,7 +138,7 @@ namespace mucomDotNET.Common
             mucom88 = "";
             date = "";
             voice = "";
-            pcm = "";
+            for (int i = 0; i < 6; i++) pcm[i] = "";
             driver = "";
             invert = "";
             lines = 0;

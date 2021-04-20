@@ -18,7 +18,7 @@ namespace mucomDotNET.Compiler
         private expand expand = null;
         private smon smon = null;
         private byte[] voice;
-        private byte[] pcmdata;
+        private byte[][] pcmdata=new byte[6][];
         private readonly List<Tuple<int, string>> basSrc = new List<Tuple<int, string>>();
         private readonly List<MmlDatum> dat = new List<MmlDatum>();
 
@@ -69,14 +69,29 @@ namespace mucomDotNET.Compiler
                     voice = ReadAllBytes(vd);
                 }
 
-                using (Stream pd = appendFileReaderCallback?.Invoke(string.IsNullOrEmpty(mucInfo.pcm) ? "mucompcm.bin" : mucInfo.pcm))
+                string[] pcmdefaultFilename = new string[]
                 {
-                    pcmdata = ReadAllBytes(pd);
+                    "mucompcm.bin",
+                    "mucompcm_2nd.bin",
+                    "mucompcm_3rd_B.bin",
+                    "mucompcm_4th_B.bin",
+                    "mucompcm_3rd_A.bin",
+                    "mucompcm_4th_A.bin"
+                };
+
+                for (int i = 0; i < 6; i++)
+                {
+                    using (Stream pd = appendFileReaderCallback?.Invoke(string.IsNullOrEmpty(mucInfo.pcm[i])
+                        ? pcmdefaultFilename[i]
+                        : mucInfo.pcm[i]))
+                    {
+                        pcmdata[i] = ReadAllBytes(pd);
+                    }
                 }
 
                 mucInfo.lines = StoreBasicSource(srcBuf);
                 mucInfo.voiceData = voice;
-                mucInfo.pcmData = pcmdata;
+                mucInfo.pcmData = pcmdata[0];
                 mucInfo.basSrc = basSrc;
                 mucInfo.srcCPtr = 0;
                 mucInfo.srcLinPtr = -1;
@@ -200,7 +215,22 @@ namespace mucomDotNET.Compiler
                         mucInfo.voice = tag.Item2;
                         break;
                     case "pcm":
-                        mucInfo.pcm = tag.Item2;
+                        mucInfo.pcm[0] = tag.Item2;
+                        break;
+                    case "pcm_2nd":
+                        mucInfo.pcm[1] = tag.Item2;
+                        break;
+                    case "pcm_3rd_b":
+                        mucInfo.pcm[2] = tag.Item2;
+                        break;
+                    case "pcm_4th_b":
+                        mucInfo.pcm[3] = tag.Item2;
+                        break;
+                    case "pcm_3rd_a":
+                        mucInfo.pcm[4] = tag.Item2;
+                        break;
+                    case "pcm_4th_a":
+                        mucInfo.pcm[5] = tag.Item2;
                         break;
                     case "driver":
                         mucInfo.driver = tag.Item2;
@@ -471,17 +501,17 @@ namespace mucomDotNET.Compiler
             int footsize;
             footsize = 1;//かならず1以上
 
-            int pcmsize = (pcmdata == null) ? 0 : pcmdata.Length;
+            int pcmsize = (pcmdata[0] == null) ? 0 : pcmdata[0].Length;
             bool pcmuse = ((option & 2) == 0);
-            pcmdata = (!pcmuse ? null : pcmdata);
+            pcmdata[0] = (!pcmuse ? null : pcmdata[0]);
             int pcmptr = (!pcmuse ? 0 : (32 + length + footsize));
             pcmsize = (!pcmuse ? 0 : pcmsize);
             if (pcmuse)
             {
-                if (pcmdata == null || pcmsize == 0)
+                if (pcmdata[0] == null || pcmsize == 0)
                 {
                     pcmuse = false;
-                    pcmdata = null;
+                    pcmdata[0] = null;
                     pcmptr = 0;
                     pcmsize = 0;
                 }
@@ -644,7 +674,7 @@ namespace mucomDotNET.Compiler
 
             if (pcmuse)
             {
-                for (int i = 0; i < pcmsize; i++) dat.Add(new MmlDatum(pcmdata[i]));
+                for (int i = 0; i < pcmsize; i++) dat.Add(new MmlDatum(pcmdata[0][i]));
                 if (pcmsize > 0)
                 {
                     pcmptr = 16 * 3 + 32 + length + footsize;
@@ -702,23 +732,25 @@ namespace mucomDotNET.Compiler
             dat.Add(new MmlDatum(instSets > 0 ? 1 : 0));// 使用するInstrumentセットの総数(0～)
             dat.Add(new MmlDatum(0x00));
 
-            int pcmsize = (pcmdata == null) ? 0 : pcmdata.Length;
             bool pcmuse = ((option & 2) == 0);
-            pcmdata = (!pcmuse ? null : pcmdata);
-            //int pcmptr = (!pcmuse ? 0 : (32 + length + footsize));
-            pcmsize = (!pcmuse ? 0 : pcmsize);
-            if (pcmuse)
+            int[] pcmsize = new int[6];
+            int m = 0;
+            for (int k = 0; k < 6; k++)
             {
-                if (pcmdata == null || pcmsize == 0)
+                pcmsize[k] = (pcmdata[k] == null) ? 0 : pcmdata[k].Length;
+                pcmdata[k] = (!pcmuse ? null : pcmdata[k]);
+                pcmsize[k] = (!pcmuse ? 0 : pcmsize[k]);
+
+                if (pcmdata[k] == null || pcmsize[k] == 0)
                 {
-                    pcmuse = false;
-                    pcmdata = null;
-                    //pcmptr = 0;
-                    pcmsize = 0;
+                    pcmdata[k] = null;
+                    pcmsize[k] = 0;
+                    m++;
                 }
             }
+            if (m == 6) pcmuse = false;
 
-            dat.Add(new MmlDatum(pcmuse ? 1 : 0));// 使用するPCMセットの総数(0～)
+            dat.Add(new MmlDatum(pcmuse ? 6 : 0));// 使用するPCMセットの総数(0～)
             dat.Add(new MmlDatum(0x00));
 
             dat.Add(new MmlDatum(0x00));// 曲情報への絶対アドレス
@@ -748,6 +780,7 @@ namespace mucomDotNET.Compiler
 
             //Chip Define division.
 
+            int pcmI = 0;
             for (int chipI = 0; chipI < work.MAXChips; chipI++)
             {
                 dat.Add(new MmlDatum((byte)(chipI >> 0)));// Chip Index
@@ -809,12 +842,13 @@ namespace mucomDotNET.Compiler
                     dat.Add(new MmlDatum(0x00));
                 }
 
-                n = pcmuse ? 1 : 0;
+                n = pcmuse ? (chipI < 2 ? 1 : 2) : 0;
                 dat.Add(new MmlDatum(n));// この音源Chipで使用するPCMセットの個数
                 for (int i = 0; i < n; i++)
                 {
-                    dat.Add(new MmlDatum(0x00));// この音源Chipで使用するPCMセットの番号。上記パラメータの個数だけ繰り返す。
-                    dat.Add(new MmlDatum(0x00));
+                    dat.Add(new MmlDatum((byte)pcmI));// この音源Chipで使用するPCMセットの番号。上記パラメータの個数だけ繰り返す。
+                    dat.Add(new MmlDatum((byte)(pcmI >> 8)));
+                    pcmI++;
                 }
             }
 
@@ -867,10 +901,13 @@ namespace mucomDotNET.Compiler
 
             if (pcmuse)
             {
-                dat.Add(new MmlDatum((byte)pcmsize));
-                dat.Add(new MmlDatum((byte)(pcmsize >> 8)));
-                dat.Add(new MmlDatum((byte)(pcmsize >> 16)));
-                dat.Add(new MmlDatum((byte)(pcmsize >> 24)));
+                for (int i = 0; i < pcmI; i++)
+                {
+                    dat.Add(new MmlDatum((byte)pcmsize[i]));
+                    dat.Add(new MmlDatum((byte)(pcmsize[i] >> 8)));
+                    dat.Add(new MmlDatum((byte)(pcmsize[i] >> 16)));
+                    dat.Add(new MmlDatum((byte)(pcmsize[i] >> 24)));
+                }
             }
 
 
@@ -906,7 +943,8 @@ namespace mucomDotNET.Compiler
 
             if (pcmuse)
             {
-                for (int i = 0; i < pcmsize; i++) dat.Add(new MmlDatum(pcmdata[i]));
+                for (int i = 0; i < pcmI; i++)
+                    for (int j = 0; j < pcmsize[i]; j++) dat.Add(new MmlDatum(pcmdata[i][j]));
             }
 
 

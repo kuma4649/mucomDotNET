@@ -185,19 +185,19 @@ namespace mucomDotNET.Driver
                     {
                         buf.Clear();
                         for (int i = pcmStartPos[3]; i < pcm[3].Length; i++) buf.Add(pcm[3][i]);
-                        WriteOPNBSAdpcmB(pcm[3]);
+                        WriteOPNBSAdpcmB(buf.ToArray());
                     }
                     if (pcm[4] != null)
                     {
                         buf.Clear();
                         for (int i = pcmStartPos[4]; i < pcm[4].Length; i++) buf.Add(pcm[4][i]);
-                        WriteOPNBPAdpcmA(pcm[4]);
+                        WriteOPNBPAdpcmA(buf.ToArray());
                     }
                     if (pcm[5] != null)
                     {
                         buf.Clear();
                         for (int i = pcmStartPos[5]; i < pcm[5].Length; i++) buf.Add(pcm[5][i]);
-                        WriteOPNBSAdpcmA(pcm[5]);
+                        WriteOPNBSAdpcmA(buf.ToArray());
                     }
 
                 }
@@ -304,7 +304,13 @@ namespace mucomDotNET.Driver
 
         public byte[] GetPCMFromSrcBuf(int id)
         {
-            return header.GetPCM(id);
+            if (header.mupb == null)
+                return header.GetPCM(id);
+            else
+            {
+                if (header.mupb.pcms.Length <= id) return null;
+                return (header.mupb.pcms[id].data == null || header.mupb.pcms[id].data.Length < 1) ? null : header.mupb.pcms[id].data;
+            }
         }
 
         public Tuple<string, ushort[]>[] GetPCMTable(int id)

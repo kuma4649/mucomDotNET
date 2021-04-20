@@ -1,4 +1,8 @@
 更新履歴
+TAG080 2021/04/20
+  Compiler&Driver&PCMTool
+    タグでPCMファイルを指定できるようにした。
+
 TAG079 2021/04/19 3rd
   Driver
     ADPCM/-Bのパンが4つとも同じ値を参照していたのを修正

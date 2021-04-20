@@ -127,9 +127,9 @@ namespace PCMTool
                 head.Add((byte)(fileManager.GetVolume(i)));
                 head.Add((byte)(fileManager.GetVolume(i) >> 8));
                 int length = fileManager.GetLengthAddress(i);
-                ushort stAdr = (ushort)(ptr >> 8);
+                ushort stAdr = (ushort)(ptr >> 2);
                 ptr += length-1;
-                ushort edAdr = (ushort)(ptr >> 8);
+                ushort edAdr = (ushort)(ptr >> 2);
                 ptr++;
                 head.Add((byte)(stAdr));
                 head.Add((byte)(stAdr >> 8));

@@ -358,15 +358,10 @@ namespace mucomDotNET.Driver
                 for (ch = 7; ch < 7 + 4; ch++) FMINITex(c,ch);
             }
 
-            List<byte> buf = new List<byte>();
             if (work.header.mupb.instruments != null && work.header.mupb.instruments.Length > 0 && work.header.mupb.instruments[0].data != null)
             {
-                for (int i = 0; i < work.header.mupb.instruments[0].data.Length; i++)
-                {
-                    buf.Add((byte)work.header.mupb.instruments[0].data[i].dat);
-                }
+                work.fmVoiceAtMusData = work.header.mupb.instruments[0].data;
             }
-            work.fmVoiceAtMusData = buf.ToArray();
 
             work.mData = null;
         }
@@ -574,7 +569,8 @@ namespace mucomDotNET.Driver
                     work.soundWork.PALDAT[b * 10 + c] = 0xc0;
             }
 
-            work.soundWork.PCMLR[work.soundWork.currentChip] = 3;
+            for(int c=0;c<4;c++)
+            work.soundWork.PCMLR[c] = 3;
         }
 
         private void WriteRegister(int id, ChipDatum dat)

@@ -61,13 +61,13 @@ namespace mucomDotNET.Driver
         public class InstrumentDefine
         {
             public uint length { get;  set; }
-            public MmlDatum[] data { get; set; }
+            public byte[] data { get; set; }
         }
 
         public class PCMDefine
         {
             public uint length { get;  set; }
-            public MmlDatum[] data { get; set; }
+            public byte[] data { get; set; }
         }
     }
 }
