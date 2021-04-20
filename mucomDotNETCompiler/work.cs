@@ -86,6 +86,8 @@ namespace mucomDotNET.Compiler
         public int JPCOL { get; internal set; }
         public List<int> JCHCOM { get; internal set; }
         public bool rhythmRelMode { get; internal set; } = false;
+        public bool rhythmPanMode { get; internal set; } = false;
+        public int rhythmInstNum { get; internal set; } = 0;
         public bool isEnd { get; internal set; } = false;
 
         public int MU_NUM = 0;// 0xC200 b ｺﾝﾊﾟｲﾙﾁｭｳ ﾉ MUSICﾅﾝﾊﾞｰ

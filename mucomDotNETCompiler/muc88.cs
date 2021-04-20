@@ -719,12 +719,26 @@ namespace mucomDotNET.Compiler
             //Ryhthm の内訳
             // bit0～3 rythmType R:5 T:4 H:3 C:2 S:1 B:0
             // bit4～7 パン 1:右, 2:左, 3:中央 4:右オート 5:左オート 6:ランダム
+            int v;
 
-            int v = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0414"));
+            //Rhythmの場合はpmコマンドか判定
+            if (tp == ChannelType.RHYTHM)
+            {
+                char mode = mucInfo.lin.Item2.Length > ptr + 1 ? mucInfo.lin.Item2[ptr + 1] : (char)0;
+                if (mode == 'm')
+                {
+                    ptr = ++mucInfo.srcCPtr;
+                    v = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0414"));
+                    work.rhythmPanMode = (v != 0);
+                    mucInfo.srcCPtr = ptr;
+                    return EnmFCOMPNextRtn.fcomp1;
+                }
+            }
+
+
+            v = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0414"));
             int n = (byte)v;
-            int rn = (byte)((tp == ChannelType.RHYTHM) ? (n >> 4) : n);
-            mucInfo.srcCPtr = ptr;
-            char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+            int rn = (byte)((tp == ChannelType.RHYTHM && !work.rhythmPanMode) ? (n >> 4) : n);
 
             //1-6の範囲外の時 -> エラー
             if (rn < 1 || rn > 6)
@@ -732,6 +746,9 @@ namespace mucomDotNET.Compiler
                 //使用可能な値の範囲外
                 throw new MucException(string.Format(msg.get("E0524"), v), mucInfo.row, mucInfo.col);
             }
+
+            mucInfo.srcCPtr = ptr;
+            char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
 
             //4-6なのに,が無いとき -> エラー
             if (c != ',' && rn > 3 && rn < 7)
@@ -746,59 +763,112 @@ namespace mucomDotNET.Compiler
                 WriteWarning(msg.get("W0415"), mucInfo.row, mucInfo.col);
             }
 
-            //
-            List<object> args = new List<object>();
-            args.Add(n);
-            LinePos lp = new LinePos(
-                mucInfo.document,
-                mucInfo.fnSrcOnlyFile
-                , mucInfo.row, mucInfo.col
-                , mucInfo.srcCPtr - mucInfo.col + 1
-                , work.ChipIndex / 2 == 0 
-                    ? (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM")))
-                    : (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "ADPCM-A" : "ADPCM-B")))
-                , work.ChipIndex / 2 == 0 
-                    ? "YM2608" 
-                    : "YM2610B"
-                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
-
-            msub.MWRITE(
-                new MmlDatum(enmMMLType.Pan, args, lp, 0xf8)
-                , new MmlDatum((byte)n));// COM OF 'p'
-
-            ////
-            //AMD98
-            if (c == ',')//0x2c
+            if (tp != ChannelType.RHYTHM || !work.rhythmPanMode)
             {
-                //1-6の範囲内ならwait値を取得する
-                if (mucInfo.DriverType != MUCInfo.enmDriverType.DotNet)
-                    throw new MucException(msg.get("E9998"), mucInfo.row, mucInfo.col);
-                mucInfo.srcCPtr++;
-                ptr = mucInfo.srcCPtr;
-                int n2 = msub.REDATA(mucInfo.lin, ref ptr);
-                mucInfo.srcCPtr = ptr;
+                //
+                List<object> args = new List<object>();
+                args.Add(n);
+                LinePos lp = new LinePos(
+                    mucInfo.document,
+                    mucInfo.fnSrcOnlyFile
+                    , mucInfo.row, mucInfo.col
+                    , mucInfo.srcCPtr - mucInfo.col + 1
+                    , work.ChipIndex / 2 == 0
+                        ? (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM")))
+                        : (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "ADPCM-A" : "ADPCM-B")))
+                    , work.ChipIndex / 2 == 0
+                        ? "YM2608"
+                        : "YM2610B"
+                    , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
-                //4-6の範囲内の場合のみwait値を出力する
-                if (rn > 3 && rn < 7)
+                msub.MWRITE(
+                    new MmlDatum(enmMMLType.Pan, args, lp, 0xf8)
+                    , new MmlDatum((byte)n));// COM OF 'p'
+
+                ////
+                //AMD98
+                if (c == ',')//0x2c
                 {
+                    //1-6の範囲内ならwait値を取得する
+                    if (mucInfo.DriverType != MUCInfo.enmDriverType.DotNet)
+                        throw new MucException(msg.get("E9998"), mucInfo.row, mucInfo.col);
+                    mucInfo.srcCPtr++;
+                    ptr = mucInfo.srcCPtr;
+                    int n2 = msub.REDATA(mucInfo.lin, ref ptr);
+                    mucInfo.srcCPtr = ptr;
 
-                    //wait値が範囲外の時 ->エラー
-                    //if (n2 < 1 || n2 > work.CLOCK || (byte)n2 < 1)
-                    if (n2 < 1 || n2 > 255 || (byte)n2 < 1)
+                    //4-6の範囲内の場合のみwait値を出力する
+                    if (rn > 3 && rn < 7)
                     {
-                        //throw new MucException(string.Format(msg.get("E0526"), work.CLOCK, v), mucInfo.row, mucInfo.col);
-                        throw new MucException(string.Format(msg.get("E0526"), 255, v), mucInfo.row, mucInfo.col);
+
+                        //wait値が範囲外の時 ->エラー
+                        //if (n2 < 1 || n2 > work.CLOCK || (byte)n2 < 1)
+                        if (n2 < 1 || n2 > 255 || (byte)n2 < 1)
+                        {
+                            //throw new MucException(string.Format(msg.get("E0526"), work.CLOCK, v), mucInfo.row, mucInfo.col);
+                            throw new MucException(string.Format(msg.get("E0526"), 255, v), mucInfo.row, mucInfo.col);
+                        }
+
+                        if (tp == ChannelType.SSG) return EnmFCOMPNextRtn.fcomp1;//KUMA:互換の為。。。(SSGパートではnoise周波数設定コマンドとして動作)
+
+                        msub.MWRIT2(new MmlDatum((byte)n2));// ２こめ
                     }
-
-                    if (tp == ChannelType.SSG) return EnmFCOMPNextRtn.fcomp1;//KUMA:互換の為。。。(SSGパートではnoise周波数設定コマンドとして動作)
-
-                    msub.MWRIT2(new MmlDatum((byte)n2));// ２こめ
                 }
+
+                ////
+
+                return EnmFCOMPNextRtn.fcomp1;
             }
+            else
+            {
+                int n2 = -1;
+                if (c == ',')//0x2c
+                {
+                    if (mucInfo.DriverType != MUCInfo.enmDriverType.DotNet)
+                        throw new MucException(msg.get("E9998"), mucInfo.row, mucInfo.col);
+                    mucInfo.srcCPtr++;
+                    ptr = mucInfo.srcCPtr;
+                    n2 = msub.REDATA(mucInfo.lin, ref ptr);
+                    mucInfo.srcCPtr = ptr;
+                }
 
-            ////
+                for(int i = 0; i < 6; i++)
+                {
+                    if ((work.rhythmInstNum & (1 << i)) == 0) continue;
+                    n = (rn << 4) | i;
+                    List<object> args = new List<object>();
+                    args.Add(n);
+                    LinePos lp = new LinePos(
+                        mucInfo.document,
+                        mucInfo.fnSrcOnlyFile
+                        , mucInfo.row, mucInfo.col
+                        , mucInfo.srcCPtr - mucInfo.col + 1
+                        , work.ChipIndex / 2 == 0 ? "RHYTHM" : "ADPCM-A"
+                        , work.ChipIndex / 2 == 0 ? "YM2608" : "YM2610B"
+                        , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
-            return EnmFCOMPNextRtn.fcomp1;
+                    msub.MWRITE(
+                        new MmlDatum(enmMMLType.Pan, args, lp, 0xf8)
+                        , new MmlDatum((byte)n));// COM OF 'p'
+
+                }
+
+                if (n2!=-1)//0x2c
+                {
+                    //4-6の範囲内の場合のみwait値を出力する
+                    if (rn > 3 && rn < 7)
+                    {
+                        //wait値が範囲外の時 ->エラー
+                        if (n2 < 1 || n2 > 255 || (byte)n2 < 1)
+                        {
+                            throw new MucException(string.Format(msg.get("E0526"), 255, v), mucInfo.row, mucInfo.col);
+                        }
+                        msub.MWRIT2(new MmlDatum((byte)n2));// ２こめ
+                    }
+                }
+
+                return EnmFCOMPNextRtn.fcomp1;
+            }
         }
 
 
@@ -2882,6 +2952,7 @@ namespace mucomDotNET.Compiler
 
             msub.MWRITE(new MmlDatum(enmMMLType.Instrument, args, lp, 0xf0), new MmlDatum((byte)num));
 
+            if (tp == ChannelType.RHYTHM) work.rhythmInstNum = num;
             if (tp == ChannelType.ADPCM) work.pcmFlag = 1;
 
             return EnmFCOMPNextRtn.fcomp1;
