@@ -147,7 +147,6 @@ namespace mucomDotNET.Driver
                     for (int i = 0; i < work.soundWork.CHDAT[c].Count; i++)
                         for (int j = 0; j < work.soundWork.CHDAT[c][i].PGDAT.Count; j++)
                             work.soundWork.CHDAT[c][i].PGDAT[j].muteFlg = false;
-                    //work.SystemInterrupt = false;
                 }
             }
         }
@@ -2068,7 +2067,7 @@ namespace mucomDotNET.Driver
                 c = work.soundWork.DRMVOL[work.soundWork.currentChip][b];
                 a = (byte)(((a << 6) & 0b1100_0000) | (c & 0b0001_1111));
                 work.soundWork.DRMVOL[work.soundWork.currentChip][b] = a;
-                if (work.cd.currentPageNo == work.pg.pageNo)
+                //if (work.cd.currentPageNo == work.pg.pageNo)
                 {
                     if (work.soundWork.currentChip < 2)
                         PSGOUT((byte)(b + 0x18), a);
@@ -2102,7 +2101,7 @@ namespace mucomDotNET.Driver
             c = work.soundWork.DRMVOL[work.soundWork.currentChip][b];
             a = (byte)(((a << 6) & 0b1100_0000) | (c & 0b0001_1111));
             work.soundWork.DRMVOL[work.soundWork.currentChip][b] = a;
-            if (work.cd.currentPageNo == work.pg.pageNo)
+            //if (work.cd.currentPageNo == work.pg.pageNo)
                 if (work.cd.currentPageNo == work.pg.pageNo)
                 {
                     if (work.soundWork.currentChip < 2)
@@ -2121,7 +2120,8 @@ namespace mucomDotNET.Driver
             if (a < 4)
             {
                 //既存処理
-                work.soundWork.PCMLR[work.soundWork.currentChip] = a;
+                if (work.cd.currentPageNo == work.pg.pageNo)
+                    work.soundWork.PCMLR[work.soundWork.currentChip] = a;
                 work.pg.panValue = a;
                 work.pg.panEnable = 0;//パーン禁止
                 return;
@@ -2509,7 +2509,7 @@ namespace mucomDotNET.Driver
                     byte b = (byte)((sbyte)((a & 0x3f) | ((a & 0x40) != 0 ? 0xc0 : 0)) + (work.soundWork.DRMVOL[work.soundWork.currentChip][i] & 0x3f));
                     b = (byte)((work.soundWork.DRMVOL[work.soundWork.currentChip][i] & 0b1100_0000) | b);
                     work.soundWork.DRMVOL[work.soundWork.currentChip][i] = b;
-                    if (work.cd.currentPageNo == work.pg.pageNo)
+                    //if (work.cd.currentPageNo == work.pg.pageNo)
                     {
                         if (work.soundWork.currentChip < 2)
                             PSGOUT((byte)(i + 0x18), b);

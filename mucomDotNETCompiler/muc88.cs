@@ -2954,6 +2954,7 @@ namespace mucomDotNET.Compiler
 
             if (tp == ChannelType.RHYTHM) work.rhythmInstNum = num;
             if (tp == ChannelType.ADPCM) work.pcmFlag = 1;
+            if (work.ChipIndex > 1 && tp == ChannelType.RHYTHM) work.pcmFlag = 1;
 
             return EnmFCOMPNextRtn.fcomp1;
         }

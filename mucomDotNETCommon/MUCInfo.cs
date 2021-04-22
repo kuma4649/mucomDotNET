@@ -15,6 +15,14 @@ namespace mucomDotNET.Common
         public string date { get; set; }
         public string voice { get; set; }
         public string[] pcm { get; set; } = new string[6];
+        public List<string>[] pcmAt { get; set; } = new List<string>[6] {
+            new List<string>(),
+            new List<string>(),
+            new List<string>(),
+            new List<string>(),
+            new List<string>(),
+            new List<string>()
+        };
         public string driver { get; set; }
 
         public string invert { get; set; }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PCMTool
+namespace mucomDotNET.PCMTool
 {
     // https://wiki.neogeodev.org/index.php?title=ADPCM_codecs
 

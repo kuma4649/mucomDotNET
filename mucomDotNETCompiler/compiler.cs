@@ -81,11 +81,19 @@ namespace mucomDotNET.Compiler
 
                 for (int i = 0; i < 6; i++)
                 {
-                    using (Stream pd = appendFileReaderCallback?.Invoke(string.IsNullOrEmpty(mucInfo.pcm[i])
+                    if (mucInfo.pcmAt[i].Count > 0)
+                    {
+                        pcmdata[i] = GetPackedPCM(i, mucInfo.pcmAt[i], appendFileReaderCallback);
+                    }
+
+                    if(pcmdata[i]==null)
+                    { 
+                        using (Stream pd = appendFileReaderCallback?.Invoke(string.IsNullOrEmpty(mucInfo.pcm[i])
                         ? pcmdefaultFilename[i]
                         : mucInfo.pcm[i]))
-                    {
-                        pcmdata[i] = ReadAllBytes(pd);
+                        {
+                            pcmdata[i] = ReadAllBytes(pd);
+                        }
                     }
                 }
 
@@ -219,18 +227,46 @@ namespace mucomDotNET.Compiler
                         break;
                     case "pcm_2nd":
                         mucInfo.pcm[1] = tag.Item2;
+                        mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
                         break;
                     case "pcm_3rd_b":
                         mucInfo.pcm[2] = tag.Item2;
+                        mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
                         break;
                     case "pcm_4th_b":
                         mucInfo.pcm[3] = tag.Item2;
+                        mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
                         break;
                     case "pcm_3rd_a":
                         mucInfo.pcm[4] = tag.Item2;
+                        mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
                         break;
                     case "pcm_4th_a":
                         mucInfo.pcm[5] = tag.Item2;
+                        mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
+                        break;
+                    case "@pcm":
+                        mucInfo.pcmAt[0].Add(tag.Item2);
+                        break;
+                    case "@pcm_2nd":
+                        mucInfo.pcmAt[1].Add(tag.Item2);
+                        mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
+                        break;
+                    case "@pcm_3rd_b":
+                        mucInfo.pcmAt[2].Add(tag.Item2);
+                        mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
+                        break;
+                    case "@pcm_4th_b":
+                        mucInfo.pcmAt[3].Add(tag.Item2);
+                        mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
+                        break;
+                    case "@pcm_3rd_a":
+                        mucInfo.pcmAt[4].Add(tag.Item2);
+                        mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
+                        break;
+                    case "@pcm_4th_a":
+                        mucInfo.pcmAt[5].Add(tag.Item2);
+                        mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
                         break;
                     case "driver":
                         mucInfo.driver = tag.Item2;
@@ -1086,5 +1122,12 @@ namespace mucomDotNET.Compiler
                 gt.dicItem[tag] = dmy;
             }
         }
+
+        private byte[] GetPackedPCM(int i, List<string> list, Func<string, Stream> appendFileReaderCallback)
+        {
+            PCMTool.AdpcmMaker adpcmMaker = new PCMTool.AdpcmMaker(i, list, appendFileReaderCallback);
+            return adpcmMaker.Make();
+        }
+
     }
 }

@@ -2,7 +2,7 @@
 using System.IO;
 using musicDriverInterface;
 
-namespace PCMTool
+namespace mucomDotNET.PCMTool
 {
     class Program
     {

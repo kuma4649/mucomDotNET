@@ -1,7 +1,7 @@
 ﻿using musicDriverInterface;
 using System;
 
-namespace PCMTool
+namespace mucomDotNET.Compiler.PCMTool
 {
     public class Config
     {

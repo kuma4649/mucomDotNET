@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PCMTool
+namespace mucomDotNET.PCMTool
 {
     public class AdpcmMaker
     {

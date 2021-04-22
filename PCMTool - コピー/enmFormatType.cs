@@ -1,4 +1,4 @@
-﻿namespace PCMTool
+﻿namespace mucomDotNET.PCMTool
 {
     public enum enmFormatType
     {

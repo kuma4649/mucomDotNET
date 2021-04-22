@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace PCMTool
+namespace mucomDotNET.PCMTool
 {
     public class PCMFileManager
     {

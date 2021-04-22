@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace PCMTool
+namespace mucomDotNET.Compiler.PCMTool
 {
     public class PCMFileInfo
     {
@@ -11,12 +11,12 @@ namespace PCMTool
         public string name { get; private set; }
         public string fileName { get; private set; }
         public int volume { get; private set; }
-        public int length { get; internal set; }
-        public byte[] raw { get; private set; }
-        public byte[] encData { get; private set; }
+        public int length { get; internal set; } = -1;
+        public byte[] raw { get; private set; } = null;
+        public byte[] encData { get; private set; } = null;
         private bool is16bit;
 
-        public PCMFileInfo(List<string> itemList)
+        public PCMFileInfo(List<string> itemList, Func<string, Stream> appendFileReaderCallback = null)
         {
             if (itemList == null) return;
 
@@ -25,16 +25,55 @@ namespace PCMTool
             if (itemList.Count > 2) fileName = itemList[2];
             if (itemList.Count > 3 && int.TryParse(itemList[3], out n)) volume = n;
 
-            if (File.Exists(fileName))
+            byte[] buf;
+            using (Stream pd = appendFileReaderCallback?.Invoke(fileName))
             {
-                bool isRaw;
-                int samplerate;
-                raw = GetPCMDataFromFile("",fileName,volume,out isRaw,out is16bit,out samplerate);
-                length = (ushort)raw.Length;
+                buf = ReadAllBytes(pd);
+            }
+
+            if (buf == null)
+            {
+                if (File.Exists(fileName))
+                {
+                    bool isRaw;
+                    int samplerate;
+                    raw = GetPCMDataFromFile("", fileName, volume, out isRaw, out is16bit, out samplerate);
+                    length = (ushort)raw.Length;
+                }
+                else
+                {
+                    Log.WriteLine(LogLevel.WARNING, string.Format("file[{0}] not found", fileName));
+                }
             }
             else
             {
-                Log.WriteLine(LogLevel.WARNING,string.Format( "file[{0}] not found",fileName));
+                bool isRaw;
+                int samplerate;
+                raw = GetPCMDataFromFile(buf, volume, out isRaw, out is16bit, out samplerate);
+                length = (ushort)raw.Length;
+            }
+        }
+
+        /// <summary>
+        /// ストリームから一括でバイナリを読み込む
+        /// </summary>
+        private byte[] ReadAllBytes(Stream stream)
+        {
+            if (stream == null) return null;
+
+            var buf = new byte[8192];
+            using (var ms = new MemoryStream())
+            {
+                while (true)
+                {
+                    var r = stream.Read(buf, 0, buf.Length);
+                    if (r < 1)
+                    {
+                        break;
+                    }
+                    ms.Write(buf, 0, r);
+                }
+                return ms.ToArray();
             }
         }
 
@@ -80,6 +119,15 @@ namespace PCMTool
                 isRaw = true;
                 return buf;
             }
+
+            return GetPCMDataFromFile(buf, vol, out isRaw, out is16bit, out samplerate);
+        }
+
+        public static byte[] GetPCMDataFromFile(byte[] buf, int vol, out bool isRaw, out bool is16bit, out int samplerate)
+        {
+            isRaw = false;
+            is16bit = false;
+            samplerate = 8000;
 
             if (buf.Length < 4)
             {
@@ -130,7 +178,7 @@ namespace PCMTool
                         samplerate = buf[p + 4] + buf[p + 5] * 0x100 + buf[p + 6] * 0x10000 + buf[p + 7] * 0x1000000;
                         if (samplerate != 8000 && samplerate != 16000 && samplerate != 18500 && samplerate != 14000)
                         {
-                            Log.WriteLine(LogLevel.WARNING, "Unknown samplerate.");
+                            //Log.WriteLine(LogLevel.WARNING, "Unknown samplerate.");
                             //return null;
                         }
 
@@ -227,6 +275,5 @@ namespace PCMTool
                 return null;
             }
         }
-
     }
 }
