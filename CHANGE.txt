@@ -1,4 +1,10 @@
 更新履歴
+TAG083 2021/04/22 2nd
+  Compiler
+    再演奏時にmucのPCM情報をクリアしていなかったのを修正。
+  PCMTool
+    mucファイルを使用するように仕様変更。
+
 TAG082 2021/04/22
   Compiler&Driver
     mml上でwavを指定してpcmデータを構築できるように機能追加。

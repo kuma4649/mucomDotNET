@@ -146,7 +146,11 @@ namespace mucomDotNET.Common
             mucom88 = "";
             date = "";
             voice = "";
-            for (int i = 0; i < 6; i++) pcm[i] = "";
+            for (int i = 0; i < 6; i++)
+            {
+                pcm[i] = "";
+                pcmAt[i].Clear();
+            }
             driver = "";
             invert = "";
             lines = 0;

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PCMTool": {
+      "commandName": "Project",
+      "commandLineArgs": "D:\\bootcamp\\FM音源\\data\\自作\\StreetsOfRage4\\testTheTakeOver.muc"
+    }
+  }
+}

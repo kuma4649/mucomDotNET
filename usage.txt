@@ -46,52 +46,20 @@ How to mucom.NET !
      -LOADADPCM=ONLY
        ADPCMの転送処理のみ行います。演奏は行いません。
 
-＊PCMTool
-  PCMTool.exe file.pxt
 
-  *PCMTool.exeに.pxtファイルをドロップすると内容を解析しmucomDotNET向けのadpcmデータファイルを生成します。
+＊PCMTool
+  PCMTool.exe file.muc
+
+  *PCMTool.exeに.mucファイルをドロップすると内容を解析しmucomDotNET向けのadpcmデータファイルを生成します。
   *機能 
     mucom88互換PCMデータファイルの作成する
     mucomDotNET向けOPNA/OPNBのADPCMデータファイルを作成する
   *制約
-    .pxtファイルはSJISのCRLF形式のテキストファイルであること。
+    .mucファイルはSJISのCRLF形式のテキストファイルであること。
     書式に沿った記述であること。
-  *タグ
-      #FORMAT  データフォーマット指定タグ
+  *動作
+    .mucファイル内にある#@PCMタグ各種をリストアップし
+    wavを読み込み、ADPCM変換後、ファイルを出力します。
+    出力ファイル名には各pcmタグ名が付加されます。
 
-      指定可能な値
-        MUCOM88      mucom88互換
-        MUCOMDOTNET  mucomDotNET向けOPNA ADPCMデータファイル
-        OPNA         mucomDotNET向けOPNA ADPCMデータファイル(MUCOMDOTNETと同じ)
-        OPNB_B       mucomDotNET向けOPNB ADPCM-Bデータファイル
-        OPNB_A       mucomDotNET向けOPNB ADPCM-Aデータファイル
-        OPNB-B       mucomDotNET向けOPNB ADPCM-Bデータファイル(OPNB_Bと同じ)
-        OPNB-A       mucomDotNET向けOPNB ADPCM-Aデータファイル(OPNB_Aと同じ)
-        OPNBB        mucomDotNET向けOPNB ADPCM-Bデータファイル(OPNB_Bと同じ)
-        OPNBA        mucomDotNET向けOPNB ADPCM-Aデータファイル(OPNB_Aと同じ)
-
-      使用例
-#format mucom88
-
-      説明
-        PCMデータファイルの形式を指定します。
-
-
-  *コマンド
-      @  PCM定義コマンド
-
-      書式
-        @ number , name , failename , volume
-
-        number   音色番号   (音色番号を指定する(OPNB ADPCM-Aの場合は音程を数値化したもの))
-        name     音色名     (音色名を指定する)
-        filename ファイル名 (.wavファイルを指定する)
-        volume   音量       (TBD:100を指定する)
-
-      使用例
-@  0 , バス     ,  .\BD.wav    , 100
-
-      説明
-        データファイルに含めるwavファイルを指定する。
-        PCMToolはファイルを読み込み、ADPCMに変換しデータファイルに含める。
 
