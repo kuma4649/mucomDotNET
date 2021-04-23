@@ -794,7 +794,7 @@ namespace mucomDotNET.Driver
                 return;
             }
 
-            if (work.cd.currentPageNo == work.pg.pageNo)
+            if (work.soundWork.DRMF1 != 0 || work.cd.currentPageNo == work.pg.pageNo)
                 KEYOFF();
         }
 
