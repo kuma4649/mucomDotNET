@@ -690,6 +690,7 @@ namespace mucomDotNET.Driver
             for (int c = 0; c < 4; c++)
             {
                 work.soundWork.currentChip = c;
+                int nowLoopCounter = int.MaxValue;
 
                 for (int i = 0; i < aryDRIVE.Length; i++)
                 {
@@ -721,6 +722,14 @@ namespace mucomDotNET.Driver
                         //KUMA:終了パートのカウント
                         if ((work.pg.dataTopAddress == -1 && work.pg.loopEndFlg)
                             || work.pg.loopCounter >= work.maxLoopCount) m++;
+
+                        //
+                        if (work.pg.dataTopAddress != -1
+                            //&& work.pg.loopEndFlg
+                            && work.pg.loopCounter < nowLoopCounter)
+                        {
+                            nowLoopCounter = work.pg.loopCounter;
+                        }
                     }
                     if (m == work.cd.PGDAT.Count)
                         n++;
@@ -740,6 +749,11 @@ namespace mucomDotNET.Driver
                         if (work.rhythmOR[c] != 0)
                             PCMOUT(1, 0x0, (byte)(work.rhythmOR[c] & 0b0011_1111));// KEY ON
                     }
+                }
+
+                if (nowLoopCounter != int.MaxValue)
+                {
+                    work.nowLoopCounter = nowLoopCounter;
                 }
             }
 
@@ -952,7 +966,7 @@ namespace mucomDotNET.Driver
                     hl = (uint)work.pg.dataTopAddress;
                     a = (byte)work.pg.mData[hl].dat;// GET FLAG & LENGTH
                     work.pg.loopCounter++;
-                    if (work.pg.loopCounter > work.nowLoopCounter) work.nowLoopCounter = work.pg.loopCounter;
+                    //if (work.pg.loopCounter > work.nowLoopCounter) work.nowLoopCounter = work.pg.loopCounter;
                     nrFlg = true;
                 }
 
@@ -3169,7 +3183,7 @@ namespace mucomDotNET.Driver
                     }
                     work.hl = (uint)work.pg.dataTopAddress;
                     work.pg.loopCounter++;
-                    if (work.pg.loopCounter > work.nowLoopCounter) work.nowLoopCounter = work.pg.loopCounter;
+                    //if (work.pg.loopCounter > work.nowLoopCounter) work.nowLoopCounter = work.pg.loopCounter;
                 }
 
                 //演奏情報退避
