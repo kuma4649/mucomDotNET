@@ -63,6 +63,8 @@ namespace mucomDotNET.Compiler
                 mucInfo = GetMUCInfo(srcBuf);
                 mucInfo.isIDE = isIDE;
                 mucInfo.skipPoint = skipPoint;
+                voice = null;
+                for (int i = 0; i < 6; i++) pcmdata[i] = null;
 
                 using (Stream vd = appendFileReaderCallback?.Invoke(string.IsNullOrEmpty(mucInfo.voice) ? "voice.dat" : mucInfo.voice))
                 {
