@@ -702,6 +702,11 @@ namespace mucomDotNET.Driver
         {
             uint tagdata = Cmn.getLE32(srcBuf, 0x000c);
             uint tagsize = Cmn.getLE32(srcBuf, 0x0010);
+            if (srcBuf[0] == 'm' && srcBuf[1] == 'u' && srcBuf[2] == 'P' && srcBuf[3] == 'b')
+            {
+                tagdata = Cmn.getLE32(srcBuf, 0x0012);
+                tagsize = Cmn.getLE32(srcBuf, 0x0016);
+            }
 
             if (tagdata == 0) return null;
             if (srcBuf == null) return null;
