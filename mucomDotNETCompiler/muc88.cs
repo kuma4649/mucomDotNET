@@ -779,7 +779,7 @@ namespace mucomDotNET.Compiler
                     , work.ChipIndex / 2 == 0
                         ? "YM2608"
                         : "YM2610B"
-                    , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                    , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
                 msub.MWRITE(
                     new MmlDatum(enmMMLType.Pan, args, lp, 0xf8)
@@ -845,7 +845,7 @@ namespace mucomDotNET.Compiler
                         , mucInfo.srcCPtr - mucInfo.col + 1
                         , work.ChipIndex / 2 == 0 ? "RHYTHM" : "ADPCM-A"
                         , work.ChipIndex / 2 == 0 ? "YM2608" : "YM2610B"
-                        , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                        , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
                     msub.MWRITE(
                         new MmlDatum(enmMMLType.Pan, args, lp, 0xf8)
@@ -1628,7 +1628,7 @@ namespace mucomDotNET.Compiler
                     , work.ChipIndex / 2 == 0
                         ? "YM2608"
                         : "YM2610B"
-                    , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                    , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
                 msub.MWRIT2(new MmlDatum(
                     enmMMLType.Rest
                     , args
@@ -1647,7 +1647,7 @@ namespace mucomDotNET.Compiler
                 , work.ChipIndex / 2 == 0
                     ? "YM2608"
                     : "YM2610B"
-                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
             msub.MWRIT2(new MmlDatum(
                     enmMMLType.Rest
                     , args
@@ -2377,7 +2377,7 @@ namespace mucomDotNET.Compiler
                 , work.ChipIndex / 2 == 0
                     ? "YM2608"
                     : "YM2610B"
-                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
             if (work.CHIP_CH != 6)
             {
@@ -2411,7 +2411,7 @@ namespace mucomDotNET.Compiler
                 , work.ChipIndex / 2 == 0
                     ? "YM2608"
                     : "YM2610B"
-                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                ,0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
             // -	DRAM V. -
             n += work.TV_OFS;
@@ -2487,7 +2487,7 @@ namespace mucomDotNET.Compiler
                     , mucInfo.row, mucInfo.col
                     , mucInfo.srcCPtr - mucInfo.col + 1
                     , "ADPCM"
-                    , "YM2608", 0, 0, work.CHIP_CH * 10 + work.pageNow);
+                    , "YM2608", 0, work.ChipIndex % 2, work.CHIP_CH * 10 + work.pageNow);
 
                 n = (byte)n;
                 work.VOLUME = n;
@@ -2570,7 +2570,7 @@ namespace mucomDotNET.Compiler
                 , work.ChipIndex / 2 == 0
                     ? "YM2608"
                     : "YM2610B"
-                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
             msub.MWRITE(new MmlDatum(
                  enmMMLType.Detune
                  , args
@@ -2854,7 +2854,7 @@ namespace mucomDotNET.Compiler
                 , work.ChipIndex / 2 == 0
                     ? "YM2608"
                     : "YM2610B"
-                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
             int voiceIndex = CCVC(num, mucInfo.bufDefVoice);// --	VOICE ｶﾞ ﾄｳﾛｸｽﾞﾐｶ?	--
             if (voiceIndex != -1)
@@ -2897,7 +2897,7 @@ namespace mucomDotNET.Compiler
                 , work.ChipIndex / 2 == 0
                     ? "YM2608"
                     : "YM2610B"
-                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
             msub.MWRITE(
                 new MmlDatum(enmMMLType.Instrument, args, lp, 0xf0)
@@ -2948,7 +2948,7 @@ namespace mucomDotNET.Compiler
                 , work.ChipIndex / 2 == 0
                     ? "YM2608"
                     : "YM2610B"
-                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH* work.MAXPG + work.pageNow);
+                , 0, work.ChipIndex % 2, work.CHIP_CH* work.MAXPG + work.pageNow);
 
             msub.MWRITE(new MmlDatum(enmMMLType.Instrument, args, lp, 0xf0), new MmlDatum((byte)num));
 
@@ -3111,7 +3111,7 @@ namespace mucomDotNET.Compiler
                     , work.ChipIndex / 2 == 0
                         ? "YM2608"
                         : "YM2610B"
-                    , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                    , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
                 msub.MWRITE(
                     new MmlDatum(
                         enmMMLType.ClockCounter
@@ -4206,7 +4206,7 @@ namespace mucomDotNET.Compiler
                 , work.ChipIndex / 2 == 0
                     ? "YM2608"
                     : "YM2610B"
-                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
             // --	ｶｳﾝﾄ ｵｰﾊﾞｰ ｼｮﾘ	--
             clk -= 127;
@@ -4252,7 +4252,7 @@ namespace mucomDotNET.Compiler
                 , work.ChipIndex / 2 == 0
                     ? "YM2608"
                     : "YM2610B"
-                , work.ChipIndex / 2, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
             mucInfo.bufDst.Set(work.MDATA++, new MmlDatum(
                 enmMMLType.Note
