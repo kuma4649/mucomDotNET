@@ -297,22 +297,23 @@ namespace mucomDotNET.Compiler
 
             int noteDiv = noteNum / 2 + 1; //2おんずつ
             if (noteDiv > befco) noteDiv = befco;
-            int noteStep = noteNum / noteDiv * sign;
-            int noteMod = (noteNum % noteDiv) * sign;
+            double noteStep = (double)noteNum / noteDiv * sign;
+            //int noteMod = Math.Abs(noteNum % noteDiv);
             int clock = befco / noteDiv;
             int clockMod = befco % noteDiv;
 
             List<Tuple<int, int, int, int>> lstPrt = new List<Tuple<int, int, int, int>>();
-            int stNote = 0;
+            double stNote = 0;
             for (int i = 0; i < noteDiv; i++)
             {
-                int edNote = stNote + noteStep + ((noteMod > 0 ? 1 : 0)) * sign;
+                //int edNote = stNote + noteStep + ((noteMod > 0 ? 1 : 0)) * sign;
+                double edNote = stNote + noteStep;
                 if (clock + (clockMod > 0 ? 1 : 0) != 0)
                 {
                     int n = clock + (clockMod > 0 ? 1 : 0);
                     Tuple<int, int, int, int> p = new Tuple<int, int, int, int>(
-                        stNote + beftone
-                        , edNote + beftone
+                        (int)(stNote + beftone)
+                        , (int)(edNote + beftone)
                         , n
                         , qbefco > n ? n : qbefco
                         );
@@ -324,7 +325,7 @@ namespace mucomDotNET.Compiler
                 {
                     Tuple<int, int, int,int> p = new Tuple<int, int, int,int>(
                         lstPrt[lstPrt.Count - 1].Item1
-                        , edNote + beftone
+                        , (int)(edNote + beftone)
                         , lstPrt[lstPrt.Count - 1].Item3
                         , qbefco > lstPrt[lstPrt.Count - 1].Item3 ? lstPrt[lstPrt.Count - 1].Item3 : qbefco
                         );
@@ -334,7 +335,7 @@ namespace mucomDotNET.Compiler
                 }
 
                 stNote = edNote;// + sign;
-                noteMod--;
+                //noteMod--;
                 clockMod--;
             }
 
