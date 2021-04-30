@@ -1,0 +1,33 @@
+#title    オートパンサンプル
+#composer none
+#author   none
+#date     2021/04/30
+#comment  none
+#driver   mucomDotNET
+
+' lead synthっぽいなにか
+  @2
+   5, 4
+  031,001,001,001,005,026,000,001,002
+  031,004,003,008,010,000,000,000,003
+  031,001,001,001,005,020,000,001,006
+  031,004,003,008,010,004,000,000,005
+
+
+
+A  C192 t183 v11 l8 o4 @2
+ 右
+A  p1    cdefgabr
+ 左
+A  p2    cdefgabr
+ 中央
+A  p3    cdefgabr
+ 右オートパン
+A  p4,10 cdefgabr
+ 左オートパン
+A  p5,10 cdefgabr
+ ランダムオートパン
+A  p6,10 cdefgabr
+
+
+

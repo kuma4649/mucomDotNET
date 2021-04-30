@@ -1,0 +1,15 @@
+#title    SSGソフトウェアエンベロープサンプル
+#composer none
+#author   none
+#date     2021/04/30
+#comment  none
+#driver   mucomDotNET
+
+
+
+
+D  C192 t183 l8v15
+D  o4@1 cdefgabr
+D  @1=15,50,10,10,10,10
+D  o4@1 cdefgabr
+

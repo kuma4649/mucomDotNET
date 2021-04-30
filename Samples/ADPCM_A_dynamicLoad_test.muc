@@ -1,0 +1,29 @@
+#title    ADPCM-Aの発音サンプル(wavファイルの読み込み)
+#composer none
+#author   none
+#date     2021/04/30
+#comment  none
+#driver   mucomDotNET
+
+.wavのファイル形式は
+ mono /  8bit / unsigned / 18.5kHz
+または
+ mono / 16bit / signed   / 18.5kHz
+を要求する
+
+#@pcm_3rd_a  1 , バスドラム   , .\pcm\Kick1.wav  , 100
+#@pcm_3rd_a  3 , スネアドラム , .\pcm\Snare1.wav , 100
+
+#@pcm_4th_a  1 , バスドラム   , .\pcm\Kick1.wav  , 100
+#@pcm_4th_a  3 , スネアドラム , .\pcm\Snare1.wav , 100
+
+
+
+ OPNB 1枚目の ADPCM-A を発音
+g C192 t183 v63,31,31,31,31,31,31 l8
+g o1@1 cd
+
+ OPNB 2枚目の ADPCM-A を発音
+r C192 t183 v63,31,31,31,31,31,31 l8
+r o1@1 rr  cd
+

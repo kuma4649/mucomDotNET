@@ -140,7 +140,7 @@ namespace mucomDotNET.Compiler.PCMTool
                 {
                     ushort stAdr = (ushort)(ptr >> 2);
                     ptr += length - 1;
-                    ushort edAdr = (ushort)(ptr >> 2);
+                    ushort edAdr = (ushort)ptr;// (ptr >> 2);
                     ptr++;
                     head.Add((byte)(stAdr));
                     head.Add((byte)(stAdr >> 8));

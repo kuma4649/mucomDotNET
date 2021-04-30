@@ -1,0 +1,22 @@
+#title    ADPCM-Aの発音サンプル
+#composer none
+#author   none
+#date     2021/04/30
+#comment  none
+#driver   mucomDotNET
+
+ packed pcmファイルはPCMTool.exeで作成する
+
+#pcm_3rd_a pcm_3rd_A.bin
+#pcm_4th_a pcm_4th_A.bin
+
+
+
+ OPNB 1枚目の ADPCM-A を発音
+g C192 t183 v63,31,31,31,31,31,31 l8
+g o1@1 cc+
+
+ OPNB 2枚目の ADPCM-A を発音
+r C192 t183 v63,31,31,31,31,31,31 l8
+r o1@1 rr  cc+
+

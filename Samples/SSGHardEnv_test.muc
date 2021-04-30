@@ -1,0 +1,21 @@
+#title    SSGハードウェアエンベロープサンプル
+#composer none
+#author   none
+#date     2021/04/30
+#comment  none
+#driver   mucomDotNET
+
+
+
+ハードウェアエンベロープはチップごとにひとつ使用可能
+
+D  C192 t183 l8
+D  o4S15m1000 cdefgabr
+D  o4S1 m3000 cdefgabr
+D  o4S1 m600  cdefgabr
+
+O  C192 l8
+O  o5S15m3000 cdefgabr
+O  o5S1 m1000 cdefgabr
+O  o5S1 m9000 cdefgabr
+

@@ -1,0 +1,44 @@
+#title    ADPCM/-Bの発音サンプル(wavファイルの読み込み)
+#composer none
+#author   none
+#date     2021/04/30
+#comment  none
+#driver   mucomDotNET
+
+.wavのファイル形式は
+ mono /  8bit / unsigned
+または
+ mono / 16bit / signed
+を要求する
+
+#@pcm        1 , バスドラム   , .\pcm\Kick1.wav  , 100
+#@pcm        2 , スネアドラム , .\pcm\Snare1.wav , 100
+
+#@pcm_2nd    1 , バスドラム   , .\pcm\Kick1.wav  , 100
+#@pcm_2nd    2 , スネアドラム , .\pcm\Snare1.wav , 100
+
+#@pcm_3rd_b  1 , バスドラム   , .\pcm\Kick1.wav  , 100
+#@pcm_3rd_b  2 , スネアドラム , .\pcm\Snare1.wav , 100
+
+#@pcm_4th_b  1 , バスドラム   , .\pcm\Kick1.wav  , 100
+#@pcm_4th_b  2 , スネアドラム , .\pcm\Snare1.wav , 100
+
+
+
+ OPNA 1枚目の ADPCM を発音
+K C192 t183 v100
+K o1l4 @1c@2c
+
+ OPNA 2枚目の ADPCM を発音
+V C192 t183 v100
+V o1l4   r  r @1c@2c
+
+ OPNB 1枚目の ADPCM-B を発音
+k C192 t183 v100
+k o1l4   r  r   r  r @1c@2c
+
+ OPNB 2枚目の ADPCM-B を発音
+v C192 t183 v100 l8
+v o1l4   r  r   r  r   r  r @1c@2c
+
+

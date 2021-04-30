@@ -1,0 +1,17 @@
+#title    SSG トレモロLFO サンプル
+#composer none
+#author   none
+#date     2021/04/30
+#comment  none
+#driver   mucomDotNET
+
+
+ 既存の表記
+
+D  C192 t183 v11 l4
+ トレモロLFO
+D  o4@1 MT1 M10,4, 1,2  c1 d1
+ 既存LFO
+D  o4@1 MT0 M10,1,40,5  c1 d1
+
+

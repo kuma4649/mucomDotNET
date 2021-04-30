@@ -1,0 +1,24 @@
+#title    リズム音源のパン サンプル
+#composer none
+#author   none
+#date     2021/04/30
+#comment  none
+#driver   mucomDotNET
+
+
+ リズムパート
+ G
+ R
+
+ ADPCM-Aパート
+ g
+ r
+
+G0  v63,31,31,31,31,31,31
+G01 C192 t183
+
+ リズム音毎にボリュームを設定
+G0 l8pm1 @4p1c p2c p3c p4,5ccc p5,5ccc p6,5ccc
+G1 l8pm1 @1p3c   c   c     ccc     ccc     ccc
+
+

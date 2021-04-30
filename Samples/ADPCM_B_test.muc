@@ -1,0 +1,33 @@
+#title    ADPCM/-Bの発音サンプル
+#composer none
+#author   none
+#date     2021/04/30
+#comment  none
+#driver   mucomDotNET
+
+ packed pcmファイルはPCMTool.exeで作成する
+
+#pcm       pcm_1st.bin
+#pcm_2nd   pcm_2nd.bin
+#pcm_3rd_b pcm_3rd_B.bin
+#pcm_4th_b pcm_4th_B.bin
+
+
+
+ OPNA 1枚目の ADPCM を発音
+K C192 t183 v100 l8
+K o1@1 cdefgab
+
+ OPNA 2枚目の ADPCM を発音
+V C192 t183 v100 l8
+V o1@1 rrrrrrr cdefgab
+
+ OPNB 1枚目の ADPCM-B を発音
+k C192 t183 v100 l8
+k o1@1 rrrrrrr rrrrrrr cdefgab
+
+ OPNB 2枚目の ADPCM-B を発音
+v C192 t183 v100 l8
+v o1@1 rrrrrrr rrrrrrr rrrrrrr cdefgab
+
+

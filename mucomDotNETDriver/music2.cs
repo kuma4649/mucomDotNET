@@ -466,6 +466,7 @@ namespace mucomDotNET.Driver
                 {
                     pg.instrumentNumber = 0x3f;
                 }
+                pg.panMode = 3;
             }
 
             work.soundWork.C2NUM++;
@@ -1009,6 +1010,9 @@ namespace mucomDotNET.Driver
                 }
                 if (work.cd.currentPageNo == work.pg.pageNo)
                     KEYOFF();
+
+                DummyOUT();
+
                 return;
             }
 
@@ -1248,6 +1252,7 @@ namespace mucomDotNET.Driver
         {
             work.pg.lfoPeakWork = work.pg.lfoPeak >> 1;// LFO PEAK LEVEL ｻｲ ｾｯﾃｲ
             work.pg.lfoDeltaWork = work.pg.lfoDelta;// ﾍﾝｶﾘｮｳ ｻｲｾｯﾃｲ
+            work.pg.SSGTremoloVol = 0;
             if (!work.pg.tlLfoflg)
             {
                 return;
@@ -1564,7 +1569,7 @@ namespace mucomDotNET.Driver
 
         public void STENV()
         {
-            if (work.cd.currentPageNo == work.pg.pageNo)
+            //if (work.cd.currentPageNo == work.pg.pageNo)
                 KEYOFF();
 
             byte a = (byte)(0x80 + work.pg.channelNumber);
@@ -2884,7 +2889,7 @@ namespace mucomDotNET.Driver
         {
             if (work.soundWork.SSGF1 != 0 && work.pg.SSGTremoloFlg)
             {
-                work.pg.SSGTremoloVol += hl;
+                work.pg.SSGTremoloVol += (short)(ushort)hl;
                 //Console.WriteLine(work.pg.SSGTremoloVol);
                 return;
             }
@@ -3102,7 +3107,8 @@ namespace mucomDotNET.Driver
 
             if (work.pg.SSGTremoloFlg)
             {
-                work.A_Reg = (byte)Math.Max(Math.Min((work.A_Reg + work.pg.SSGTremoloVol / 16), 15), 0);
+                work.A_Reg = (byte)Math.Max(Math.Min((work.A_Reg + work.pg.SSGTremoloVol ), 15), 0);
+                //Console.WriteLine("{0}",work.pg.SSGTremoloVol);
             }
             
 
