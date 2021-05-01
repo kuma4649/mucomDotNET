@@ -120,6 +120,7 @@ namespace mucomDotNET.Driver
         public ushort RANDUM { get; internal set; } = 0;
         public int KEY_FLAG { get; internal set; } = 0;
         public int currentChip { get; internal set; }
+        public int currentCh { get; internal set; }
         public int[][] PCMaSTTADR { get; internal set; } = new int[2][] { new int[6], new int[6] };
         public int[][] PCMaENDADR { get; internal set; } = new int[2][] { new int[6], new int[6] };
 

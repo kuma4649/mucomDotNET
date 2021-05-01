@@ -711,6 +711,7 @@ namespace mucomDotNET.Driver
                     int m = 0;
                     for (int j = 0; j < work.cd.PGDAT.Count; j++)
                     {
+                        work.soundWork.currentCh = i * 10 + j;
                         work.pg = work.cd.PGDAT[j];//KUMA:カレントのページワーク切り替え
                         if (!work.pg.musicEnd)
                         {
@@ -760,6 +761,8 @@ namespace mucomDotNET.Driver
 
             if (work.maxLoopCount == -1) n = 0;
             if (n == MAXCH * 4) MSTOP();
+            if (work.abnormalEnd)
+                MSTOP();
         }
 
 
@@ -832,6 +835,11 @@ namespace mucomDotNET.Driver
             {
                 if ((c & (1 << b)) != 0) PSGOUT((byte)(d + b * 4), e);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
             }
+
+            //パラメータ表示向け
+            List<object> args = new List<object>();
+            args.Add(work.pg.volume - 4);
+            DummyOUT(enmMMLType.Volume, args);
         }
 
         public void PSGOUT(byte d, byte e)
@@ -860,6 +868,25 @@ namespace mucomDotNET.Driver
             WriteRegister(work.soundWork.currentChip, dat);
         }
 
+        public void DummyOUT(enmMMLType type, List<object> args)
+        {
+            MakeDummyCrntMmlDatum(type, args);
+            DummyOUT();
+        }
+
+        public void MakeDummyCrntMmlDatum(enmMMLType type, List<object> args)
+        {
+            LinePos lp = new LinePos(null, "", -1, -1, -1
+                , work.soundWork.currentChip < 2 
+                    ? (work.soundWork.PCMFLG != 0 ? "ADPCM" : (work.soundWork.DRMF1 != 0 ? "RHYTHM" : (work.soundWork.SSGF1 != 0 ? "SSG" : "FM")))
+                    : (work.soundWork.PCMFLG != 0 ? "ADPCM-B" : (work.soundWork.DRMF1 != 0 ? "ADPCM-A" : (work.soundWork.SSGF1 != 0 ? "SSG" : "FM")))
+                , work.soundWork.currentChip < 2 ? "YM2608" : "YM2610B"
+                , 0
+                , work.soundWork.currentChip % 2
+                , work.soundWork.currentCh
+                );
+            work.crntMmlDatum = new MmlDatum(type, args, lp, 0);
+        }
 
         // **	KEY-OFF ROUTINE		**
 
@@ -961,6 +988,8 @@ namespace mucomDotNET.Driver
 
                     if (work.pg.dataTopAddress == -1 || nrFlg)
                     {
+                        if (nrFlg) 
+                            work.abnormalEnd = true;
                         FMEND(hl);//* DATA TOP ADRESS ｶﾞ 0000H ﾃﾞ BGM
                         return; // ﾉ ｼｭｳﾘｮｳ ｦ ｹｯﾃｲ ｿﾚ ｲｶﾞｲﾊ ｸﾘｶｴｼ
                     }
@@ -2378,12 +2407,7 @@ namespace mucomDotNET.Driver
 
             List<object> args = new List<object>();
             args.Add((int)a);
-
-            LinePos lp = new LinePos(null,"", -1, -1, -1
-                , work.soundWork.SSGF1 == 0 ? "FM" : "ADPCM"
-                , "YM2608", 0, 0, work.pg.channelNumber);
-            work.crntMmlDatum = new MmlDatum(enmMMLType.Pan, args, lp, 0);
-            DummyOUT();
+            DummyOUT(enmMMLType.Pan, args);
 
             if (work.soundWork.PCMFLG == 0)
             {
@@ -2490,13 +2514,16 @@ namespace mucomDotNET.Driver
 
         public void VOLUPF()
         {
+            List<object> args;
+            LinePos lp;
+
             if (work.soundWork.DRMF1 != 0)
             {
                 byte n = (byte)work.pg.mData[work.hl++].dat;
 
                 if (work.isDotNET)
                 {
-                    if ((n&0x80)!=0)
+                    if ((n & 0x80) != 0)
                     {
                         VOLUPF_Rhythm(n);
                         return;
@@ -2504,6 +2531,11 @@ namespace mucomDotNET.Driver
                 }
 
                 work.pg.volume += (sbyte)n;
+                //パラメータ表示向け
+                args = new List<object>();
+                args.Add(work.pg.volume);
+                DummyOUT(enmMMLType.Volume, args);
+
                 DVOLSET();
                 return;
             }
@@ -2526,6 +2558,12 @@ namespace mucomDotNET.Driver
                 if (((inst >> i) & 1) != 0)
                 {
                     byte b = (byte)((sbyte)((a & 0x3f) | ((a & 0x40) != 0 ? 0xc0 : 0)) + (work.soundWork.DRMVOL[work.soundWork.currentChip][i] & 0x3f));
+
+                    //パラメータ表示向け
+                    List<object> args = new List<object>();
+                    args.Add((int)b);
+                    DummyOUT(enmMMLType.Volume, args);
+
                     b = (byte)((work.soundWork.DRMVOL[work.soundWork.currentChip][i] & 0b1100_0000) | b);
                     work.soundWork.DRMVOL[work.soundWork.currentChip][i] = b;
                     //if (work.cd.currentPageNo == work.pg.pageNo)
@@ -2805,6 +2843,10 @@ namespace mucomDotNET.Driver
                 a &= 0b1111_0000;
                 a |= d;
                 work.pg.volume = a;
+
+                List<object> args = new List<object>();
+                args.Add((int)d);
+                DummyOUT(enmMMLType.Volume, args);
             }
         }
 
@@ -3176,20 +3218,26 @@ namespace mucomDotNET.Driver
             work.crntMmlDatum = work.pg.mData[work.hl];
 
             byte a;
+            bool nrFlg = false;
             do
             {
-                if (work.pg.mData[work.hl].dat == 0)// CHECK END MARK
+                a = (byte)work.pg.mData[work.hl].dat;
+                while (a == 0)// CHECK END MARK
                 {
                     work.pg.loopEndFlg = true;
                     // HL=DATA TOP ADD
-                    if (work.pg.dataTopAddress == -1)
+                    if (work.pg.dataTopAddress == -1 || nrFlg)
                     {
+                        if (nrFlg)
+                            work.abnormalEnd = true;
                         SSGEND();
                         return;
                     }
                     work.hl = (uint)work.pg.dataTopAddress;
+                    a = (byte)work.pg.mData[work.hl].dat;// GET FLAG & LENGTH
                     work.pg.loopCounter++;
                     //if (work.pg.loopCounter > work.nowLoopCounter) work.nowLoopCounter = work.pg.loopCounter;
+                    nrFlg = true;
                 }
 
                 //演奏情報退避
@@ -3206,6 +3254,7 @@ namespace mucomDotNET.Driver
 
             } while (true);
 
+            nrFlg = false;
             bool carry = ((a & 0x80) != 0);
             a &= 0x7f;// CY=REST FLAG
 

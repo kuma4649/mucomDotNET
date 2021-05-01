@@ -45,6 +45,7 @@ namespace mucomDotNET.Driver
         public int nowLoopCounter { get; internal set; } = -1;
         public int[] rhythmORKeyOff { get; internal set; } = new int[4];
         public int[] rhythmOR { get; internal set; } = new int[4];
+        public bool abnormalEnd { get; internal set; } = false;
 
         public OPNATimer timer = null;
         public ulong timeCounter = 0L;
