@@ -506,12 +506,17 @@ namespace mucomDotNET.Driver
 
                 for (int b = 0; b < 6; b++)
                 {
-                    dat = new ChipDatum(0, (byte)b, 0x00);// CH 4-6 ENABLE
+                    dat = new ChipDatum(0, (byte)b, 0x00);// SSG registers($00～$05) 0 clear
                     WriteRegister(c, dat);
                 }
 
-                dat = new ChipDatum(0, 7, 0b0011_1000);
+                dat = new ChipDatum(0, 7, 0b0011_1000);//SSG tone mixer initialize
                 WriteRegister(c, dat);
+
+                if (c < 2) dat = new ChipDatum(0, 0x11, 63);//Rhythm volume initialize(max:63)
+                else dat = new ChipDatum(1, 0x01, 63);//ADPCM-A volume initialize(max:63)
+                WriteRegister(c, dat);
+
             }
 
             // PSGﾊﾞｯﾌｧ ｲﾆｼｬﾗｲｽﾞ
@@ -695,7 +700,7 @@ namespace mucomDotNET.Driver
 
                 for (int i = 0; i < aryDRIVE.Length; i++)
                 {
-                    Log.WriteLine(LogLevel.TRACE, aryDRIVE[i].Item1);
+                    //Log.WriteLine(LogLevel.TRACE, aryDRIVE[i].Item1);
 
                     //KUMA:フラグ系パラメータのセット
                     work.soundWork.FMPORT = aryDRIVE[i].Item2;

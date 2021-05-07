@@ -2433,8 +2433,14 @@ namespace mucomDotNET.Compiler
                         if (i == 0)
                         {
                             MmlDatum m = mucInfo.bufDst.Get(work.MDATA - 1);
+                            m.dat = Math.Min(Math.Max(m.dat, 0), 31);
                             m.dat |= 0x80;//KUMA:個別指定を意味するフラグをbit7にたてる
                             mucInfo.bufDst.Set(work.MDATA - 1, m);
+
+                            MmlDatum m2 = mucInfo.bufDst.Get(work.MDATA - 2);
+                            m2.args[0] = m.dat & 0x7f;//KUMA:引数もクリップしたものに入れ替える
+                            mucInfo.bufDst.Set(work.MDATA - 2, m2);
+
                             return EnmFCOMPNextRtn.fcomp1;
                         }
                     }

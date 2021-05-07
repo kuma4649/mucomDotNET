@@ -2,7 +2,7 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
-      "commandLineArgs": "-LOGLEVEL=INFO \"\"D:\\bootcamp\\Source\\Repos\\mucomDotNET\\Samples\\SSG_Tremolo_test.muc\""
+      "commandLineArgs": "-LOGLEVEL=INFO \"C:\\Users\\kuma\\Desktop\\TEST\\test.muc\""
     }
   }
 }

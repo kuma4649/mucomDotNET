@@ -47,11 +47,31 @@ namespace mucomDotNET.Compiler.PCMTool
                 {
                     string lin = line.Trim();
                     if (string.IsNullOrEmpty(lin)) continue;
+                    lin = CutComment(lin).Trim();
+                    if (string.IsNullOrEmpty(lin)) continue;
 
                     fileManager.Add(lin);
                 }
                 return Make(config, fileManager);
             }
+        }
+
+        private string CutComment(string lin)
+        {
+            string ret = "";
+            bool strFlg = false;
+
+            for (int i = 0; i < lin.Length; i++)
+            {
+                char ch = lin[i];
+                char chn = i + 1 < lin.Length ? lin[i + 1] : '\0';
+
+                if (ch == ';' && !strFlg) break;
+                if (ch == '"' && (strFlg && chn != '"')) strFlg = !strFlg;
+                ret += ch;
+            }
+
+            return ret;
         }
 
         private Config GetConfig()
