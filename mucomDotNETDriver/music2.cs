@@ -766,8 +766,8 @@ namespace mucomDotNET.Driver
 
             if (work.maxLoopCount == -1) n = 0;
             if (n == MAXCH * 4) MSTOP();
-            if (work.abnormalEnd)
-                MSTOP();
+            //if (work.abnormalEnd)
+            //    MSTOP();
         }
 
 
