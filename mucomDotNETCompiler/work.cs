@@ -100,6 +100,7 @@ namespace mucomDotNET.Compiler
         public int pageNow = 0;
         public int backupMDATA = 0;
         public int lastMDATA = 0;
+        public int latestNote = 0;// 最後に解析したのが音符の場合は1、休符の場合は2、初期値は0
 
 
         /// <summary>

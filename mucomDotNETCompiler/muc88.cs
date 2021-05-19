@@ -353,6 +353,8 @@ namespace mucomDotNET.Compiler
 
             PortamentEnd();
 
+            work.latestNote = 1;//KUMA:チェック用(音符)
+
             return EnmFCOMPNextRtn.fcomp1;
 
         }
@@ -1655,6 +1657,8 @@ namespace mucomDotNET.Compiler
                     , lp
                     , (byte)(kotae | 0b1000_0000)
                     ));// SET REST FLAG
+            
+            work.latestNote = 2;//KUMA:チェック用(休符)
 
             return EnmFCOMPNextRtn.fcomp12;
         }
@@ -2142,6 +2146,14 @@ namespace mucomDotNET.Compiler
 
         public EnmFCOMPNextRtn SETTI2()
         {
+
+            if (work.latestNote != 1)
+            {
+                throw new MucException(
+                    msg.get("E0528")
+                    , mucInfo.row, mucInfo.col);
+            }
+
             SETTI1();
             byte a = work.BEFTONE[0];
 
@@ -3184,6 +3196,7 @@ namespace mucomDotNET.Compiler
             work.backupMDATA = work.MDATA;
             work.REPCOUNT = 0;
             work.title = work.titleFmt;
+            work.latestNote = 0;
 
             if (!mucInfo.isExtendFormat)
             {
@@ -4060,6 +4073,8 @@ namespace mucomDotNET.Compiler
             {
                 return EnmFCOMPNextRtn.occuredERROR;
             }
+
+            work.latestNote = 1;//KUMA: チェック用(音符を出力)
 
             //音符が直前と同じで、タイフラグがたっているか
             if (note == work.BEFTONE[0] && work.TIEFG != 0)
