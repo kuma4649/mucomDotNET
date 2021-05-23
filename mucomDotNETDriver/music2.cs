@@ -1249,7 +1249,7 @@ namespace mucomDotNET.Driver
 
         public void EXMODE(uint hl)
         {
-            work.soundWork.FMSUB8_VAL = (ushort)work.soundWork.DETDAT[0];
+            work.soundWork.FMSUB8_VAL = (ushort)work.soundWork.DETDAT[work.soundWork.currentChip][0];
             FMSUB4(hl);// SET OP1
             if (work.carry)
             {
@@ -1265,7 +1265,7 @@ namespace mucomDotNET.Driver
                 work.soundWork.FPORT_VAL = a;
                 a++;
                 //HLSTC0:
-                FMSUB6(work.soundWork.FNUM, (ushort)work.soundWork.DETDAT[hl++]);// SET OP2-OP4
+                FMSUB6(work.soundWork.FNUM, (ushort)work.soundWork.DETDAT[work.soundWork.currentChip][hl++]);// SET OP2-OP4
             }
 
             work.soundWork.FPORT_VAL = 0xa4;
@@ -1957,7 +1957,7 @@ namespace mucomDotNET.Driver
                 {
                     byte l = (byte)work.pg.mData[work.hl++].dat;
                     byte m = (byte)work.pg.mData[work.hl++].dat;
-                    work.soundWork.DETDAT[bc] = (ushort)(l + m * 0x100);
+                    work.soundWork.DETDAT[work.soundWork.currentChip][bc] = (ushort)(l + m * 0x100);
                 }
             }
             else
@@ -1965,7 +1965,7 @@ namespace mucomDotNET.Driver
                 for (int bc = 0; bc < 4; bc++)
                 {
                     byte a = (byte)work.pg.mData[work.hl++].dat;
-                    work.soundWork.DETDAT[bc] = a;
+                    work.soundWork.DETDAT[work.soundWork.currentChip][bc] = a;
                 }
             }
         }
@@ -3045,7 +3045,7 @@ namespace mucomDotNET.Driver
             //LFOP3:
             do
             {
-                int fnum = work.soundWork.NEWFNM + work.soundWork.DETDAT[hl++];
+                int fnum = work.soundWork.NEWFNM + work.soundWork.DETDAT[work.soundWork.currentChip][hl++];
 
                 byte d = work.soundWork.OP_SEL[iy++];
                 byte e = (byte)(fnum >> 8);

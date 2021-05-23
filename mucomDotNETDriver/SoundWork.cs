@@ -71,7 +71,7 @@ namespace mucomDotNET.Driver
 
         public byte[] PREGBF = null;
         public byte[] INITPM = null;
-        public ushort[] DETDAT = null;
+        public ushort[][] DETDAT = new ushort[4][] { null, null, null, null };
         public byte[][] DRMVOL = new byte[4][] { null, null, null, null };
         public byte[][] DrmPanEnable = new byte[4][] { null, null, null, null };
         public byte[][] DrmPanMode = new byte[4][] { null, null, null, null };
@@ -248,9 +248,9 @@ namespace mucomDotNET.Driver
 
             PREGBF = new byte[9];
             INITPM = new byte[] { 0, 0, 0, 0, 0, 56, 0, 0, 0 };
-            DETDAT = new ushort[4] { 0, 0, 0, 0 };
             for (int i = 0; i < 4; i++)
             {
+                DETDAT[i] = new ushort[4] { 0, 0, 0, 0 };
                 DRMVOL[i] = new byte[6] { 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0 };
                 DrmPanCounter[i] = new byte[6] { 0, 0, 0, 0, 0, 0 };
                 DrmPanCounterWork[i] = new byte[6] { 0, 0, 0, 0, 0, 0 };
