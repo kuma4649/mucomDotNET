@@ -1760,7 +1760,7 @@ namespace mucomDotNET.Driver
             
             DummyOUT();
             work.pg.beforeCode = 0;// DETUNE ﾉ ﾊﾞｱｲﾊ BEFORE CODE ｦ CLEAR
-            int de = work.pg.mData[work.hl].dat + work.pg.mData[work.hl + 1].dat * 0x100;
+            int de = (short)(work.pg.mData[work.hl].dat + work.pg.mData[work.hl + 1].dat * 0x100);
             work.hl += 2;
             byte a = (byte)work.pg.mData[work.hl++].dat;
             if (a != 0)
