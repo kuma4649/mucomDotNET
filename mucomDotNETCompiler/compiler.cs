@@ -105,6 +105,8 @@ namespace mucomDotNET.Compiler
                 mucInfo.basSrc = basSrc;
                 mucInfo.srcCPtr = 0;
                 mucInfo.srcLinPtr = -1;
+                //work.compilerInfo.jumpRow = -1;
+                //work.compilerInfo.jumpCol = -1;
 
                 //MUCOM88 初期化
                 int ret = muc88.COMPIL();//vector 0xeea8
@@ -630,10 +632,14 @@ namespace mucomDotNET.Compiler
                 dat.Add(new MmlDatum((byte)mucInfo.bufDefVoice.Get(i)));
             }
 
+            work.compilerInfo.jumpRow = -1;
+            work.compilerInfo.jumpCol = -1;
             if (work.JPLINE >= 0)
             {
                 Log.WriteLine(LogLevel.INFO, string.Format("#Jump count [{0}]. channelNumber[{1}]", work.JCLOCK, work.JCHCOM[0]));
                 Log.WriteLine(LogLevel.INFO, string.Format("#Jump line [row:{0} col:{1}].", work.JPLINE, work.JPCOL));
+                work.compilerInfo.jumpRow = work.JPLINE;
+                work.compilerInfo.jumpCol = work.JPCOL;
             }
 
             for (int i = 0; i < length; i++) dat.Add(mucInfo.bufDst.Get(i));
@@ -811,6 +817,15 @@ namespace mucomDotNET.Compiler
             dat.Add(new MmlDatum((byte)(work.JPLINE >> 16)));
             dat.Add(new MmlDatum((byte)(work.JPLINE >> 24)));
 
+            work.compilerInfo.jumpRow = -1;
+            work.compilerInfo.jumpCol = -1;
+            if (work.JPLINE >= 0)
+            {
+                Log.WriteLine(LogLevel.INFO, string.Format("#Jump count [{0}]. channelNumber[{1}]", work.JCLOCK, work.JCHCOM[0]));
+                Log.WriteLine(LogLevel.INFO, string.Format("#Jump line [row:{0} col:{1}].", work.JPLINE, work.JPCOL));
+                work.compilerInfo.jumpRow = work.JPLINE;
+                work.compilerInfo.jumpCol = work.JPCOL;
+            }
 
 
             //可変長ヘッダー情報

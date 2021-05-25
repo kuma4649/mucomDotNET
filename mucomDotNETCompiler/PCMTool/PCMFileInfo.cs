@@ -20,7 +20,31 @@ namespace mucomDotNET.Compiler.PCMTool
         {
             if (itemList == null) return;
 
-            if (itemList.Count > 0 && int.TryParse(itemList[0], out int n)) number = n;
+            int n;
+            if (itemList.Count > 0)
+            {
+                string item = itemList[0].ToLower().Trim();
+                if (item.Length > 1 && item[0] == '$')
+                {
+                    n = Convert.ToInt32(item.Substring(1), 16);
+                    number = n;
+                }
+                else if (int.TryParse(item, out n)) number = n;
+                else if (item.Length > 1 && item[0] == 'o')
+                {
+                    if (int.TryParse(item.Substring(1, 1), out n) && item.Length > 2)
+                    {
+                        string[] note = new string[] { "c", "c+", "d", "d+", "e", "f", "f+", "g", "g+", "a", "a+", "b" };
+                        for (int i = 0; i < note.Length; i++)
+                        {
+                            if (note[i] != item.Substring(2)) continue;
+                            n = n * 16 + i + 1;
+                            number = n;
+                            break;
+                        }
+                    }
+                }
+            }
             if (itemList.Count > 1) name = itemList[1];
             if (itemList.Count > 2) fileName = itemList[2];
             if (itemList.Count > 3 && int.TryParse(itemList[3], out n)) volume = n;

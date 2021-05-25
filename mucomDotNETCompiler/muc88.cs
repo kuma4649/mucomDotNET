@@ -3777,6 +3777,8 @@ namespace mucomDotNET.Compiler
             work.VOLUME = 0;
             work.OCTINT = 0;// 検証結果による値。おそらく実機では不定
             work.compilerInfo = new CompilerInfo();
+            work.compilerInfo.jumpRow = -1;
+            work.compilerInfo.jumpCol = -1;
 
             work.OctaveUDFLG = 0;
             work.VolumeUDFLG = 0;

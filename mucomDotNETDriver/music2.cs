@@ -1806,6 +1806,7 @@ namespace mucomDotNET.Driver
             {
                 a--;//LFOTBL;
                 LFOTBL[a]();
+                LFODummySend();
                 return;
             }
             SETDEL();
@@ -1813,6 +1814,21 @@ namespace mucomDotNET.Driver
             SETVCT();
             SETPEK();
             work.pg.lfoflg = true;// SET LFO FLAG
+            LFODummySend();
+        }
+
+        private void LFODummySend()
+        {
+            List<object> args = new List<object>();
+            args.Add(work.pg.lfoflg);
+            DummyOUT(enmMMLType.LfoSwitch, args);
+
+            args = new List<object>();
+            args.Add(work.pg.lfoDelay);
+            args.Add(work.pg.lfoCounter);
+            args.Add(work.pg.lfoDelta);
+            args.Add(work.pg.lfoPeak);
+            DummyOUT(enmMMLType.Lfo, args);
         }
 
         public void SETDEL()
