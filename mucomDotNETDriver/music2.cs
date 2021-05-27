@@ -2967,26 +2967,9 @@ namespace mucomDotNET.Driver
                 //Console.Write("b:{0} num:{1:x} -> +{2}", blk, num, dlt);
 
                 num += dlt;
+                GetFnum(ref blk, ref num);
 
-                if (dlt > 0)
-                {
-                    //0x26a == Note C
-                    while (num > 0x26a * 2 && blk < 7)
-                    {
-                        blk++;
-                        num -= 0x26a;
-                    }
-                }
-                else
-                {
-                    while (num < 0x26a && blk > 0)
-                    {
-                        blk--;
-                        num += 0x26a;
-                    }
-                }
-
-                //Console.WriteLine(" -> b:{0} num:{1:x}",blk,num);
+                ////Console.WriteLine(" -> b:{0} num:{1:x}",blk,num);
 
                 hl = (blk << 11) | num;
             }
@@ -3031,6 +3014,31 @@ namespace mucomDotNET.Driver
             PSGOUT(d, e);
         }
 
+        private void GetFnum(ref int blk,ref int num)
+        {
+            int NoteC = 0x26a;
+            while (num < NoteC)
+            {
+                if (blk == 0)
+                {
+                    break;
+                }
+                blk--;
+                num = NoteC * 2 - (NoteC - num);
+            }
+            while (num >= NoteC * 2)
+            {
+                if (blk == 7)
+                {
+                    break;
+                }
+                blk++;
+                num = num - NoteC * 2 + NoteC;
+            }
+            num = Math.Min(Math.Max(num, 0), 0x7ff);
+
+        }
+
         // ---	FOR FM LFO	---
 
         public void LFOP5(int hl)
@@ -3061,7 +3069,11 @@ namespace mucomDotNET.Driver
             //LFOP3:
             do
             {
-                int fnum = work.soundWork.NEWFNM + work.soundWork.DETDAT[work.soundWork.currentChip][hl++];
+                //int fnum = work.soundWork.NEWFNM + work.soundWork.DETDAT[work.soundWork.currentChip][hl++];
+                int blk = (work.soundWork.NEWFNM >> 11) & 0x7;
+                int num = (work.soundWork.NEWFNM & 0x7ff) + work.soundWork.DETDAT[work.soundWork.currentChip][hl++];
+                GetFnum(ref blk, ref num);
+                int fnum = (blk << 11) | num;
 
                 byte d = work.soundWork.OP_SEL[iy++];
                 byte e = (byte)(fnum >> 8);
