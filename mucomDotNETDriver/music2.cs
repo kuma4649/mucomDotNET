@@ -3049,7 +3049,8 @@ namespace mucomDotNET.Driver
                 return;
             }
 
-            if ((work.pg.channelNumber & 0x02) == 0)//  CH=3?
+            //if ((work.pg.channelNumber & 0x02) == 0)//  CH=3?
+            if ((work.soundWork.currentCh / 10) != 2)//  CH=3?
             {
                 PLLFO2(hl);// NOT CH3 THEN PLLFO2
                 return;

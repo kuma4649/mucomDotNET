@@ -683,6 +683,7 @@ namespace mucomDotNET.Compiler
                 foreach (Tuple<string, string> tag in tags)
                 {
                     if (tag.Item1!=null && tag.Item1.Length>0 && tag.Item1[0] == '*') continue;
+                    if (string.IsNullOrEmpty(tag.Item1) && !string.IsNullOrEmpty(tag.Item2) && tag.Item2.Trim()[0] == '*') continue;
                     byte[] b = enc.GetSjisArrayFromString(string.Format("#{0} {1}\r\n", tag.Item1, tag.Item2));
                     footsize += b.Length;
                     foreach (byte bd in b) dat.Add(new MmlDatum(bd));

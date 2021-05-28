@@ -2,7 +2,7 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
-      "commandLineArgs": "-LOGLEVEL=INFO \"D:\\bootcamp\\FM音源\\data\\private\\from_欧場豪\\lastwave_OPN.muc\""
+      "commandLineArgs": "-LOGLEVEL=INFO \"D:\\bootcamp\\FM音源\\data\\自作\\TheTakeOver\\testTheTakeOver.muc\""
     }
   }
 }

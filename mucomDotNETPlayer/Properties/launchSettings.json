@@ -2,7 +2,7 @@
   "profiles": {
     "Player": {
       "commandName": "Project",
-      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\private\\from_欧場豪\\lastwave_OPN.mub\""
+      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\自作\\TheTakeOver\\testTheTakeOver.mub\""
     }
   }
 }
