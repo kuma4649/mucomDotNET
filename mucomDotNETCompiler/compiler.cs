@@ -63,6 +63,7 @@ namespace mucomDotNET.Compiler
                 mucInfo = GetMUCInfo(srcBuf);
                 mucInfo.isIDE = isIDE;
                 mucInfo.skipPoint = skipPoint;
+                mucInfo.ErrSign = false;
                 voice = null;
                 for (int i = 0; i < 6; i++) pcmdata[i] = null;
 

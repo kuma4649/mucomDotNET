@@ -1033,7 +1033,7 @@ namespace mucomDotNET.Driver
 
                 if (work.pg.reverbMode)
                 {
-                    if (work.cd.currentPageNo == work.pg.pageNo)
+                    if (work.cd.currentPageNo == work.pg.pageNo || work.soundWork.DRMF1 != 0)
                         KEYOFF();
                     return;
                 }
@@ -1042,7 +1042,7 @@ namespace mucomDotNET.Driver
                     FS2();
                     return;
                 }
-                if (work.cd.currentPageNo == work.pg.pageNo)
+                if (work.cd.currentPageNo == work.pg.pageNo || work.soundWork.DRMF1 != 0)
                     KEYOFF();
 
                 DummyOUT();
