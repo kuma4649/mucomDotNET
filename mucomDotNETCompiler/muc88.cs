@@ -1508,6 +1508,12 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETRST()
         {
+
+            if (mucInfo.DriverType == MUCInfo.enmDriverType.DotNet)
+            {
+                return SETRST_DotNET();
+            }
+
             int ptr;
             int kotae;
 
@@ -1657,7 +1663,141 @@ namespace mucomDotNET.Compiler
                     , lp
                     , (byte)(kotae | 0b1000_0000)
                     ));// SET REST FLAG
-            
+
+            work.latestNote = 2;//KUMA:チェック用(休符)
+
+            return EnmFCOMPNextRtn.fcomp12;
+        }
+
+        private EnmFCOMPNextRtn SETRST_DotNET()
+        {
+            int ptr;
+            int kotae;
+
+            mucInfo.srcCPtr++;
+            char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                : (char)0;
+
+            if (c == '%')// 0x25
+            {
+                mucInfo.srcCPtr++;
+                ptr = mucInfo.srcCPtr;
+                kotae = msub.REDATA(mucInfo.lin, ref ptr);
+                mucInfo.srcCPtr = ptr;
+                if (mucInfo.Carry)
+                {
+                    kotae = work.COUNT;
+                    mucInfo.srcCPtr--;
+                    c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                        ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                        : (char)0;
+                    if (c == '.')// 0x2e
+                    {
+                        //厳密には挙動が違いますが、この文法は使用できないことを再現させるため
+                        throw new MucException(
+                            msg.get("E0439")
+                            , mucInfo.row, mucInfo.col);
+                    }
+                }
+                if (mucInfo.ErrSign)
+                {
+                    throw new MucException(
+                        msg.get("E0439")
+                        , mucInfo.row, mucInfo.col);
+                }
+            }
+            else
+            {
+                ptr = mucInfo.srcCPtr;
+                kotae = msub.REDATA(mucInfo.lin, ref ptr);
+                if (kotae != 0) kotae = work.CLOCK / kotae;
+                mucInfo.srcCPtr = ptr;
+                if (mucInfo.Carry)
+                {
+                    if (c == '^' || c == '&')
+                    {
+                        WriteWarning(msg.get("W0401"), mucInfo.row, mucInfo.col);
+                    }
+                    kotae = work.COUNT;
+                    mucInfo.srcCPtr--;
+                }
+                if (mucInfo.ErrSign)
+                {
+                    throw new MucException(
+                        msg.get("E0439")
+                        , mucInfo.row, mucInfo.col);
+                }
+
+                c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                    ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                    : (char)0;
+                if (c == '.')// 0x2e
+                {
+                    mucInfo.srcCPtr++;
+                    kotae += (kotae >> 1);// /2
+                    c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                        ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                        : (char)0;
+                    if (c == '.')
+                    {
+                        WriteWarning(msg.get("W0402"), mucInfo.row, mucInfo.col);
+                    }
+                }
+            }
+
+            work.tcnt[work.ChipIndex][work.CHIP_CH][work.pageNow] += kotae;
+
+            if (work.BEFRST != 0)// ｾﾞﾝｶｲｶｳﾝﾀ ﾜｰｸ(ﾌﾗｸﾞ)
+            {
+                kotae += work.BEFRST;
+                work.MDATA--;
+            }
+
+            List<object> args = new List<object>();
+            args.Add(kotae);
+            LinePos lp;
+
+            while (kotae > 0x6f)
+            {
+                kotae -= 0x6f;
+                lp = new LinePos(
+                    mucInfo.document,
+                    mucInfo.fnSrcOnlyFile
+                    , mucInfo.row
+                    , mucInfo.col
+                    , mucInfo.srcCPtr - mucInfo.col + 1
+                    , ""
+                    , work.ChipIndex / 2 == 0
+                        ? "YM2608"
+                        : "YM2610B"
+                    , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                msub.MWRIT2(new MmlDatum(
+                    enmMMLType.Rest
+                    , args
+                    , lp
+                    , (byte)(0b1110_1111)
+                    ));
+            }
+            work.BEFRST = kotae;
+            lp = new LinePos(
+                mucInfo.document,
+                mucInfo.fnSrcOnlyFile
+                , mucInfo.row
+                , mucInfo.col
+                , mucInfo.srcCPtr - mucInfo.col + 1
+                , ""
+                , work.ChipIndex / 2 == 0
+                    ? "YM2608"
+                    : "YM2610B"
+                , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+            msub.MWRIT2(new MmlDatum(
+                    enmMMLType.Rest
+                    , args
+                    , lp
+                    , (byte)(kotae | 0b1000_0000)
+                    ));// SET REST FLAG
+
             work.latestNote = 2;//KUMA:チェック用(休符)
 
             return EnmFCOMPNextRtn.fcomp12;
