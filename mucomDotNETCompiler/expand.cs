@@ -30,7 +30,7 @@ namespace mucomDotNET.Compiler
 
         public void FVTEXT(int vn)
         {
-            int fvfg = 0;
+            int fvfg;
             int fmlib1 = 1;// 0x6001;
             bool found = false;
 
@@ -43,6 +43,7 @@ namespace mucomDotNET.Compiler
                 if (mucInfo.basSrc[i].Item2[2] != '@') continue;
 
                 int srcCPtr = 3;
+                fvfg = '\0';
                 if (mucInfo.basSrc[i].Item2[srcCPtr] == '%')
                 {
                     srcCPtr++;
