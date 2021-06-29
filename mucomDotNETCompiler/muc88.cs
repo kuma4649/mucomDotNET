@@ -138,11 +138,14 @@ namespace mucomDotNET.Compiler
             mucInfo.srcCPtr++;
             int ptr = mucInfo.srcCPtr;
             int n = msub.REDATA(mucInfo.lin, ref ptr);
-            if (n > 0xff || n < 0)
+            if (mucInfo.DriverType != MUCInfo.enmDriverType.DotNet)
             {
-                WriteWarning(msg.get("W0400"), mucInfo.row, mucInfo.col);
+                if (n > 0xff || n < 0)
+                {
+                    WriteWarning(msg.get("W0400"), mucInfo.row, mucInfo.col);
+                }
+                n &= 0xff;
             }
-            n &= 0xff;
             mucInfo.srcCPtr = ptr;
 
             //戻り先を記憶
@@ -3779,11 +3782,15 @@ namespace mucomDotNET.Compiler
 
         public void TOSTAC(int n)
         {
-            if (n > 0xff || n < 0)
+            if (mucInfo.DriverType != MUCInfo.enmDriverType.DotNet)
             {
-                WriteWarning(msg.get("W0400"), mucInfo.row, mucInfo.col);
+                if (n > 0xff || n < 0)
+                {
+                    WriteWarning(msg.get("W0400"), mucInfo.row, mucInfo.col);
+                }
+                n &= 0xff;
             }
-            n &= 0xff;
+
             n *= 2;
             if (work.TST2_VAL == 0xc000)
             {
