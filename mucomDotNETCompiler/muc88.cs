@@ -1707,10 +1707,12 @@ namespace mucomDotNET.Compiler
                     c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
                         ? mucInfo.lin.Item2[mucInfo.srcCPtr]
                         : (char)0;
+                    int mod = kotae;
                     while (c == '.')// 0x2e
                     {
                         mucInfo.srcCPtr++;
-                        kotae += (kotae >> 1);// /2
+                        mod >>= 1;
+                        kotae += mod;// /2
                         c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
                             ? mucInfo.lin.Item2[mucInfo.srcCPtr]
                             : (char)0;
@@ -1749,10 +1751,12 @@ namespace mucomDotNET.Compiler
                 c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
                     ? mucInfo.lin.Item2[mucInfo.srcCPtr]
                     : (char)0;
+                int mod = kotae;
                 while (c == '.')// 0x2e
                 {
                     mucInfo.srcCPtr++;
-                    kotae += (kotae >> 1);// /2
+                    mod >>= 1;
+                    kotae += mod;// /2
                     c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
                         ? mucInfo.lin.Item2[mucInfo.srcCPtr]
                         : (char)0;
