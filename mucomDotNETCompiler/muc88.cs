@@ -1692,16 +1692,30 @@ namespace mucomDotNET.Compiler
                 {
                     kotae = work.COUNT;
                     mucInfo.srcCPtr--;
+
+                    //c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                    //    ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                    //    : (char)0;
+                    //if (c == '.')// 0x2e
+                    //{
+                    //    //厳密には挙動が違いますが、この文法は使用できないことを再現させるため
+                    //    throw new MucException(
+                    //        msg.get("E0439")
+                    //        , mucInfo.row, mucInfo.col);
+                    //}
+
                     c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
                         ? mucInfo.lin.Item2[mucInfo.srcCPtr]
                         : (char)0;
-                    if (c == '.')// 0x2e
+                    while (c == '.')// 0x2e
                     {
-                        //厳密には挙動が違いますが、この文法は使用できないことを再現させるため
-                        throw new MucException(
-                            msg.get("E0439")
-                            , mucInfo.row, mucInfo.col);
+                        mucInfo.srcCPtr++;
+                        kotae += (kotae >> 1);// /2
+                        c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
+                            ? mucInfo.lin.Item2[mucInfo.srcCPtr]
+                            : (char)0;
                     }
+
                 }
                 if (mucInfo.ErrSign)
                 {
@@ -1735,17 +1749,17 @@ namespace mucomDotNET.Compiler
                 c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
                     ? mucInfo.lin.Item2[mucInfo.srcCPtr]
                     : (char)0;
-                if (c == '.')// 0x2e
+                while (c == '.')// 0x2e
                 {
                     mucInfo.srcCPtr++;
                     kotae += (kotae >> 1);// /2
                     c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
                         ? mucInfo.lin.Item2[mucInfo.srcCPtr]
                         : (char)0;
-                    if (c == '.')
-                    {
-                        WriteWarning(msg.get("W0402"), mucInfo.row, mucInfo.col);
-                    }
+                    //if (c == '.')
+                    //{
+                    //    WriteWarning(msg.get("W0402"), mucInfo.row, mucInfo.col);
+                    //}
                 }
             }
 

@@ -267,13 +267,16 @@ namespace mucomDotNET.Driver
 
         private void SSGOFF()
         {
+            ChipDatum dat;
             for (int i = 0; i < 4; i++)
             {
                 for (int b = 0; b < 3; b++)
                 {
-                    ChipDatum dat = new ChipDatum(0, (byte)(0x8 + b), 0x0);
+                    dat = new ChipDatum(0, (byte)(0x8 + b), 0x0);
                     WriteRegister(i, dat);
                 }
+                //dat = new ChipDatum(0, (byte)0x7, 0x0);
+                //WriteRegister(i, dat);
             }
         }
 
@@ -450,6 +453,7 @@ namespace mucomDotNET.Driver
                 work.soundWork.CHDAT[chipIndex][ch].PGDAT.Add(pg);
                 pg.lengthCounter = 1;
                 pg.volume = 0;
+                pg.keyoffflg = true;
                 pg.musicEnd = false;
                 pg.dataAddressWork = 0;//ix 2,3
                 pg.dataTopAddress = pageInfo.loopPoint;
