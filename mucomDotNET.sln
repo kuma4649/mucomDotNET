@@ -19,6 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "document", "document", "{A1
 		README.md = README.md
 		removeZoneIdent.bat = removeZoneIdent.bat
 		test.pxt = test.pxt
+		toVgm.bat = toVgm.bat
 		toWav.bat = toWav.bat
 		usage.txt = usage.txt
 	EndProjectSection
@@ -46,7 +47,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vgm", "Vgm\Vgm.csproj", "{0
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vgm.Net4", "Vgm.Net4\Vgm.Net4.csproj", "{66D1AADB-C06E-4F55-BB07-9730B95220D8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PCMTool", "PCMTool\PCMTool.csproj", "{ADECD813-E68A-4398-B8AC-D62486B609BB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PCMTool", "PCMTool\PCMTool.csproj", "{ADECD813-E68A-4398-B8AC-D62486B609BB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

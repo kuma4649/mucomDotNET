@@ -40,6 +40,7 @@ copy .\compile.bat .\output\
 copy .\play.bat .\output\
 copy .\playOnGIMIC.bat .\output\
 copy .\playOnSCCI.bat .\output\
+copy .\toVgm.bat .\output\
 copy .\toWav.bat .\output\
 copy .\PCMtool.bat .\output\
 copy .\test.pxt .\output\

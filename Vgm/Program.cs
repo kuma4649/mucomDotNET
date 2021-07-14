@@ -71,7 +71,7 @@ namespace Vgm
                     , null
                     , new object[] {
                         false
-                        , false
+                        , true
                         , false
                         ,args[fnIndex]
                     }
