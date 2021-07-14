@@ -99,6 +99,54 @@ namespace Vgm
 
         }
 
+        public void WriteYM2610(int v, byte port, byte address, byte data)
+        {
+            if (dest == null) return;
+
+            if (waitCounter != 0)
+            {
+                totalSample += waitCounter;
+
+                //waitコマンド出力
+                Log.WriteLine(LogLevel.TRACE
+                    , string.Format("wait:{0}", waitCounter)
+                    );
+
+                if (waitCounter <= 882 * 3)
+                {
+                    while (waitCounter > 882)
+                    {
+                        dest.WriteByte(0x63);
+                        waitCounter -= 882;
+                    }
+                    while (waitCounter > 735)
+                    {
+                        dest.WriteByte(0x62);
+                        waitCounter -= 735;
+                    }
+                }
+
+                while (waitCounter > 0)
+                {
+                    dest.WriteByte(0x61);
+                    dest.WriteByte((byte)waitCounter);
+                    dest.WriteByte((byte)(waitCounter >> 8));
+                    waitCounter -= (waitCounter & 0xffff);
+                }
+
+                waitCounter = 0;
+            }
+
+            Log.WriteLine(LogLevel.TRACE
+                , string.Format("p:{0} a:{1} d:{2}", port, address, data)
+                );
+
+            dest.WriteByte((byte)(0x58 + (port & 1)));
+            dest.WriteByte(address);
+            dest.WriteByte(data);
+
+        }
+
         public void Close(List<Tuple<string, string>> tags)
         {
             if (dest == null) return;
@@ -220,5 +268,66 @@ namespace Vgm
             }
 
         }
+
+        public void WriteYM2610_SetAdpcmA(byte chipId, byte[] pcmData)
+        {
+            dest.WriteByte(0x67);
+            dest.WriteByte(0x66);
+            dest.WriteByte(0x82);
+
+            int size = pcmData.Length - 0x400;//0x400 pcm table
+
+            dest.WriteByte((byte)((size + 8) >> 0));
+            dest.WriteByte((byte)((size + 8) >> 8));
+            dest.WriteByte((byte)((size + 8) >> 16));
+            dest.WriteByte((byte)((size + 8) >> 24));
+
+            dest.WriteByte((byte)(size >> 0));
+            dest.WriteByte((byte)(size >> 8));
+            dest.WriteByte((byte)(size >> 16));
+            dest.WriteByte((byte)(size >> 24));
+
+            dest.WriteByte((byte)((0) >> 0));
+            dest.WriteByte((byte)((0) >> 8));
+            dest.WriteByte((byte)((0) >> 16));
+            dest.WriteByte((byte)((0) >> 24));
+
+            for (int i = 0x400; i < pcmData.Length; i++)
+            {
+                dest.WriteByte(pcmData[i]);
+            }
+
+        }
+
+        public void WriteYM2610_SetAdpcmB(byte chipId, byte[] pcmData)
+        {
+            dest.WriteByte(0x67);
+            dest.WriteByte(0x66);
+            dest.WriteByte(0x83);
+
+            int size = pcmData.Length - 0x400;//0x400 pcm table
+
+            dest.WriteByte((byte)((size + 8) >> 0));
+            dest.WriteByte((byte)((size + 8) >> 8));
+            dest.WriteByte((byte)((size + 8) >> 16));
+            dest.WriteByte((byte)((size + 8) >> 24));
+
+            dest.WriteByte((byte)(size >> 0));
+            dest.WriteByte((byte)(size >> 8));
+            dest.WriteByte((byte)(size >> 16));
+            dest.WriteByte((byte)(size >> 24));
+
+            dest.WriteByte((byte)((0) >> 0));
+            dest.WriteByte((byte)((0) >> 8));
+            dest.WriteByte((byte)((0) >> 16));
+            dest.WriteByte((byte)((0) >> 24));
+
+            for (int i = 0x400; i < pcmData.Length; i++)
+            {
+                dest.WriteByte(pcmData[i]);
+            }
+
+        }
+
     }
 }

@@ -11,6 +11,7 @@ namespace Vgm
     {
         private static readonly int SamplingRate = 44100;//vgm format freq
         private static readonly uint opnaMasterClock = 7987200;
+        private static readonly uint opnbMasterClock = 8000000;
 
         private static iDriver drv = null;
         private static VgmWriter vw = null;
@@ -72,6 +73,7 @@ namespace Vgm
                         false
                         , false
                         , false
+                        ,args[fnIndex]
                     }
                     );
 
@@ -87,13 +89,15 @@ namespace Vgm
                     }
                 }
 
-                byte[] pcmdata = drv.GetPCMFromSrcBuf();
-                if (pcmdata != null && pcmdata.Length > 0) vw.WriteAdpcm(pcmdata);
+                //byte[] pcmdata = drv.GetPCMFromSrcBuf();
+                //if (pcmdata != null && pcmdata.Length > 0) vw.WriteAdpcm(pcmdata);
 
                 drv.StartRendering((int)SamplingRate,
-                    new Tuple<string, int>[]
-                    {
+                    new Tuple<string, int>[]{
                         new Tuple<string, int>("YM2608",(int)opnaMasterClock)
+                        ,new Tuple<string, int>("YM2608",(int)opnaMasterClock)
+                        ,new Tuple<string, int>("YM2610B",(int)opnbMasterClock)
+                        ,new Tuple<string, int>("YM2610B",(int)opnbMasterClock)
                     }
                     );
 
@@ -195,23 +199,82 @@ namespace Vgm
 
         private static void OPNAWriteP(ChipDatum dat)
         {
+            OPNAWrite(0, dat);
         }
         private static void OPNAWriteS(ChipDatum dat)
         {
+            OPNAWrite(1, dat);
         }
         private static void OPNBWriteP(ChipDatum dat)
         {
+            OPNBWrite(0, dat);
         }
         private static void OPNBWriteS(ChipDatum dat)
         {
+            OPNBWrite(1, dat);
         }
         private static void OPNBWriteAdpcmP(byte[] pcmData, int s, int e)
         {
+            if (s == 0) OPNBWrite_AdpcmA(0, pcmData);
+            else OPNBWrite_AdpcmB(0, pcmData);
         }
         private static void OPNBWriteAdpcmS(byte[] pcmData, int s, int e)
         {
+            if (s == 0) OPNBWrite_AdpcmA(1, pcmData);
+            else OPNBWrite_AdpcmB(1, pcmData);
         }
 
+        private static void OPNAWrite(int chipId, ChipDatum dat)
+        {
+            if (dat != null && dat.addtionalData != null)
+            {
+                MmlDatum md = (MmlDatum)dat.addtionalData;
+                if (md.linePos != null)
+                {
+                    Log.WriteLine(LogLevel.TRACE, string.Format("! OPNA i{0} r{1} c{2}"
+                        , chipId
+                        , md.linePos.row
+                        , md.linePos.col
+                        ));
+                }
+            }
+
+            Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipA:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
+
+            vw.WriteYM2608((byte)chipId, (byte)dat.port, (byte)dat.address, (byte)dat.data);
+        }
+
+        private static void OPNBWrite(int chipId, ChipDatum dat)
+        {
+            if (dat != null && dat.addtionalData != null)
+            {
+                MmlDatum md = (MmlDatum)dat.addtionalData;
+                if (md.linePos != null)
+                {
+                    Log.WriteLine(LogLevel.TRACE, string.Format("! OPNB i{0} r{1} c{2}"
+                        , chipId
+                        , md.linePos.row
+                        , md.linePos.col
+                        ));
+                }
+            }
+
+            Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipB:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
+
+            vw.WriteYM2610((byte)chipId, (byte)dat.port, (byte)dat.address, (byte)dat.data);
+        }
+
+        private static void OPNBWrite_AdpcmA(int chipId, byte[] pcmData)
+        {
+            vw.WriteYM2610_SetAdpcmA((byte)chipId, pcmData);
+
+        }
+
+        private static void OPNBWrite_AdpcmB(int chipId, byte[] pcmData)
+        {
+            vw.WriteYM2610_SetAdpcmB((byte)chipId, pcmData);
+
+        }
 
     }
 }

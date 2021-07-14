@@ -119,6 +119,7 @@ namespace Wav
                         false
                         , true
                         , false
+                        ,args[fnIndex]
                     }
                     );
 
@@ -134,9 +135,14 @@ namespace Wav
                     }
                 }
 
-                drv.StartRendering((int)SamplingRate,new Tuple<string, int>[]{
-                new Tuple<string, int>("YM2608",(int)opnaMasterClock)
-                });
+                drv.StartRendering((int)SamplingRate,
+                    new Tuple<string, int>[]{
+                        new Tuple<string, int>("YM2608",(int)opnaMasterClock)
+                        ,new Tuple<string, int>("YM2608",(int)opnaMasterClock)
+                        ,new Tuple<string, int>("YM2610B",(int)opnbMasterClock)
+                        ,new Tuple<string, int>("YM2610B",(int)opnbMasterClock)
+                    }
+                    );
 
                 drv.MusicSTART(0);
 

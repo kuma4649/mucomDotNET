@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Player": {
+    "Wav.Net4": {
       "commandName": "Project",
       "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\MUC\\Call2opn.mub\""
     }
