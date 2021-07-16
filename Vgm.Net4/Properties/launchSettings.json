@@ -2,7 +2,7 @@
   "profiles": {
     "Vgm.Net4": {
       "commandName": "Project",
-      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\MUC\\Call2opn.mub\""
+      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\自作\\TheTakeOver\\TheTakeOver.mub\""
     }
   }
 }

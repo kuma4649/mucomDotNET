@@ -63,6 +63,7 @@ namespace Vgm
                 List<MmlDatum> bl = new List<MmlDatum>();
                 byte[] srcBuf = File.ReadAllBytes(args[fnIndex]);
                 foreach (byte b in srcBuf) bl.Add(new MmlDatum(b));
+                vw.useChipsFromMub(srcBuf);
 
                 drv = new Driver();
                 ((Driver)drv).Init(
