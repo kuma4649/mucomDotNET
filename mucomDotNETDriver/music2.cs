@@ -2565,7 +2565,7 @@ namespace mucomDotNET.Driver
                 return;
             }
 
-            work.pg.volume += work.pg.mData[work.hl++].dat;
+            work.pg.volume += (sbyte)work.pg.mData[work.hl++].dat;
 
             if (work.soundWork.PCMFLG != 0)
             {
