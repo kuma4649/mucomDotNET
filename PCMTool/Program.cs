@@ -65,7 +65,11 @@ namespace PCMTool
                 srcFile = fn;
 
                 //sjis crlf
+#if NETCOREAPP
                 string[] src = File.ReadAllText(fn, System.Text.Encoding.GetEncoding(932)).Split("\r\n", StringSplitOptions.None);
+#else
+                string[] src = File.ReadAllText(fn, System.Text.Encoding.GetEncoding(932)).Split(new string[] { "\r\n" }, StringSplitOptions.None);
+#endif
 
                 List<string>[] ret = divider(src);
                 byte[][] pcmdata = new byte[6][];
@@ -119,12 +123,13 @@ namespace PCMTool
                 if (lin[1] != '@') continue;
 
                 string li = lin.Substring(2).ToLower();
-                if (li.IndexOf("pcm") == 0) { ret[0].Add(lin.Substring(2 + 3)); }
-                else if (li.IndexOf("pcm_2nd") == 0) { ret[1].Add(lin.Substring(2 + 7)); }
-                else if (li.IndexOf("pcm_3rd_b") == 0) { ret[2].Add(lin.Substring(2 + 9)); }
+                //文字列の長いものから比較
+                     if (li.IndexOf("pcm_3rd_b") == 0) { ret[2].Add(lin.Substring(2 + 9)); }
                 else if (li.IndexOf("pcm_4th_b") == 0) { ret[3].Add(lin.Substring(2 + 9)); }
                 else if (li.IndexOf("pcm_3rd_a") == 0) { ret[4].Add(lin.Substring(2 + 9)); }
                 else if (li.IndexOf("pcm_4th_a") == 0) { ret[5].Add(lin.Substring(2 + 9)); }
+                else if (li.IndexOf("pcm_2nd") == 0) { ret[1].Add(lin.Substring(2 + 7)); }
+                else if (li.IndexOf("pcm") == 0) { ret[0].Add(lin.Substring(2 + 3)); }
             }
 
             return ret;

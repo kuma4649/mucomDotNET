@@ -18,7 +18,7 @@ xcopy .\mucomDotNETConsole.Net4\bin\Release\net472\*.* .\output\compiler\ /E /R 
 xcopy .\mucomDotNETPlayer\bin\Release\net472\*.* .\output\player\ /E /R /Y /I /K
 xcopy .\Wav.Net4\bin\Release\net472\*.* .\output\toWav\ /E /R /Y /I /K
 xcopy .\Vgm.Net4\bin\Release\net472\*.* .\output\toVgm\ /E /R /Y /I /K
-xcopy .\PCMTool\bin\Release\netcoreapp3.1\*.* .\output\PCMTool\ /E /R /Y /I /K
+xcopy .\PCMTool.Net4\bin\Release\net472\*.* .\output\PCMTool\ /E /R /Y /I /K
 xcopy .\Samples\*.* .\output\Samples\ /E /R /Y /I /K
 del /Q .\output\*.pdb
 del /Q .\output\*.config

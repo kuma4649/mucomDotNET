@@ -49,6 +49,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vgm.Net4", "Vgm.Net4\Vgm.Ne
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PCMTool", "PCMTool\PCMTool.csproj", "{ADECD813-E68A-4398-B8AC-D62486B609BB}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PCMTool.Net4", "PCMTool.Net4\PCMTool.Net4.csproj", "{ADBAEA42-BF4C-4AA6-AD54-4A7D49B854E7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -191,6 +193,18 @@ Global
 		{ADECD813-E68A-4398-B8AC-D62486B609BB}.Release|x64.Build.0 = Release|Any CPU
 		{ADECD813-E68A-4398-B8AC-D62486B609BB}.Release|x86.ActiveCfg = Release|Any CPU
 		{ADECD813-E68A-4398-B8AC-D62486B609BB}.Release|x86.Build.0 = Release|Any CPU
+		{ADBAEA42-BF4C-4AA6-AD54-4A7D49B854E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ADBAEA42-BF4C-4AA6-AD54-4A7D49B854E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ADBAEA42-BF4C-4AA6-AD54-4A7D49B854E7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{ADBAEA42-BF4C-4AA6-AD54-4A7D49B854E7}.Debug|x64.Build.0 = Debug|Any CPU
+		{ADBAEA42-BF4C-4AA6-AD54-4A7D49B854E7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{ADBAEA42-BF4C-4AA6-AD54-4A7D49B854E7}.Debug|x86.Build.0 = Debug|Any CPU
+		{ADBAEA42-BF4C-4AA6-AD54-4A7D49B854E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ADBAEA42-BF4C-4AA6-AD54-4A7D49B854E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ADBAEA42-BF4C-4AA6-AD54-4A7D49B854E7}.Release|x64.ActiveCfg = Release|Any CPU
+		{ADBAEA42-BF4C-4AA6-AD54-4A7D49B854E7}.Release|x64.Build.0 = Release|Any CPU
+		{ADBAEA42-BF4C-4AA6-AD54-4A7D49B854E7}.Release|x86.ActiveCfg = Release|Any CPU
+		{ADBAEA42-BF4C-4AA6-AD54-4A7D49B854E7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

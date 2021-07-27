@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "PCMTool": {
-      "commandName": "Project",
-      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\MUC\\test.pxt\""
-    }
-  }
-}
