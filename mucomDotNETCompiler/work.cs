@@ -102,6 +102,11 @@ namespace mucomDotNET.Compiler
         public int lastMDATA = 0;
         public int latestNote = 0;// 最後に解析したのが音符の場合は1、休符の場合は2、初期値は0
 
+        public byte porSW = 0;
+        public sbyte porDelta = 0;
+        public int porTime = 0;
+        public int porOldNote = -1;
+        public byte porPin = 0;
 
         /// <summary>
         /// 各チップのindex

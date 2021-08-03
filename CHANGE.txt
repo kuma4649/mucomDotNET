@@ -1,4 +1,9 @@
 更新履歴
+TAG110 2021/08/04
+  Compiler
+  　MIDI風ポルタメントコマンド(PO,POS,POR,POL,_)を追加
+    使用方法はMML.txtを参照
+
 TAG109 2021/07/27
   PCMTool
   　NetCore3以降でしか使用できなかった為、NET4むけを追加

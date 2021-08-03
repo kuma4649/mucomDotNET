@@ -45,7 +45,7 @@ namespace mucomDotNET.Compiler
             , SETJMP
             , SETQLG
             , SETSEV
-            , SETMIX
+            , SETMIXorSETPOR
             , SETWAV
             , TIMERB
             , SETCLK
@@ -73,6 +73,7 @@ namespace mucomDotNET.Compiler
             , ENDMAC
             , SETPTM
             , SETFLG
+            , SETPinPOR
             };
         }
 
@@ -211,7 +212,7 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETPTM()
         {
-            LinePos lp = new LinePos(mucInfo.document,mucInfo.fnSrc, mucInfo.row, mucInfo.col, mucInfo.srcCPtr);
+            LinePos lp = new LinePos(mucInfo.document, mucInfo.fnSrc, mucInfo.row, mucInfo.col, mucInfo.srcCPtr);
 
             mucInfo.srcCPtr++;
             byte before_note = msub.STTONE();//KUMA:オクターブ情報などを含めた音符情報に変換
@@ -291,10 +292,21 @@ namespace mucomDotNET.Compiler
             mucInfo.srcCPtr++;
             lp.length = mucInfo.srcCPtr - lp.length;
 
+            PortamentMain(before_note, after_note, befco, qbefco);
+
+            work.latestNote = 1;//KUMA:チェック用(音符)
+
+            return EnmFCOMPNextRtn.fcomp1;
+        }
+
+        private void PortamentMain(byte before_note, byte after_note, int befco, int qbefco)
+        {
             int beftone = expand.CTONE(before_note);
             int noteNum = expand.CTONE(after_note) - beftone;
             int sign = Math.Sign(noteNum);
             noteNum = Math.Abs(noteNum);// +1;
+            
+            qbefco = Math.Max(qbefco, 1);
 
             //26を超えたら分割が必要?
 
@@ -326,7 +338,7 @@ namespace mucomDotNET.Compiler
                 }
                 else
                 {
-                    Tuple<int, int, int,int> p = new Tuple<int, int, int,int>(
+                    Tuple<int, int, int, int> p = new Tuple<int, int, int, int>(
                         lstPrt[lstPrt.Count - 1].Item1
                         , (int)(edNote + beftone)
                         , lstPrt[lstPrt.Count - 1].Item3
@@ -355,10 +367,6 @@ namespace mucomDotNET.Compiler
             }
 
             PortamentEnd();
-
-            work.latestNote = 1;//KUMA:チェック用(音符)
-
-            return EnmFCOMPNextRtn.fcomp1;
 
         }
 
@@ -1179,6 +1187,17 @@ namespace mucomDotNET.Compiler
             return EnmFCOMPNextRtn.fcomp1;
         }
 
+        private EnmFCOMPNextRtn SETMIXorSETPOR()
+        {
+            char ch = mucInfo.lin.Item2.Length > (mucInfo.srcCPtr + 1) ? mucInfo.lin.Item2[mucInfo.srcCPtr + 1] : (char)0;
+            if (ch == 'O')
+            {
+                return SETPOR();
+            }
+
+            return SETMIX();
+        }
+
         // **	MIX PORT	**
 
         private EnmFCOMPNextRtn SETMIX()
@@ -1221,6 +1240,115 @@ namespace mucomDotNET.Compiler
             }
 
             msub.MWRITE(new MmlDatum(0xf7), new MmlDatum((byte)n));// COM OF 'P'
+            return EnmFCOMPNextRtn.fcomp1;
+        }
+
+
+        private EnmFCOMPNextRtn SETPOR()
+        {
+            mucInfo.srcCPtr++;
+            char ch = mucInfo.lin.Item2.Length > (mucInfo.srcCPtr + 1) ? mucInfo.lin.Item2[mucInfo.srcCPtr + 1] : (char)0;
+            if (ch == 'S')
+            {
+                return SETPOR_SW();
+            }
+            else if (ch == 'R')
+            {
+                return SETPOR_RST();
+            }
+            else if (ch == 'L')
+            {
+                return SETPOR_TIM();
+            }
+
+            //スイッチ
+
+            int ptr = mucInfo.srcCPtr;
+            int n = (byte)msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0530"));
+            mucInfo.srcCPtr = ptr;
+            work.porSW = (byte)n;
+
+            ch = mucInfo.lin.Item2.Length > (mucInfo.srcCPtr + 1) ? mucInfo.lin.Item2[mucInfo.srcCPtr + 1] : (char)0;
+            if (ch != ',')
+            {
+                //error
+                throw new MucException( string.Format(msg.get("E0529"))
+                    , mucInfo.row, mucInfo.col);
+            }
+            mucInfo.srcCPtr++;
+
+
+            //デルタ
+
+            ptr = mucInfo.srcCPtr;
+            n = (sbyte)msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0530"));
+            mucInfo.srcCPtr = ptr;
+            work.porDelta = (sbyte)n;
+
+            ch = mucInfo.lin.Item2.Length > (mucInfo.srcCPtr + 1) ? mucInfo.lin.Item2[mucInfo.srcCPtr + 1] : (char)0;
+            if (ch != ',')
+            {
+                //error
+                throw new MucException(string.Format(msg.get("E0529"))
+                    , mucInfo.row, mucInfo.col);
+            }
+            mucInfo.srcCPtr++;
+
+
+            //タイム
+
+            ptr = mucInfo.srcCPtr;
+            n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0530"));
+            mucInfo.srcCPtr = ptr;
+            n = Math.Max(n, 0);
+            work.porTime = n;
+
+            return EnmFCOMPNextRtn.fcomp1;
+        }
+
+        private EnmFCOMPNextRtn SETPOR_SW()
+        {
+            mucInfo.srcCPtr++;
+
+            int ptr = mucInfo.srcCPtr;
+            byte n = (byte)msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0531"));
+            mucInfo.srcCPtr = ptr;
+            work.porSW = n;
+
+            return EnmFCOMPNextRtn.fcomp1;
+        }
+
+        private EnmFCOMPNextRtn SETPOR_RST()
+        {
+            mucInfo.srcCPtr++;
+
+            int ptr = mucInfo.srcCPtr;
+            sbyte n = (sbyte)msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0532"));
+            mucInfo.srcCPtr = ptr;
+            work.porDelta = n;
+            work.porOldNote = -1;
+
+            return EnmFCOMPNextRtn.fcomp1;
+        }
+
+        private EnmFCOMPNextRtn SETPOR_TIM()
+        {
+            mucInfo.srcCPtr++;
+
+            int ptr = mucInfo.srcCPtr;
+            int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0533"));
+            mucInfo.srcCPtr = ptr;
+            n = Math.Max(n, 0);
+            work.porTime = n;
+
+            return EnmFCOMPNextRtn.fcomp1;
+        }
+
+        private EnmFCOMPNextRtn SETPinPOR()
+        {
+            mucInfo.srcCPtr++;
+            work.porPin = 1;
+
             return EnmFCOMPNextRtn.fcomp1;
         }
 
@@ -3954,6 +4082,12 @@ namespace mucomDotNET.Compiler
             }
             work.quantize = 0;//KUMA: ポルタメントむけq値保存
             work.rhythmRelMode = false;
+
+            work.porSW = 0;
+            work.porPin = 0;
+            work.porDelta = 0;
+            work.porOldNote = -1;
+            work.porTime = 0;
         }
 
         public void CMPEN1()
@@ -4241,6 +4375,15 @@ namespace mucomDotNET.Compiler
                 return EnmFCOMPNextRtn.occuredERROR;
             }
 
+
+            //ポルタメント制御
+            if ((work.porSW != 0 && work.porPin == 0) || (work.porSW == 0 && work.porPin != 0))
+            {
+                return analyzePor(note);
+            }
+            if (work.porSW != 0 && work.porPin != 0) work.porOldNote = note;
+            work.porPin = 0;
+
             work.latestNote = 1;//KUMA: チェック用(音符を出力)
 
             //音符が直前と同じで、タイフラグがたっているか
@@ -4254,6 +4397,78 @@ namespace mucomDotNET.Compiler
                 mucInfo.srcCPtr++;
                 FC162(note);
             }
+
+            return EnmFCOMPNextRtn.fcomp1;
+        }
+
+        private EnmFCOMPNextRtn analyzePor(byte note)
+        {
+            mucInfo.srcCPtr++;
+
+            int ptr = mucInfo.srcCPtr;
+            byte clk;
+            int ret = msub.STLIZM(mucInfo.lin, ref ptr, out clk);
+            if (ret < 0)
+            {
+                WriteWarning(msg.get("W0405"), mucInfo.row, mucInfo.col);
+            }
+            mucInfo.srcCPtr = ptr;
+            clk = FCOMP1X(clk);
+
+            //ポルタメントスイッチオフの状態でピンポイントオンの場合は必ず初期化させる
+            if (work.porSW == 0 && work.porPin != 0)
+            {
+                work.porOldNote = -1;
+            }
+
+            //初期化
+            if (work.porOldNote < 0)
+            {
+                int n = expand.CTONE(note);
+                n+= work.porDelta;
+                work.porOldNote = ((n / 12) << 4) | (n % 12);
+            }
+
+            int time = Math.Min(work.porTime, clk);
+
+            ////本家の動作に準拠
+            //int qtime = time - work.quantize;
+
+            //ポルタメント部に関わる場合のみ影響
+            int qtime = time;
+            if (clk - work.quantize < work.porTime)
+            {
+                qtime = clk - work.quantize;
+            }
+
+            qtime = Math.Max(qtime, 1);
+
+            //ポルタメント作成
+            if (time > 0)
+            {
+                PortamentMain((byte)work.porOldNote, note, time, qtime);
+
+                clk = (byte)(clk - time);
+
+                //タイでつなげる
+                if (clk > 0)
+                {
+                    work.TIEFG = 0xfd;
+                    msub.MWRIT2(new MmlDatum(0xfd));
+                }
+            }
+
+            //ポルタメント後、クロックが残っている場合は
+            if (clk > 0)
+            {
+                //通常ノート作成
+                FCOMP17(note, clk);
+                TCLKSUB(clk);
+            }
+
+            //直前ノート情報更新
+            work.porOldNote = note;
+            work.porPin = 0;
 
             return EnmFCOMPNextRtn.fcomp1;
         }

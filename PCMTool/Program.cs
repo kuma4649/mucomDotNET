@@ -96,6 +96,7 @@ namespace PCMTool
                     if (pcmdata[i] == null) continue;
                     string dstFn = Path.Combine(Path.GetDirectoryName(fn), Path.GetFileNameWithoutExtension(fn) + addName[i] );
                     File.WriteAllBytes(dstFn, pcmdata[i]);
+                    Log.WriteLine(LogLevel.INFO, string.Format("Write:{0} size:{1}", dstFn, pcmdata[i].Length));
                 }
             }
             catch (Exception ex)
