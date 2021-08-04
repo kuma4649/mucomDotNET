@@ -1268,14 +1268,14 @@ namespace mucomDotNET.Compiler
             mucInfo.srcCPtr = ptr;
             work.porSW = (byte)n;
 
-            ch = mucInfo.lin.Item2.Length > (mucInfo.srcCPtr + 1) ? mucInfo.lin.Item2[mucInfo.srcCPtr + 1] : (char)0;
+            skipSpaceAndTab();
+            ch = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
             if (ch != ',')
             {
                 //error
                 throw new MucException( string.Format(msg.get("E0529"))
                     , mucInfo.row, mucInfo.col);
             }
-            mucInfo.srcCPtr++;
 
 
             //デルタ
@@ -1285,14 +1285,14 @@ namespace mucomDotNET.Compiler
             mucInfo.srcCPtr = ptr;
             work.porDelta = (sbyte)n;
 
-            ch = mucInfo.lin.Item2.Length > (mucInfo.srcCPtr + 1) ? mucInfo.lin.Item2[mucInfo.srcCPtr + 1] : (char)0;
+            skipSpaceAndTab();
+            ch = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
             if (ch != ',')
             {
                 //error
                 throw new MucException(string.Format(msg.get("E0529"))
                     , mucInfo.row, mucInfo.col);
             }
-            mucInfo.srcCPtr++;
 
 
             //タイム
