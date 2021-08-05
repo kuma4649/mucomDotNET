@@ -1348,6 +1348,12 @@ namespace mucomDotNET.Compiler
         {
             mucInfo.srcCPtr++;
             work.porPin = 1;
+            char ch = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+            if (ch == '_')
+            {
+                mucInfo.srcCPtr++;
+                work.porPin = 2;
+            }
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -4381,8 +4387,10 @@ namespace mucomDotNET.Compiler
             {
                 return analyzePor(note);
             }
-            if (work.porSW != 0 && work.porPin != 0) work.porOldNote = note;
-            work.porPin = 0;
+
+            //ポルタメント無効時或いは、ポルタメントモード中の_,__コマンドも音程の引継ぎは行う
+            work.porOldNote = note;
+            work.porPin = 0;//_,__の効果は一度だけなのでここでリセット
 
             work.latestNote = 1;//KUMA: チェック用(音符を出力)
 
@@ -4415,8 +4423,8 @@ namespace mucomDotNET.Compiler
             mucInfo.srcCPtr = ptr;
             clk = FCOMP1X(clk);
 
-            //ポルタメントスイッチオフの状態でピンポイントオンの場合は必ず初期化させる
-            if (work.porSW == 0 && work.porPin != 0)
+            //ポルタメントスイッチオフの状態で__によるピンポイントオンの場合は必ず初期化させる
+            if (work.porSW == 0 && work.porPin == 2)
             {
                 work.porOldNote = -1;
             }
