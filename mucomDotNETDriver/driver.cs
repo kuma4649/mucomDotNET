@@ -21,6 +21,7 @@ namespace mucomDotNET.Driver
         private Action<ChipDatum> WriteOPNAS;
         private Action<ChipDatum> WriteOPNBP;
         private Action<ChipDatum> WriteOPNBS;
+        private Action<ChipDatum> WriteOPMP;
         private Action<byte[], int, int> WriteOPNBAdpcmAP;
         private Action<byte[], int, int> WriteOPNBAdpcmBP;
         private Action<byte[], int, int> WriteOPNBAdpcmAS;
@@ -149,6 +150,7 @@ namespace mucomDotNET.Driver
             WriteOPNAS = lstChipWrite[1];
             WriteOPNBP = lstChipWrite[2];
             WriteOPNBS = lstChipWrite[3];
+            WriteOPMP = lstChipWrite[4];
             WriteOPNBAdpcmAP = lstChipWriteAdpcm[2];
             WriteOPNBAdpcmBP = lstChipWriteAdpcm[2];
             WriteOPNBAdpcmAS = lstChipWriteAdpcm[3];
@@ -205,7 +207,7 @@ namespace mucomDotNET.Driver
 
             if (loadADPCMOnly) return;
 
-            music2 = new Music2(work, WriteOPNAPRegister, WriteOPNASRegister, WriteOPNBPRegister, WriteOPNBSRegister);
+            music2 = new Music2(work, WriteOPNAPRegister, WriteOPNASRegister, WriteOPNBPRegister, WriteOPNBSRegister, WriteOPMPRegister);
             music2.notSoundBoard2 = notSoundBoard2;
         }
 
@@ -507,6 +509,15 @@ namespace mucomDotNET.Driver
             {
                 if (reg.port == 0) { work.timer?.WriteReg((byte)reg.address, (byte)reg.data); }
                 WriteOPNBS?.Invoke(reg);
+            }
+        }
+
+        public void WriteOPMPRegister(ChipDatum reg)
+        {
+            lock (lockObjWriteReg)
+            {
+                //if (reg.port == 0) { work.timer?.WriteReg((byte)reg.address, (byte)reg.data); }
+                WriteOPMP?.Invoke(reg);
             }
         }
 

@@ -162,8 +162,8 @@ namespace mucomDotNET.Common
             fnDst = "";
 
             //バッファの作成
-            bufPage = new AutoExtendList<MmlDatum>[4][][];
-            for (int i = 0; i < 4; i++)
+            bufPage = new AutoExtendList<MmlDatum>[5][][];
+            for (int i = 0; i < 5; i++)
             {
                 bufPage[i] = new AutoExtendList<MmlDatum>[11][];
                 for (int j = 0; j < 11; j++)

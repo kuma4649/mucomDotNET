@@ -7,8 +7,8 @@ namespace mucomDotNET.Compiler
 {
     public class work
     {
-        public const int MAXChips = 4;
-        public const int MAXCH = 11;
+        public const int MAXChips = 5;
+        public const int MAXCH = 11; // OPMは8ですけどね
         public const int MAXPG = 10;
 
         //使用しない！
@@ -159,12 +159,13 @@ namespace mucomDotNET.Compiler
 
 
         // 各チップのトラック
-        // ABCDEFGHIJK OPNA x1
-        // LMNOPQRSTUV      x2
-        // abcdefghijk      x3
-        // lmnopqrstuv      x4
+        // ABCDEFGHIJK OPNA ...1
+        // LMNOPQRSTUV OPNA ...2
+        // abcdefghijk OPNB ...3
+        // lmnopqrstuv OPNB ...4
+        // WXYZwxyz    OPM  ...5
 
-        public string Tracks = "ABCDEFGHIJKLMNOPQRSTUVabcdefghijklmnopqrstuv";
+        public string Tracks = "ABCDEFGHIJKLMNOPQRSTUVabcdefghijklmnopqrstuvWXYZwxyz";
 
         public bool SetChipValueFromTrackCharacter(char ch)
         {

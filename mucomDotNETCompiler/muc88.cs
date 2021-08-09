@@ -12,7 +12,7 @@ namespace mucomDotNET.Compiler
         public Msub msub = null;
         public expand expand = null;
 
-        internal static readonly int MAXCH = 11;
+        //internal static readonly int MAXCH = 11;
         private readonly MUCInfo mucInfo;
         private readonly Func<EnmFCOMPNextRtn>[] COMTBL;
         //private readonly int errLin = 0;
@@ -1159,8 +1159,17 @@ namespace mucomDotNET.Compiler
                 WriteWarning(msg.get("W0413"), mucInfo.row, mucInfo.col);
             }
 
-            msub.MWRITE(new MmlDatum(0xfa), new MmlDatum(0x26));
-            msub.MWRIT2(new MmlDatum(n));
+            if (work.ChipIndex == 0)
+            {
+                msub.MWRITE(new MmlDatum(0xfa), new MmlDatum(0x26));
+                msub.MWRIT2(new MmlDatum(n));
+            }
+            else
+            {
+                msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xf7));
+                msub.MWRITE(new MmlDatum(0x00), new MmlDatum(0x00)); // chip:0  port:0
+                msub.MWRITE(new MmlDatum(0x26), new MmlDatum(n)); // adr:0x26  dat:n
+            }
             return EnmFCOMPNextRtn.fcomp1;
         }
 
@@ -2298,6 +2307,12 @@ namespace mucomDotNET.Compiler
                     msg.get("E0459")
                     , mucInfo.row, mucInfo.col);
             }
+
+            if (mucInfo.DriverType == MUCInfo.enmDriverType.DotNet)
+            {
+                return SETR1ex(n);
+            }
+
             if (0xb6 < n)
             {
                 throw new MucException(
@@ -2339,6 +2354,93 @@ namespace mucomDotNET.Compiler
             }
 
             msub.MWRIT2(new MmlDatum((byte)n));// SET DATA ONLY
+
+            return EnmFCOMPNextRtn.fcomp1;
+        }
+
+        private EnmFCOMPNextRtn SETR1ex(int n)
+        {
+            int n1 = n, n2, n3, n4;
+
+
+            //n2
+            char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+            if (c != ',')//0x2c
+            {
+                throw new MucException(
+                    msg.get("E0461")
+                    , mucInfo.row, mucInfo.col);
+            }
+            mucInfo.srcCPtr++;
+            int ptr = mucInfo.srcCPtr;
+            n2 = msub.REDATA(mucInfo.lin, ref ptr);
+            mucInfo.srcCPtr = ptr;
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    msg.get("E0462")
+                    , mucInfo.row, mucInfo.col);
+            }
+            if (mucInfo.ErrSign)
+            {
+                throw new MucException(
+                    msg.get("E0463")
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            //n3
+            c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+            if (c != ',')//0x2c
+            {
+                msub.MWRITE(new MmlDatum(0xfa), new MmlDatum(n1));
+                msub.MWRIT2(new MmlDatum(n2));
+                return EnmFCOMPNextRtn.fcomp1;
+            }
+            mucInfo.srcCPtr++;
+            ptr = mucInfo.srcCPtr;
+            n3 = msub.REDATA(mucInfo.lin, ref ptr);
+            mucInfo.srcCPtr = ptr;
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    msg.get("E0462")
+                    , mucInfo.row, mucInfo.col);
+            }
+            if (mucInfo.ErrSign)
+            {
+                throw new MucException(
+                    msg.get("E0463")
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            //n4
+            c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+            if (c != ',')//0x2c
+            {
+                throw new MucException(
+                    msg.get("E0461")
+                    , mucInfo.row, mucInfo.col);
+            }
+            mucInfo.srcCPtr++;
+            ptr = mucInfo.srcCPtr;
+            n4 = msub.REDATA(mucInfo.lin, ref ptr);
+            mucInfo.srcCPtr = ptr;
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    msg.get("E0462")
+                    , mucInfo.row, mucInfo.col);
+            }
+            if (mucInfo.ErrSign)
+            {
+                throw new MucException(
+                    msg.get("E0463")
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xf7));
+            msub.MWRITE(new MmlDatum(n1), new MmlDatum(n2));
+            msub.MWRITE(new MmlDatum(n3), new MmlDatum(n4));
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -2626,7 +2728,7 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETVOL()
         {
-            if (work.CHIP_CH == 10)
+            if (work.ChipIndex != 4 && work.CHIP_CH == 10)
             {
                 return SETVOL_ADPCM();
             }
@@ -2679,29 +2781,47 @@ namespace mucomDotNET.Compiler
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
-                , work.ChipIndex / 2 == 0
+                , work.ChipIndex==4 ? "FM":(
+                    work.ChipIndex / 2 == 0
                     ? (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM")))
                     : (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "ADPCM-A" : "ADPCM-B")))
-                , work.ChipIndex / 2 == 0
+                    )
+                , work.ChipIndex == 4 ? "YM2151" : (
+                    work.ChipIndex / 2 == 0
                     ? "YM2608"
                     : "YM2610B"
+                    )
                 , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
-            if (work.CHIP_CH != 6)
+            if (work.ChipIndex != 4)
+            {
+                if (work.CHIP_CH != 6)
+                {
+                    n += work.TV_OFS;
+                    if (work.CHIP_CH < 3 || work.CHIP_CH > 6)
+                    {
+                        n += 4;
+                    }
+
+                    msub.MWRITE(
+                        new MmlDatum(enmMMLType.Volume, args, lp, 0xf1)
+                        , new MmlDatum((byte)n));// COM OF 'v'
+                    return EnmFCOMPNextRtn.fcomp1;
+                }
+
+                return SETVOL_Rhythm(n);
+            }
+            else
             {
                 n += work.TV_OFS;
-                if (work.CHIP_CH < 3 || work.CHIP_CH> 6)
-                {
-                    n += 4;
-                }
+                n += 4;
 
                 msub.MWRITE(
                     new MmlDatum(enmMMLType.Volume, args, lp, 0xf1)
                     , new MmlDatum((byte)n));// COM OF 'v'
                 return EnmFCOMPNextRtn.fcomp1;
-            }
 
-            return SETVOL_Rhythm(n);
+            }
         }
 
         private EnmFCOMPNextRtn SETVOL_Rhythm(int n)
@@ -3376,6 +3496,9 @@ namespace mucomDotNET.Compiler
 
         public ChannelType CHCHK()
         {
+            if (work.ChipIndex == 4) 
+                return ChannelType.FM;
+
             if (work.CHIP_CH >= 3 && work.CHIP_CH < 6)
             {
                 return ChannelType.SSG;

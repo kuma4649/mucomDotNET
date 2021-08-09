@@ -49,6 +49,11 @@ namespace mucomDotNET.Compiler
                     srcCPtr++;
                     fvfg = '%';
                 }
+                else if (mucInfo.basSrc[i].Item2[srcCPtr] == 'M'|| mucInfo.basSrc[i].Item2[srcCPtr] == 'm')
+                {
+                    srcCPtr++;
+                    fvfg = 'M';
+                }
 
                 int n = msub.REDATA(mucInfo.basSrc[i], ref srcCPtr);
                 if (mucInfo.Carry || mucInfo.ErrSign)
@@ -63,14 +68,14 @@ namespace mucomDotNET.Compiler
                 {
                     // ---	%(25BYTEｼｷ) ﾉ ﾄｷ ﾉ ﾖﾐｺﾐ	---
 
-                    for(int row = 0; row < 6; row++)
+                    for (int row = 0; row < 6; row++)
                     {
                         i++;
                         srcCPtr = 1;
-                        for(int col = 0; col < 4; col++)
+                        for (int col = 0; col < 4; col++)
                         {
                             byte v = (byte)msub.REDATA(mucInfo.basSrc[i], ref srcCPtr);
-                            if(mucInfo.Carry || mucInfo.ErrSign)
+                            if (mucInfo.Carry || mucInfo.ErrSign)
                             {
                                 muc88.WriteWarning(msg.get("W0409"), i, srcCPtr);
                             }
@@ -88,6 +93,48 @@ namespace mucomDotNET.Compiler
                         fmlib1
                         , (byte)msub.REDATA(mucInfo.basSrc[i], ref srcCPtr)
                         );
+                }
+                else if (fvfg == 'M')
+                {
+                    //// --	42ﾊﾞｲﾄﾍﾞｰｼｯｸﾎｳｼｷﾉﾄｷﾉ ﾖﾐｺﾐ	--
+
+                    List<byte> voi = new List<byte>();
+
+                    i++;
+                    srcCPtr = 2;
+                    int fb = msub.REDATA(mucInfo.basSrc[i], ref srcCPtr);
+                    if (mucInfo.Carry || mucInfo.ErrSign)
+                    {
+                        muc88.WriteWarning(msg.get("W0409"), i, srcCPtr);
+                    }
+                    srcCPtr++;
+                    int alg = msub.REDATA(mucInfo.basSrc[i], ref srcCPtr);
+                    if (mucInfo.Carry || mucInfo.ErrSign)
+                    {
+                        muc88.WriteWarning(msg.get("W0409"), i, srcCPtr);
+                    }
+                    srcCPtr++;
+
+                    voi.Add((byte)fb);
+                    voi.Add((byte)alg);
+
+                    for (int row = 0; row < 4; row++)
+                    {
+                        i++;
+                        srcCPtr = 1;
+                        for (int col = 0; col < 10; col++)
+                        {
+                            byte v = (byte)msub.REDATA(mucInfo.basSrc[i], ref srcCPtr);
+                            if (mucInfo.Carry || mucInfo.ErrSign)
+                            {
+                                muc88.WriteWarning(msg.get("W0409"), i, srcCPtr);
+                            }
+                            srcCPtr++;// SKIP','
+                            voi.Add((byte)v);
+                        }
+                    }
+
+                    smon.CONVERTopm(voi);//42BYTE->25BYTE
                 }
                 else
                 {

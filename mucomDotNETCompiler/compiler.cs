@@ -504,7 +504,7 @@ namespace mucomDotNET.Compiler
                 Log.WriteLine(LogLevel.INFO, "");
                 Log.WriteLine(LogLevel.INFO, string.Format("#mucom type    : {0}", mucInfo.DriverType));
                 Log.WriteLine(LogLevel.INFO, string.Format("#MUB Format    : {0}", isExtendFormat ? "Extend" : "Normal"));
-                Log.WriteLine(LogLevel.INFO, string.Format("#Used FM voice : {0} {1} {2} {3}", work.OTONUM[0], work.OTONUM[1], work.OTONUM[2], work.OTONUM[3]));
+                Log.WriteLine(LogLevel.INFO, string.Format("#Used FM voice : {0} {1} {2} {3} {4}", work.OTONUM[0], work.OTONUM[1], work.OTONUM[2], work.OTONUM[3], work.OTONUM[4]));
                 Log.WriteLine(LogLevel.INFO, string.Format("#Data Buffer   : ${0:x05} - ${1:x05} (${2:x05})", start, start + length - 1, length));
                 Log.WriteLine(LogLevel.INFO, string.Format("#Max Count     : {0}", maxcount));
                 Log.WriteLine(LogLevel.INFO, string.Format("#MML Lines     : {0}", mucInfo.lines));
@@ -841,8 +841,10 @@ namespace mucomDotNET.Compiler
                 dat.Add(new MmlDatum((byte)(chipI >> 0)));// Chip Index
                 dat.Add(new MmlDatum((byte)(chipI >> 8)));// 
 
+                int opmIdentifyNumber = 0x0000_0030;
                 int opnaIdentifyNumber = 0x0000_0048;
                 int opnbIdentifyNumber = 0x0000_004c;
+                int opmMasterClock = 3579545;
                 int opnaMasterClock = 7987200;
                 int opnbMasterClock = 8000000;
 
@@ -858,7 +860,7 @@ namespace mucomDotNET.Compiler
                     dat.Add(new MmlDatum((byte)(opnaMasterClock >> 16)));
                     dat.Add(new MmlDatum((byte)(opnaMasterClock >> 24)));
                 }
-                else
+                else if(chipI<4)
                 {
                     dat.Add(new MmlDatum((byte)(opnbIdentifyNumber >> 0)));// Chip Identify number
                     dat.Add(new MmlDatum((byte)(opnbIdentifyNumber >> 8)));// 
@@ -869,6 +871,18 @@ namespace mucomDotNET.Compiler
                     dat.Add(new MmlDatum((byte)(opnbMasterClock >> 8)));
                     dat.Add(new MmlDatum((byte)(opnbMasterClock >> 16)));
                     dat.Add(new MmlDatum((byte)(opnbMasterClock >> 24)));
+                }
+                else
+                {
+                    dat.Add(new MmlDatum((byte)(opmIdentifyNumber >> 0)));// Chip Identify number
+                    dat.Add(new MmlDatum((byte)(opmIdentifyNumber >> 8)));// 
+                    dat.Add(new MmlDatum((byte)(opmIdentifyNumber >> 16)));// 
+                    dat.Add(new MmlDatum((byte)(opmIdentifyNumber >> 24)));// 
+
+                    dat.Add(new MmlDatum((byte)opmMasterClock));// Chip Clock
+                    dat.Add(new MmlDatum((byte)(opmMasterClock >> 8)));
+                    dat.Add(new MmlDatum((byte)(opmMasterClock >> 16)));
+                    dat.Add(new MmlDatum((byte)(opmMasterClock >> 24)));
                 }
 
                 dat.Add(new MmlDatum(0x00));// Chip Option
@@ -897,7 +911,7 @@ namespace mucomDotNET.Compiler
                     dat.Add(new MmlDatum(0x00));
                 }
 
-                n = pcmuse ? (chipI < 2 ? 1 : 2) : 0;
+                n = pcmuse ? (chipI < 2 ? 1 : (chipI < 4 ? 2 : 0)) : 0;
                 dat.Add(new MmlDatum(n));// この音源Chipで使用するPCMセットの個数
                 for (int i = 0; i < n; i++)
                 {

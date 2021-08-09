@@ -66,6 +66,19 @@ namespace mucomDotNET.Driver
                 ,new CHDAT()//FM Ch5
                 ,new CHDAT()//FM Ch6
                 ,new CHDAT()//ADPCM Ch
+            },
+            new List<CHDAT>(){
+                new CHDAT()//FM Ch1
+                ,new CHDAT()//FM Ch2
+                ,new CHDAT()//FM Ch3
+                ,new CHDAT()//FM Ch4
+                ,new CHDAT()//FM Ch5
+                ,new CHDAT()//FM Ch6
+                ,new CHDAT()//FM Ch7
+                ,new CHDAT()//FM Ch8
+                ,null
+                ,null
+                ,null
             }
         };
 
@@ -158,7 +171,7 @@ namespace mucomDotNET.Driver
 
         internal void Init()
         {
-            for (int chipIndex = 0; chipIndex < 4; chipIndex++)
+            for (int chipIndex = 0; chipIndex < 5; chipIndex++)
             {
                 for (int i = 0; i < CHDAT[chipIndex][0].PGDAT.Count; i++)
                 {
@@ -224,25 +237,34 @@ namespace mucomDotNET.Driver
                     CHDAT[chipIndex][7].PGDAT[i].channelNumber = 2;
                 }
 
-                for (int i = 0; i < CHDAT[chipIndex][8].PGDAT.Count; i++)
+                if (CHDAT[chipIndex][8] != null)
                 {
-                    CHDAT[chipIndex][8].PGDAT[i].lengthCounter = 1;
-                    CHDAT[chipIndex][8].PGDAT[i].volume = 10;
-                    CHDAT[chipIndex][8].PGDAT[i].channelNumber = 2;
+                    for (int i = 0; i < CHDAT[chipIndex][8].PGDAT.Count; i++)
+                    {
+                        CHDAT[chipIndex][8].PGDAT[i].lengthCounter = 1;
+                        CHDAT[chipIndex][8].PGDAT[i].volume = 10;
+                        CHDAT[chipIndex][8].PGDAT[i].channelNumber = 2;
+                    }
                 }
 
-                for (int i = 0; i < CHDAT[chipIndex][9].PGDAT.Count; i++)
+                if (CHDAT[chipIndex][9] != null)
                 {
-                    CHDAT[chipIndex][9].PGDAT[i].lengthCounter = 1;
-                    CHDAT[chipIndex][9].PGDAT[i].volume = 10;
-                    CHDAT[chipIndex][9].PGDAT[i].channelNumber = 2;
+                    for (int i = 0; i < CHDAT[chipIndex][9].PGDAT.Count; i++)
+                    {
+                        CHDAT[chipIndex][9].PGDAT[i].lengthCounter = 1;
+                        CHDAT[chipIndex][9].PGDAT[i].volume = 10;
+                        CHDAT[chipIndex][9].PGDAT[i].channelNumber = 2;
+                    }
                 }
 
-                for (int i = 0; i < CHDAT[chipIndex][10].PGDAT.Count; i++)
+                if (CHDAT[chipIndex][10] != null)
                 {
-                    CHDAT[chipIndex][10].PGDAT[i].lengthCounter = 1;
-                    CHDAT[chipIndex][10].PGDAT[i].volume = 10;
-                    CHDAT[chipIndex][10].PGDAT[i].channelNumber = 2;
+                    for (int i = 0; i < CHDAT[chipIndex][10].PGDAT.Count; i++)
+                    {
+                        CHDAT[chipIndex][10].PGDAT[i].lengthCounter = 1;
+                        CHDAT[chipIndex][10].PGDAT[i].volume = 10;
+                        CHDAT[chipIndex][10].PGDAT[i].channelNumber = 2;
+                    }
                 }
             }
 
@@ -262,7 +284,7 @@ namespace mucomDotNET.Driver
             DMY = 8;
             TYPE1 = new byte[] { 0x032, 0x044, 0x046 };
             TYPE2 = new byte[] { 0x0AA, 0x0A8, 0x0AC };
-            FNUMB = new ushort[2][]{
+            FNUMB = new ushort[3][]{
                 new ushort[] {
                  0x026A    ,0x028F    ,0x02B6    ,0x02DF
                 ,0x030B    ,0x0339    ,0x036A    ,0x039E
@@ -272,6 +294,11 @@ namespace mucomDotNET.Driver
                  0x0269    ,0x028E    ,0x02b4    ,0x02De
                 ,0x0309    ,0x0337    ,0x0368    ,0x039c
                 ,0x03d3    ,0x040e    ,0x044b    ,0x048d
+                },
+                new ushort[] {
+                 0x0000    ,0x0040    ,0x0080    ,0x00c0
+                ,0x0100    ,0x0140    ,0x0180    ,0x01c0
+                ,0x0200    ,0x0240    ,0x0280    ,0x02c0
                 }
             };
             SNUMB = new ushort[2][]{
@@ -344,6 +371,7 @@ namespace mucomDotNET.Driver
         //                  ; bit 6 = sustain flag
         //                  ; bit 7 = soft envelope flag
         public int algo = 0;//DB	0	        ; ｱﾙｺﾞﾘｽﾞﾑ No.      7(FM)
+        public int feedback = 0;
         public int volReg = 0;//DB	8   	    ; VOL.REG.No.       7
         public int channelNumber = 0;//DB    0	        ; ﾁｬﾝﾈﾙ ﾅﾝﾊﾞｰ          	8
         public int detune = 0;//DW	0	        ; ﾃﾞﾁｭｰﾝ DATA		9,10

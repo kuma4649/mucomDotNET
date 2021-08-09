@@ -74,5 +74,41 @@ namespace mucomDotNET.Compiler
             //vbuf[col * 4 + 2] = b;
             //}
         }
+
+        public void CONVERTopm(List<byte> voi)
+        {
+            int a;
+            for (int row = 0; row < 4; row++)
+            {
+                int op = row;
+                op = (op == 1 ? 2 : (op == 2 ? 1 : op));
+
+                //DT/MUL
+                a = voi[op * 10 + 2 + 8] * 16 + voi[op * 10 + 2 + 7];
+                mucInfo.mmlVoiceDataWork.Set(row + 1, (byte)a);
+
+                //TL
+                mucInfo.mmlVoiceDataWork.Set(row + 5, (byte)voi[op * 10 + 2 + 5]);
+
+                //KS/AR
+                a = voi[op * 10 + 2 + 6] * 64 + voi[op * 10 + 2 + 0];
+                mucInfo.mmlVoiceDataWork.Set(row + 9, (byte)a);
+
+                //DR
+                mucInfo.mmlVoiceDataWork.Set(row + 13, (byte)voi[op * 10 + 2 + 1]);
+
+                //DT2/SR
+                a = voi[op * 10 + 2 + 9] * 64 + voi[op * 10 + 2 + 2];
+                mucInfo.mmlVoiceDataWork.Set(row + 17, (byte)a);
+
+                //SL/RR
+                a = voi[op * 10 + 2 + 4] * 16 + voi[op * 10 + 2 + 3];
+                mucInfo.mmlVoiceDataWork.Set(row + 21, (byte)a);
+            }
+
+            a = voi[0] * 8 + voi[1];
+            mucInfo.mmlVoiceDataWork.Set(25, (byte)a);
+
+        }
     }
 }

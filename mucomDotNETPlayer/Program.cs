@@ -46,6 +46,7 @@ namespace mucomDotNET.Player
         private static MDSound.MDSound mds = null;
         private static short[] emuRenderBuf = new short[2];
         private static musicDriverInterface.iDriver drv = null;
+        private static readonly uint opmMasterClock = 3579545;
         private static readonly uint opnaMasterClock = 7987200;
         private static readonly uint opnbMasterClock = 8000000;
         private static int device = 0;
@@ -148,6 +149,25 @@ namespace mucomDotNET.Player
                     };
                     lstChips.Add(chip);
                 }
+                MDSound.ym2151 ym2151 = new MDSound.ym2151();
+                for (int i = 0; i < 1; i++)
+                {
+                    chip = new MDSound.MDSound.Chip
+                    {
+                        type = MDSound.MDSound.enmInstrumentType.YM2151,
+                        ID = (byte)i,
+                        Instrument = ym2151,
+                        Update = ym2151.Update,
+                        Start = ym2151.Start,
+                        Stop = ym2151.Stop,
+                        Reset = ym2151.Reset,
+                        SamplingRate = SamplingRate,
+                        Clock = opmMasterClock,
+                        Volume = 0,
+                        Option = new object[] { GetApplicationFolder() }
+                    };
+                    lstChips.Add(chip);
+                }
                 mds = new MDSound.MDSound(SamplingRate, samplingBuffer
                     , lstChips.ToArray());
 
@@ -160,6 +180,7 @@ namespace mucomDotNET.Player
                 ca = new mucomChipAction(OPNAWriteS, null, null); lca.Add(ca);
                 ca = new mucomChipAction(OPNBWriteP, OPNBWriteAdpcmP, null); lca.Add(ca);
                 ca = new mucomChipAction(OPNBWriteS, OPNBWriteAdpcmS, null); lca.Add(ca);
+                ca = new mucomChipAction(OPMWriteP, null, null); lca.Add(ca);
 
                 List<MmlDatum> bl = new List<MmlDatum>();
                 byte[] srcBuf = File.ReadAllBytes(args[fnIndex]);
@@ -196,6 +217,7 @@ namespace mucomDotNET.Player
                         ,new Tuple<string, int>("YM2608",(int)opnaMasterClock)
                         ,new Tuple<string, int>("YM2610B",(int)opnbMasterClock)
                         ,new Tuple<string, int>("YM2610B",(int)opnbMasterClock)
+                        ,new Tuple<string, int>("YM2151",(int)opmMasterClock)
                     }
                     );
 
@@ -585,6 +607,10 @@ namespace mucomDotNET.Player
         {
             OPNBWrite(1, dat);
         }
+        private static void OPMWriteP(ChipDatum dat)
+        {
+            OPMWrite(0, dat);
+        }
         private static void OPNBWriteAdpcmP(byte[] pcmData,int s,int e)
         {
             if (s == 0) OPNBWrite_AdpcmA(0, pcmData);
@@ -651,6 +677,35 @@ namespace mucomDotNET.Player
                 case 1:
                 case 2:
                     rsc.setRegister(dat.port * 0x100 + dat.address, dat.data);
+                    break;
+            }
+        }
+
+        private static void OPMWrite(int chipId, ChipDatum dat)
+        {
+            if (dat != null && dat.addtionalData != null)
+            {
+                MmlDatum md = (MmlDatum)dat.addtionalData;
+                if (md.linePos != null)
+                {
+                    Log.WriteLine(LogLevel.TRACE, string.Format("! OPM i{0} r{1} c{2}"
+                        , chipId
+                        , md.linePos.row
+                        , md.linePos.col
+                        ));
+                }
+            }
+
+            Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipOPM:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
+
+            switch (device)
+            {
+                case 0:
+                    mds.WriteYM2151((byte)chipId, (byte)dat.address, (byte)dat.data);
+                    break;
+                case 1:
+                case 2:
+                    rsc.setRegister( dat.address, dat.data);
                     break;
             }
         }

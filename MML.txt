@@ -117,7 +117,7 @@ mucomDotNET
      LMNOPQRSTUV   OPNAx2 (LMN:FM1/2/3 OPQ:SSG1/2/3 R:Rhythm STU:FM4/5/6 V:ADPCM)
      abcdefghijk   OPNBx1 (abc:FM1/2/3 def:SSG1/2/3 g:ADPCM-A hij:FM4/5/6 k:ADPCM-B)
      lmnopqrstuv   OPNBx2 (lmn:FM1/2/3 opq:SSG1/2/3 r:ADPCM-A stu:FM4/5/6 v:ADPCM-B)
-     
+     WXYZwxyz      OPM    (WXYZwxyz:FM1/2/3/4/5/6/7/8)     
 
 
 機能
@@ -184,6 +184,45 @@ mucomDotNET
 --コマンド--
 
 
+-音色定義
+コマンド
+    @M
+書式
+  @M(音色番号)
+  FB,AL
+  AR,DR,SR,RR,SL,TL,KS,ML,DT,DT2 ; op1
+  AR,DR,SR,RR,SL,TL,KS,ML,DT,DT2 ; op2
+  AR,DR,SR,RR,SL,TL,KS,ML,DT,DT2 ; op3
+  AR,DR,SR,RR,SL,TL,KS,ML,DT,DT2 ; op4
+値の範囲
+    音色パラメータによる
+使用可能なパート
+    全て(実質OPM)
+内容
+    OPM向けのDT2を含んだ音色定義ができます
+mubファイルでのフォーマット
+      -
+
+
+-レジスタ書き込み
+コマンド
+    y
+書式
+    yn1,n2,n3,n4
+値の範囲
+    n1 : (0～4) 0:OPNA.1  1:OPNA.2  2:OPNB.1  3:OPNB.2  4:OPM
+    n2 : (0～1) ポート
+    n3 : (0～255) アドレス
+    n4 : (0～255) データ
+使用可能なパート
+    全て
+内容
+    他のChipのパートに対してデータを送れるようにします。
+    既存のコマンドと比較してアドレスの制限がありません。
+mubファイルでのフォーマット
+      0xFF 0xF7 n1 n2 n3 n4
+
+
 -個別ボリューム設定
 コマンド
     v
@@ -248,6 +287,7 @@ mubファイルでのフォーマット
     L/M/N/R/S/T/U/V (FM / RHYTHM / ADPCM)
     a/b/c/g/h/i/j/k (FM / ADPCM-A / ADPCM-B)
     l/m/n/r/s/t/u/v (FM / ADPCM-A / ADPCM-B)
+    W/X/Y/Z/w/x/y/z (FM)
 内容
     n1に4未満を指定した場合は、既存のパンコマンドになります。
     4:右オートパン 5:左オートパン 6:ランダムパン
@@ -375,6 +415,7 @@ mubファイルでのフォーマット
 使用可能なパート
     A/B/C/H/I/J/L/M/N/S/T/U (FM)
     a/b/c/h/i/j/l/m/n/s/t/u (FM)
+    W/X/Y/Z/w/x/y/z (FM)
 内容
     lfoをFMのTL(トータルレベル)に適用します。
     tlは音量や、波形の変調量を調節するパラメーターですので
@@ -438,6 +479,7 @@ mubファイルでのフォーマット
 使用可能なパート
     A/B/C/H/I/J/L/M/N/S/T/U (FM)
     a/b/c/h/i/j/l/m/n/s/t/u (FM)
+    W/X/Y/Z/w/x/y/z (FM)
 内容
     FM音源のキーオンをスロット毎にずらす場合に使用します。
     n1～n4はそれぞれスロット1～4に対応しています。
@@ -473,6 +515,7 @@ mubファイルでのフォーマット
 使用可能なパート
     A/B/C/H/I/J/L/M/N/S/T/U (FM)
     a/b/c/h/i/j/l/m/n/s/t/u (FM)
+    W/X/Y/Z/w/x/y/z (FM)
     D/E/F/O/P/Q/d/e/f/o/p/q (SSG)
 内容
     使用すると、ノート発音時にMIDI風のポルタメント動作が行われます。
