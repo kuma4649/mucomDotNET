@@ -1372,16 +1372,16 @@ namespace mucomDotNET.Driver
             fnum11b += detune;
             if (detune < 0)
             {
-                while (fnum11b < 0x800) // 0より小さい
+                while (fnum11b < 0) // 0より小さい
                 {
                     if (block == 0)
                     {
-                        if (fnum11b < 0x800) fnum11b = 0;//limit
+                        if (fnum11b < 0) fnum11b = 0;//limit
                         break;
                     }
 
                     fnum11b += 0x300;
-                    fnum11b &= 0x7ff;
+                    //fnum11b &= 0x7ff;
                     block--;
                 }
             }
@@ -3246,17 +3246,24 @@ namespace mucomDotNET.Driver
             {
                 //KUMA:FMの時はリミットチェック処理
 
-                int num = work.pg.fnum & 0x7ff;
-                int blk = work.pg.fnum >> 11;
+                int num;
                 short dlt = (short)(ushort)hl;
                 //Console.Write("b:{0} num:{1:x} -> +{2}", blk, num, dlt);
 
-                num += dlt;
-                GetFnum(ref blk, ref num);
-
-                ////Console.WriteLine(" -> b:{0} num:{1:x}",blk,num);
-
-                hl = (blk << 11) | num;
+                if (work.soundWork.currentChip != 4)
+                {
+                    num = work.pg.fnum & 0x7ff;
+                    int blk = work.pg.fnum >> 11;
+                    num += dlt;
+                    GetFnum(ref blk, ref num);
+                    ////Console.WriteLine(" -> b:{0} num:{1:x}",blk,num);
+                    hl = (blk << 11) | num;
+                }
+                else
+                {
+                    num = AddDetuneToFNumopm((ushort)work.pg.fnum, dlt);
+                    hl = num;
+                }
             }
             else
             {
@@ -3334,6 +3341,12 @@ namespace mucomDotNET.Driver
                 return;
             }
 
+            if (work.soundWork.currentChip == 4)
+            {
+                PLLFO2opm(hl);
+                return;
+            }
+
             //if ((work.pg.channelNumber & 0x02) == 0)//  CH=3?
             if ((work.soundWork.currentCh / 10) != 2)//  CH=3?
             {
@@ -3384,6 +3397,30 @@ namespace mucomDotNET.Driver
             d -= 4;
             e = (byte)hl;// F-NUMBER1 DATA
             PSGOUT(d, e);
+        }
+
+        public void PLLFO2opm(int hl)
+        {
+            byte oct = (byte)(((hl & 0x3800) >> 11));
+            byte note = (byte)(((hl & 0x7ff) >> 6));
+            note--;
+            if (note == 0xff)
+            {
+                oct--;
+                note = 11;
+            }
+            note = (byte)(note < 3 ? note : (note < 6 ? (note + 1) : (note < 9 ? (note + 2) : (note + 3))));
+
+            byte e = (byte)((oct << 4) | note);// oct:bit6-4 note :bit3-0
+            byte d = 0x28;// KC のアドレス
+            d += (byte)work.pg.channelNumber;
+            PSGOUT(d, e);
+            //Log.writeLine(LogLevel.TRACE, string.Format("PLLFO2opm:d:{0:x02} e:{1:x02}", d, e));
+            d += 8;//KF のアドレス
+            e = (byte)((hl & 0x3f) << 2);// KF (bit:7-2)
+            PSGOUT(d, e);
+            //Log.writeLine(LogLevel.TRACE, string.Format("PLLFO2opm:d:{0:x02} e:{1:x02}", d, e));
+
         }
 
         public void LFOP6(int hl)

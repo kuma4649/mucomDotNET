@@ -372,7 +372,17 @@ namespace mucomDotNET.Compiler
 
         private void WritePortament(byte note, byte endNote, byte clk,byte q, bool tie)
         {
-            int depth = expand.CULPTM(note, endNote, clk);//KUMA:DEPTHを計算
+            int depth;
+            if (work.ChipIndex != 4)
+            {
+                depth = expand.CULPTM(note, endNote, clk);//KUMA:DEPTHを計算
+            }
+            else
+            {
+                int s = ((note & 0xf0) >> 4) * 12 + (note & 0xf);
+                int e = ((endNote & 0xf0) >> 4) * 12 + (endNote & 0xf);
+                depth = (e - s) * 64 / clk;
+            }
             if (mucInfo.Carry)
             {
                 throw new MucException(
