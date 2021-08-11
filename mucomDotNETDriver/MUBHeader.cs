@@ -31,7 +31,7 @@ namespace mucomDotNET.Driver
         private iEncoding enc = null;
         public MupbInfo mupb;
         private uint mupbDataPtr;
-        public bool CarrierCorrection = true;
+        public bool CarrierCorrection = false;
         public enmOPMClockMode OPMClockMode= enmOPMClockMode.normal;
 
         public enum enmOPMClockMode
@@ -41,7 +41,7 @@ namespace mucomDotNET.Driver
 
         public MUBHeader(MmlDatum[] buf,iEncoding enc)
         {
-            CarrierCorrection = true;
+            CarrierCorrection = false;
             OPMClockMode = enmOPMClockMode.normal;
 
             this.enc = enc;
