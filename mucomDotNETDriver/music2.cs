@@ -887,7 +887,12 @@ namespace mucomDotNET.Driver
 
             for (int b = 0; b < 4; b++)
             {
-                if ((c & (1 << b)) != 0) PSGOUT((byte)(d + b * 4), e);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
+                if ((c & (1 << b)) != 0)
+                {
+                    byte v = e;
+                    if (work.isDotNET) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[b], 0), 127);
+                    PSGOUT((byte)(d + b * 4), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
+                }
             }
 
             //パラメータ表示向け
@@ -908,7 +913,11 @@ namespace mucomDotNET.Driver
 
             for (int b = 0; b < 4; b++)
             {
-                if ((c & (1 << b)) != 0) PSGOUT((byte)(d + b * 8), e);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
+                if ((c & (1 << b)) != 0)
+                {
+                    byte v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[b], 0), 127);
+                    PSGOUT((byte)(d + b * 8), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
+                }
             }
 
             //パラメータ表示向け
@@ -1237,11 +1246,30 @@ namespace mucomDotNET.Driver
             if (work.soundWork.DRMF1 == 0)
             {
                 //FMGFQ:
-                hl = work.soundWork.FNUMB[work.soundWork.currentChip / 2][a & 0xf];// GET KEY CODE(C, C+, D...B)
-                hl |= (ushort)((a & 0x70) << 7);// GET BLOCK DATA
-                                                // A4-A6 ﾎﾟｰﾄ ｼｭﾂﾘｮｸﾖｳ ﾆ ｱﾜｾﾙ
-                                                // GET FNUM2
-                                                // A= KEY CODE & FNUM HI
+                if (work.soundWork.currentChip != 4)
+                {
+                    hl = work.soundWork.FNUMB[work.soundWork.currentChip / 2][a & 0xf];// GET KEY CODE(C, C+, D...B)
+                    hl |= (ushort)((a & 0x70) << 7);// GET BLOCK DATA
+                                                    // A4-A6 ﾎﾟｰﾄ ｼｭﾂﾘｮｸﾖｳ ﾆ ｱﾜｾﾙ
+                                                    // GET FNUM2
+                                                    // A= KEY CODE & FNUM HI
+                }
+                else
+                {
+                    short val = work.soundWork.FNUMBopm[work.header.OPMClockMode == MUBHeader.enmOPMClockMode.normal ? 0 : 1][a & 0xf];// GET KEY CODE(C, C+, D...B)
+                    int oct = (a & 0x70) >> 4;
+                    if (val < 0)
+                    {
+                        oct--;
+                        val += 0x300;
+                        if (oct < 0)
+                        {
+                            oct = 0;
+                            val = 0;
+                        }
+                    }
+                    hl =(ushort)((ushort)val | ((oct & 0x7) << 11));
+                }
 
                 hl = (uint)(hl + work.pg.detune);// GET DETUNE DATA
                                                  // DETUNE PLUS
@@ -1822,6 +1850,18 @@ namespace mucomDotNET.Driver
             //hl += work.soundWork.MUSNUM;
             hl++;//音色数を格納している為いっこずらす
 
+
+
+            //KUMA:tlの保存
+            if (work.isDotNET && work.header.CarrierCorrection)
+            {
+                work.pg.v_tl[0] = work.fmVoiceAtMusData[hl + 4 + 0];
+                work.pg.v_tl[1] = work.fmVoiceAtMusData[hl + 4 + 1];
+                work.pg.v_tl[2] = work.fmVoiceAtMusData[hl + 4 + 2];
+                work.pg.v_tl[3] = work.fmVoiceAtMusData[hl + 4 + 3];
+            }
+
+
             //STENV1:
             byte d = 0x30;// START=PORT 30H
             d += (byte)work.pg.channelNumber;// PLUS CHANNEL No.
@@ -1871,6 +1911,18 @@ namespace mucomDotNET.Driver
             int hl = work.pg.instrumentNumber * 25;// HL=*25
             hl++;//音色数を格納している為いっこずらす
 
+
+
+            //KUMA:tlの保存
+            if (work.header.CarrierCorrection)
+            {
+                work.pg.v_tl[0] = work.fmVoiceAtMusData[hl + 4 + 0];
+                work.pg.v_tl[1] = work.fmVoiceAtMusData[hl + 4 + 1];
+                work.pg.v_tl[2] = work.fmVoiceAtMusData[hl + 4 + 2];
+                work.pg.v_tl[3] = work.fmVoiceAtMusData[hl + 4 + 3];
+            }
+
+
             //STENV1:
             byte d = 0x40;// START =Adr:40H
             d += (byte)work.pg.channelNumber;// PLUS CHANNEL No.
@@ -1890,11 +1942,11 @@ namespace mucomDotNET.Driver
             } while (c != 0);
 
             e = work.fmVoiceAtMusData[hl];// GET FEEDBACK/ALGORIZM
-            e |= (byte)(work.pg.panValue<<6);// pan
+            e |= (byte)(work.pg.panValue << 6);// pan
 
             // GET ALGORIZM
             work.pg.algo = e & 0x07;// STORE ALGORIZM
-            work.pg.feedback = (e & 0x38)>>3;
+            work.pg.feedback = (e & 0x38) >> 3;
             // GET ALGO SET ADDRES
             d = (byte)(0x20 + work.pg.channelNumber);// CH PLUS
             PSGOUT(d, e);

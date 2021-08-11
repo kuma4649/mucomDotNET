@@ -96,6 +96,7 @@ namespace mucomDotNET.Driver
         public byte[] TYPE2 = null;
         public byte DMY = 0;       //DB    8
         public ushort[][] FNUMB = null;
+        public short[][] FNUMBopm = null;
         public ushort[][] SNUMB = null;
         public ushort[][] PCMNMB = null;
         public byte[] SSGDAT = null;
@@ -284,7 +285,7 @@ namespace mucomDotNET.Driver
             DMY = 8;
             TYPE1 = new byte[] { 0x032, 0x044, 0x046 };
             TYPE2 = new byte[] { 0x0AA, 0x0A8, 0x0AC };
-            FNUMB = new ushort[3][]{
+            FNUMB = new ushort[2][]{
                 new ushort[] {
                  0x026A    ,0x028F    ,0x02B6    ,0x02DF
                 ,0x030B    ,0x0339    ,0x036A    ,0x039E
@@ -294,11 +295,18 @@ namespace mucomDotNET.Driver
                  0x0269    ,0x028E    ,0x02b4    ,0x02De
                 ,0x0309    ,0x0337    ,0x0368    ,0x039c
                 ,0x03d3    ,0x040e    ,0x044b    ,0x048d
-                },
-                new ushort[] {
+                }
+            };
+            FNUMBopm = new short[2][]{
+                new short[] {
                  0x0000    ,0x0040    ,0x0080    ,0x00c0
                 ,0x0100    ,0x0140    ,0x0180    ,0x01c0
                 ,0x0200    ,0x0240    ,0x0280    ,0x02c0
+                },
+                new short[] {
+                 0x0000-59 ,0x0040-59 ,0x0080-59 ,0x00c0-59
+                ,0x0100-59 ,0x0140-59 ,0x0180-59 ,0x01c0-59
+                ,0x0200-59 ,0x0240-59 ,0x0280-59 ,0x02c0-59
                 }
             };
             SNUMB = new ushort[2][]{
@@ -431,5 +439,6 @@ namespace mucomDotNET.Driver
         public byte backupHardEnv { get; internal set; } = 0;
         public byte backupHardEnvFine { get; internal set; } = 0;
         public byte backupHardEnvCoarse { get; internal set; } = 0;
+        public byte[] v_tl = new byte[4] { 0, 0, 0, 0 };
     }
 }

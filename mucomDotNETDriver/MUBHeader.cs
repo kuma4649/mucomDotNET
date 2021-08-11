@@ -31,9 +31,19 @@ namespace mucomDotNET.Driver
         private iEncoding enc = null;
         public MupbInfo mupb;
         private uint mupbDataPtr;
+        public bool CarrierCorrection = true;
+        public enmOPMClockMode OPMClockMode= enmOPMClockMode.normal;
+
+        public enum enmOPMClockMode
+        {
+            normal,X68000
+        }
 
         public MUBHeader(MmlDatum[] buf,iEncoding enc)
         {
+            CarrierCorrection = true;
+            OPMClockMode = enmOPMClockMode.normal;
+
             this.enc = enc;
 
             magic = Cmn.getLE32(buf, 0x0000);
@@ -300,7 +310,49 @@ namespace mucomDotNET.Driver
                 catch { }
             }
 
+            SetDriverOptionFromTags(tags);
+
             return tags;
+        }
+
+        public void SetDriverOptionFromTags(List<Tuple<string, string>> tags)
+        {
+            if (tags == null) return;
+            if (tags.Count < 1) return;
+
+            foreach (var tag in tags)
+            {
+                if (tag == null) continue;
+                if (string.IsNullOrEmpty(tag.Item1)) continue;
+
+                if (tag.Item1.ToLower().Trim() == "carriercorrection")
+                {
+                    if (!string.IsNullOrEmpty(tag.Item2))
+                    {
+                        string val = tag.Item2.ToLower().Trim();
+
+                        CarrierCorrection = false;
+                        if (val == "yes" || val == "y" || val == "1" || val == "true" || val == "t")
+                        {
+                            CarrierCorrection = true;
+                        }
+                    }
+                }
+                else if (tag.Item1.ToLower().Trim() == "opmclockmode")
+                {
+                    if (!string.IsNullOrEmpty(tag.Item2))
+                    {
+                        string val = tag.Item2.ToLower().Trim();
+
+                        OPMClockMode = enmOPMClockMode.normal;
+                        if (val == "x68000" || val == "x68k" || val == "x68" || val == "x" || val == "40000" || val == "x680x0")
+                        {
+                            OPMClockMode = enmOPMClockMode.X68000;
+                        }
+                    }
+                }
+
+            }
         }
 
     }

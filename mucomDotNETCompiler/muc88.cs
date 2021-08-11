@@ -1303,6 +1303,7 @@ namespace mucomDotNET.Compiler
             n = (sbyte)msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0530"));
             mucInfo.srcCPtr = ptr;
             work.porDelta = (sbyte)n;
+            work.porOldNote = -1;
 
             skipSpaceAndTab();
             ch = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
@@ -3179,9 +3180,12 @@ namespace mucomDotNET.Compiler
             if (tp == ChannelType.FM)
             {
                 //音色番号チェック
-                if (n == 0 || n == 1)
+                if (mucInfo.DriverType != MUCInfo.enmDriverType.DotNet)
                 {
-                    WriteWarning(msg.get("W0410"), mucInfo.row, mucInfo.col);
+                    if (n == 0 || n == 1)
+                    {
+                        WriteWarning(msg.get("W0410"), mucInfo.row, mucInfo.col);
+                    }
                 }
 
                 STCL2(n);//FM
@@ -4327,13 +4331,17 @@ namespace mucomDotNET.Compiler
                 {
                     8 , 8 , 8 , 8 , 10 , 14 , 14 , 15
                 };
-                for (int i = 0; i < 4; i++)
+
+                if (!mucInfo.carriercorrection)
                 {
-                    if ((wCar[wAlg] & (1 << i)) == 0) continue;
-                    if (wTL[i] != 0)
+                    for (int i = 0; i < 4; i++)
                     {
-                        WriteWarning(string.Format(msg.get("W0408"), vn, i + 1, wAlg, wTL[0], wTL[1], wTL[2], wTL[3]));
-                        break;
+                        if ((wCar[wAlg] & (1 << i)) == 0) continue;
+                        if (wTL[i] != 0)
+                        {
+                            WriteWarning(string.Format(msg.get("W0408"), vn, i + 1, wAlg, wTL[0], wTL[1], wTL[2], wTL[3]));
+                            break;
+                        }
                     }
                 }
 
@@ -4518,7 +4526,10 @@ namespace mucomDotNET.Compiler
             //ポルタメント制御
             if ((work.porSW != 0 && work.porPin == 0) || (work.porSW == 0 && work.porPin != 0))
             {
-                return analyzePor(note);
+                if (work.porOldNote != note)
+                {
+                    return analyzePor(note);
+                }
             }
 
             //ポルタメント無効時或いは、ポルタメントモード中の_,__コマンドも音程の引継ぎは行う
@@ -4640,7 +4651,7 @@ namespace mucomDotNET.Compiler
             {
                 WriteWarning(msg.get("W0405"), mucInfo.row, mucInfo.col);
             }
-            if (clk > 128)
+            if (clk > 128 && mucInfo.DriverType != MUCInfo.enmDriverType.DotNet)
             {
                 WriteWarning(string.Format(msg.get("W0414"), clk), mucInfo.row, mucInfo.col);
             }
@@ -4660,7 +4671,7 @@ namespace mucomDotNET.Compiler
             {
                 WriteWarning(msg.get("W0405"), mucInfo.row, mucInfo.col);
             }
-            if (clk > 128)
+            if (clk > 128 && mucInfo.DriverType != MUCInfo.enmDriverType.DotNet)
             {
                 WriteWarning(string.Format(msg.get("W0414"), clk), mucInfo.row, mucInfo.col);
             }

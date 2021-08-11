@@ -293,6 +293,24 @@ namespace mucomDotNET.Compiler
                     case "invert":
                         mucInfo.invert = tag.Item2;
                         break;
+                    case "carriercorrection":
+                        string val = tag.Item2.ToLower().Trim();
+
+                        mucInfo.carriercorrection = false;
+                        if (val == "yes" || val == "y" || val == "1" || val == "true" || val == "t")
+                        {
+                            mucInfo.carriercorrection = true;
+                        }
+                        break;
+                    case "opmclockmode":
+                        string ocmval = tag.Item2.ToLower().Trim();
+
+                        mucInfo.opmclockmode = MUCInfo.enmOpmClockMode.normal;
+                        if (ocmval == "x68000" || ocmval == "x68k" || ocmval == "x68" || ocmval == "x" || ocmval == "40000" || ocmval == "x680x0")
+                        {
+                            mucInfo.opmclockmode = MUCInfo.enmOpmClockMode.X68000;
+                        }
+                        break;
                 }
             }
 

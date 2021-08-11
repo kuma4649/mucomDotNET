@@ -23,6 +23,30 @@ mucomDotNET
 
 
 タグ
+    #CarrierCorrection
+書式
+    #CarrierCorrection str
+値の範囲
+    str : Yes , No
+内容
+　　FMの音色定義のキャリアの値を反映するモードを使用するかどうか指定します。
+    デフォルト値は「Yes」で「使用する」です。
+
+
+タグ
+    #OPMClockMode
+書式
+    #OPMClockMode str
+値の範囲
+    str : normal , X68000
+内容
+　　OPMのマスタークロックに何を使用するか指定します。
+    mucomDotNETはこのクロックに対応した音程周波数を使用します。
+    デフォルト値は「normal」で3579545Hzです。
+    「X68000」は4000000Hzです。
+
+
+タグ
     #pcm_2nd
     #pcm_3rd_b
     #pcm_4th_b
