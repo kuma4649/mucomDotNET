@@ -136,7 +136,7 @@ namespace mucomDotNET.Common
         public Point skipPoint { get; set; } = Point.Empty;
         public int skipChannel { get; set; } = -1;
         public bool isExtendFormat { get; set; } = false;
-        public bool carriercorrection { get; set; } = true;
+        public bool carriercorrection { get; set; } = false;
         public enmOpmClockMode opmclockmode { get; set; } = enmOpmClockMode.normal;
 
         public enum enmOpmClockMode
@@ -197,7 +197,7 @@ namespace mucomDotNET.Common
             //needNormalMucom = false;
             isIDE = false;
             isExtendFormat = false;
-            carriercorrection = true;
+            carriercorrection = false;
             opmclockmode = enmOpmClockMode.normal;
         }
 
