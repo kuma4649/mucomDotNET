@@ -966,15 +966,29 @@ namespace mucomDotNET.Driver
 
         public void MakeDummyCrntMmlDatum(enmMMLType type, List<object> args)
         {
-            LinePos lp = new LinePos(null, "", -1, -1, -1
-                , work.soundWork.currentChip < 2 
-                    ? (work.soundWork.PCMFLG != 0 ? "ADPCM" : (work.soundWork.DRMF1 != 0 ? "RHYTHM" : (work.soundWork.SSGF1 != 0 ? "SSG" : "FM")))
-                    : (work.soundWork.PCMFLG != 0 ? "ADPCM-B" : (work.soundWork.DRMF1 != 0 ? "ADPCM-A" : (work.soundWork.SSGF1 != 0 ? "SSG" : "FM")))
-                , work.soundWork.currentChip < 2 ? "YM2608" : "YM2610B"
-                , 0
-                , work.soundWork.currentChip % 2
-                , work.soundWork.currentCh
-                );
+            LinePos lp;
+            if (work.soundWork.currentChip != 4)
+            {
+                lp = new LinePos(null, "", -1, -1, -1
+                    , work.soundWork.currentChip < 2
+                        ? (work.soundWork.PCMFLG != 0 ? "ADPCM" : (work.soundWork.DRMF1 != 0 ? "RHYTHM" : (work.soundWork.SSGF1 != 0 ? "SSG" : "FM")))
+                        : (work.soundWork.PCMFLG != 0 ? "ADPCM-B" : (work.soundWork.DRMF1 != 0 ? "ADPCM-A" : (work.soundWork.SSGF1 != 0 ? "SSG" : "FM")))
+                    , work.soundWork.currentChip < 2 ? "YM2608" : "YM2610B"
+                    , 0
+                    , work.soundWork.currentChip % 2
+                    , work.soundWork.currentCh
+                    );
+            }
+            else
+            {
+                lp = new LinePos(null, "", -1, -1, -1
+                    , "FM"
+                    , "YM2151"
+                    , 0
+                    , work.soundWork.currentChip % 2
+                    , work.soundWork.currentCh
+                    );
+            }
             work.crntMmlDatum = new MmlDatum(type, args, lp, 0);
         }
 

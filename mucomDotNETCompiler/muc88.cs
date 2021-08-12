@@ -797,12 +797,8 @@ namespace mucomDotNET.Compiler
                     mucInfo.fnSrcOnlyFile
                     , mucInfo.row, mucInfo.col
                     , mucInfo.srcCPtr - mucInfo.col + 1
-                    , work.ChipIndex / 2 == 0
-                        ? (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM")))
-                        : (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "ADPCM-A" : "ADPCM-B")))
-                    , work.ChipIndex / 2 == 0
-                        ? "YM2608"
-                        : "YM2610B"
+                    , work.currentPartType
+                    , work.currentChipName
                     , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
                 msub.MWRITE(
@@ -2792,16 +2788,8 @@ namespace mucomDotNET.Compiler
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
-                , work.ChipIndex==4 ? "FM":(
-                    work.ChipIndex / 2 == 0
-                    ? (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM")))
-                    : (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "ADPCM-A" : "ADPCM-B")))
-                    )
-                , work.ChipIndex == 4 ? "YM2151" : (
-                    work.ChipIndex / 2 == 0
-                    ? "YM2608"
-                    : "YM2610B"
-                    )
+                , work.currentPartType
+                , work.currentChipName
                 , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
             if (work.ChipIndex != 4)
@@ -3009,12 +2997,8 @@ namespace mucomDotNET.Compiler
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
-                , work.ChipIndex / 2 == 0
-                    ? (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM")))
-                    : (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "ADPCM-A" : "ADPCM-B")))
-                , work.ChipIndex / 2 == 0
-                    ? "YM2608"
-                    : "YM2610B"
+                , work.currentPartType
+                , work.currentChipName
                 , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
             msub.MWRITE(new MmlDatum(
                  enmMMLType.Detune
@@ -3298,10 +3282,8 @@ namespace mucomDotNET.Compiler
                 mucInfo.fnSrcOnlyFile
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
-                , "FM"
-                , work.ChipIndex / 2 == 0
-                    ? "YM2608"
-                    : "YM2610B"
+                , work.currentPartType
+                , work.currentChipName
                 , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
             int voiceIndex = CCVC(num, mucInfo.bufDefVoice);// --	VOICE ｶﾞ ﾄｳﾛｸｽﾞﾐｶ?	--
@@ -3594,6 +3576,9 @@ namespace mucomDotNET.Compiler
             work.JPCOL = -1;
 
             mucInfo.isExtendFormat = CheckExtendFormat();
+
+            work.currentChipName = "YM2608";
+            work.currentPartType = "FM";
 
             INIT();
             if (work.LINCFG != 0)
@@ -4161,6 +4146,32 @@ namespace mucomDotNET.Compiler
 
                     work.ChipIndex++;
                     work.CHIP_CH = 0;
+                }
+
+                switch(work.ChipIndex)
+                {
+                    case 0:
+                    case 1:
+                        work.currentChipName = "YM2608";
+                        if (work.CHIP_CH >= 0 && work.CHIP_CH < 3) work.currentPartType = "FM";
+                        else if (work.CHIP_CH >= 3 && work.CHIP_CH < 6) work.currentPartType = "SSG";
+                        else if (work.CHIP_CH == 6) work.currentPartType = "RHYTHM";
+                        else if (work.CHIP_CH >= 7 && work.CHIP_CH < 10) work.currentPartType = "FM";
+                        else if (work.CHIP_CH == 10) work.currentPartType = "ADPCM";
+                        break;
+                    case 2:
+                    case 3:
+                        work.currentChipName = "YM2610B";
+                        if (work.CHIP_CH >= 0 && work.CHIP_CH < 3) work.currentPartType = "FM";
+                        else if (work.CHIP_CH >= 3 && work.CHIP_CH < 6) work.currentPartType = "SSG";
+                        else if (work.CHIP_CH == 6) work.currentPartType = "ADPCM-A";
+                        else if (work.CHIP_CH >= 7 && work.CHIP_CH < 10) work.currentPartType = "FM";
+                        else if (work.CHIP_CH == 10) work.currentPartType = "ADPCM-B";
+                        break;
+                    case 4:
+                        work.currentChipName = "YM2151";
+                        work.currentPartType = "FM";
+                        break;
                 }
 
                 //KUMA:最後のCh、ページまでコンパイルしたか
@@ -4756,12 +4767,8 @@ namespace mucomDotNET.Compiler
                 , mucInfo.row
                 , mucInfo.col
                 , ptr - mucInfo.col + 1
-                , work.ChipIndex / 2 == 0
-                    ? (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM")))
-                    : (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "ADPCM-A" : "ADPCM-B")))
-                , work.ChipIndex / 2 == 0
-                    ? "YM2608"
-                    : "YM2610B"
+                , work.currentPartType
+                , work.currentChipName
                 , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
             // --	ｶｳﾝﾄ ｵｰﾊﾞｰ ｼｮﾘ	--
@@ -4802,12 +4809,8 @@ namespace mucomDotNET.Compiler
                 , mucInfo.row
                 , mucInfo.col
                 , ptr - mucInfo.col + 1
-                , work.ChipIndex / 2 == 0
-                    ? (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "RHYTHM" : "ADPCM")))
-                    : (tp == ChannelType.FM ? "FM" : (tp == ChannelType.SSG ? "SSG" : (tp == ChannelType.RHYTHM ? "ADPCM-A" : "ADPCM-B")))
-                , work.ChipIndex / 2 == 0
-                    ? "YM2608"
-                    : "YM2610B"
+                , work.currentPartType
+                , work.currentChipName
                 , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
             mucInfo.bufDst.Set(work.MDATA++, new MmlDatum(

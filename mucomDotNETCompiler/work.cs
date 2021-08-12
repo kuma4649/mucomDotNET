@@ -119,6 +119,8 @@ namespace mucomDotNET.Compiler
         /// </summary>
         public int CHIP_CH = 0;
 
+        public string currentChipName = "";
+        public string currentPartType = "";
 
         public work()
         {
