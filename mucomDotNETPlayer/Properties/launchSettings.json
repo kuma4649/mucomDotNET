@@ -2,7 +2,7 @@
   "profiles": {
     "Player": {
       "commandName": "Project",
-      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\自作\\mamonoro\\YO-KAI_Disco\\testYO-KAI_Disco_DotNET.mub\""
+      "commandLineArgs": "\"D:\\bootcamp\\Source\\Repos\\mucomDotNET\\Samples\\OPMPart_test.mub\""
     }
   }
 }

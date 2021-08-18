@@ -1,0 +1,24 @@
+#title    OPMパート サンプル
+#composer none
+#author   none
+#date     2021/04/30
+#comment  none
+#driver   mucomDotNET
+
+' lead synthっぽいなにか
+  @2
+   5, 4
+  031,001,001,001,005,026,000,001,002
+  031,004,003,008,010,000,000,000,003
+  031,001,001,001,005,020,000,001,006
+  031,004,003,008,010,004,000,000,005
+
+
+ パート名を併記することにより同じ内容のmmlを複数のパートで演奏可能
+
+ wxyzWXYZ   C192 t233 v11 l4 @2 o5
+ wxyzWXYZ   ((cdefgabr16
+
+y   C192 t233 v11 l4 @2 o5
+y   (cdefgabr16
+

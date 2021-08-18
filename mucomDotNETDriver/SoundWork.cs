@@ -172,7 +172,7 @@ namespace mucomDotNET.Driver
 
         internal void Init()
         {
-            for (int chipIndex = 0; chipIndex < 5; chipIndex++)
+            for (int chipIndex = 0; chipIndex < 4; chipIndex++)
             {
                 for (int i = 0; i < CHDAT[chipIndex][0].PGDAT.Count; i++)
                 {
@@ -268,6 +268,18 @@ namespace mucomDotNET.Driver
                     }
                 }
             }
+
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < CHDAT[4][i].PGDAT.Count; j++)
+                {
+                    CHDAT[4][i].PGDAT[j].lengthCounter = 1;
+                    CHDAT[4][i].PGDAT[j].instrumentNumber = 24;
+                    CHDAT[4][i].PGDAT[j].volume = 10;
+                    CHDAT[4][i].PGDAT[j].channelNumber = i;
+                }
+            }
+
 
             PREGBF = new byte[9];
             INITPM = new byte[] { 0, 0, 0, 0, 0, 56, 0, 0, 0 };

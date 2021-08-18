@@ -2,7 +2,7 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
-      "commandLineArgs": "-LOGLEVEL=TRACE \"D:\\bootcamp\\FM音源\\data\\自作\\mamonoro\\YO-KAI_Disco\\testYO-KAI_Disco_DotNET.muc\""
+      "commandLineArgs": "-LOGLEVEL=TRACE \"D:\\bootcamp\\Source\\Repos\\mucomDotNET\\Samples\\OPMPart_test.muc\""
     }
   }
 }

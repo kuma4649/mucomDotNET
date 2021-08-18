@@ -2638,7 +2638,7 @@ namespace mucomDotNET.Compiler
 
             if (mucInfo.DriverType == MUCInfo.enmDriverType.DotNet)
             {
-                if (work.CHIP_CH == 6)//KUMA:Rhythmの場合のみ特殊処理
+                if (work.ChipIndex != 4 && work.CHIP_CH == 6)//KUMA:Rhythmの場合のみ特殊処理
                 {
                     n = Math.Min(Math.Max(n, (sbyte)-63), (sbyte)63);
                     byte m = (byte)n;
