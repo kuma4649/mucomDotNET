@@ -863,7 +863,7 @@ namespace mucomDotNET.Compiler
                         mucInfo.fnSrcOnlyFile
                         , mucInfo.row, mucInfo.col
                         , mucInfo.srcCPtr - mucInfo.col + 1
-                        , work.ChipIndex / 2 == 0 ? "RHYTHM" : "ADPCM-A"
+                        , work.ChipIndex / 2 == 0 ? "RHYTHM" : "ADPCM-A" //YM2151はここに入ってこないので判定を略する
                         , work.ChipIndex / 2 == 0 ? "YM2608" : "YM2610B"
                         , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
@@ -1787,10 +1787,10 @@ namespace mucomDotNET.Compiler
                     , mucInfo.col
                     , mucInfo.srcCPtr - mucInfo.col + 1
                     , ""
-                    , work.ChipIndex / 2 == 0
-                        ? "YM2608"
-                        : "YM2610B"
-                    , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                    , Cmn.GetChipName(work.ChipIndex)
+                    , 0
+                    , Cmn.GetChipNumber(work.ChipIndex)
+                    , work.CHIP_CH * work.MAXPG + work.pageNow);
                 msub.MWRIT2(new MmlDatum(
                     enmMMLType.Rest
                     , args
@@ -1806,10 +1806,10 @@ namespace mucomDotNET.Compiler
                 , mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
                 , ""
-                , work.ChipIndex / 2 == 0
-                    ? "YM2608"
-                    : "YM2610B"
-                , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                , Cmn.GetChipName(work.ChipIndex)
+                , 0
+                , Cmn.GetChipNumber(work.ChipIndex)
+                , work.CHIP_CH * work.MAXPG + work.pageNow);
             msub.MWRIT2(new MmlDatum(
                     enmMMLType.Rest
                     , args
@@ -1939,10 +1939,10 @@ namespace mucomDotNET.Compiler
                     , mucInfo.col
                     , mucInfo.srcCPtr - mucInfo.col + 1
                     , ""
-                    , work.ChipIndex / 2 == 0
-                        ? "YM2608"
-                        : "YM2610B"
-                    , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                    , Cmn.GetChipName(work.ChipIndex)
+                    , 0
+                    , Cmn.GetChipNumber(work.ChipIndex)
+                    , work.CHIP_CH * work.MAXPG + work.pageNow);
                 msub.MWRIT2(new MmlDatum(
                     enmMMLType.Rest
                     , args
@@ -1958,10 +1958,10 @@ namespace mucomDotNET.Compiler
                 , mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
                 , ""
-                , work.ChipIndex / 2 == 0
-                    ? "YM2608"
-                    : "YM2610B"
-                , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                , Cmn.GetChipName(work.ChipIndex)
+                , 0
+                , Cmn.GetChipNumber(work.ChipIndex)
+                , work.CHIP_CH * work.MAXPG + work.pageNow);
             msub.MWRIT2(new MmlDatum(
                     enmMMLType.Rest
                     , args
@@ -2835,10 +2835,10 @@ namespace mucomDotNET.Compiler
                 , work.ChipIndex / 2 == 0
                     ? "RHYTHM"
                     : "ADPCM-A"
-                , work.ChipIndex / 2 == 0
-                    ? "YM2608"
-                    : "YM2610B"
-                ,0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                , Cmn.GetChipName(work.ChipIndex)
+                , 0
+                , Cmn.GetChipNumber(work.ChipIndex)
+                , work.CHIP_CH * work.MAXPG + work.pageNow);
 
             // -	DRAM V. -
             n += work.TV_OFS;
@@ -3324,10 +3324,10 @@ namespace mucomDotNET.Compiler
                 , mucInfo.row, mucInfo.col
                 , mucInfo.srcCPtr - mucInfo.col + 1
                 , "SSG"
-                , work.ChipIndex / 2 == 0
-                    ? "YM2608"
-                    : "YM2610B"
-                , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                , Cmn.GetChipName(work.ChipIndex)
+                , 0
+                , Cmn.GetChipNumber(work.ChipIndex)
+                , work.CHIP_CH * work.MAXPG + work.pageNow);
 
             msub.MWRITE(
                 new MmlDatum(enmMMLType.Instrument, args, lp, 0xf0)
@@ -3375,10 +3375,10 @@ namespace mucomDotNET.Compiler
                 , work.ChipIndex / 2 == 0
                     ? (tp == ChannelType.ADPCM ? "ADPCM" : "RHYTHM")
                     : (tp == ChannelType.ADPCM ? "ADPCM-B" : "ADPCM-A")
-                , work.ChipIndex / 2 == 0
-                    ? "YM2608"
-                    : "YM2610B"
-                , 0, work.ChipIndex % 2, work.CHIP_CH* work.MAXPG + work.pageNow);
+                , Cmn.GetChipName(work.ChipIndex)
+                , 0
+                , Cmn.GetChipNumber(work.ChipIndex)
+                , work.CHIP_CH* work.MAXPG + work.pageNow);
 
             msub.MWRITE(new MmlDatum(enmMMLType.Instrument, args, lp, 0xf0), new MmlDatum((byte)num));
 
@@ -3541,10 +3541,10 @@ namespace mucomDotNET.Compiler
                     ,mucInfo.col
                     ,len
                     ,""
-                    , work.ChipIndex / 2 == 0
-                        ? "YM2608"
-                        : "YM2610B"
-                    , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                    , Cmn.GetChipName(work.ChipIndex)
+                    , 0
+                    , Cmn.GetChipNumber(work.ChipIndex)
+                    , work.CHIP_CH * work.MAXPG + work.pageNow);
                 msub.MWRITE(
                     new MmlDatum(
                         enmMMLType.ClockCounter

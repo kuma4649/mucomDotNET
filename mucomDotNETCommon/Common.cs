@@ -83,5 +83,38 @@ namespace mucomDotNET.Common
             return dat;
         }
 
+        public static string GetChipName(int ChipIndex)
+        {
+            switch (ChipIndex)
+            {
+                case 0:
+                case 1:
+                    return "YM2608";
+                case 2:
+                case 3:
+                    return "YM2610B";
+                case 4:
+                    return "YM2151";
+                default:
+                    return "Unknown";
+            }
+        }
+        public static int GetChipNumber(int ChipIndex)
+        {
+            switch (ChipIndex)
+            {
+                case 0:
+                case 1:
+                    return 0;
+                case 2:
+                case 3:
+                    return 1;
+                case 4:
+                    return 0;
+                default:
+                    return -1;
+            }
+        }
+
     }
 }

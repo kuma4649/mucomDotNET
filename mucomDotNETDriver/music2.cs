@@ -973,9 +973,9 @@ namespace mucomDotNET.Driver
                     , work.soundWork.currentChip < 2
                         ? (work.soundWork.PCMFLG != 0 ? "ADPCM" : (work.soundWork.DRMF1 != 0 ? "RHYTHM" : (work.soundWork.SSGF1 != 0 ? "SSG" : "FM")))
                         : (work.soundWork.PCMFLG != 0 ? "ADPCM-B" : (work.soundWork.DRMF1 != 0 ? "ADPCM-A" : (work.soundWork.SSGF1 != 0 ? "SSG" : "FM")))
-                    , work.soundWork.currentChip < 2 ? "YM2608" : "YM2610B"
+                    , Cmn.GetChipName(work.soundWork.currentChip)
                     , 0
-                    , work.soundWork.currentChip % 2
+                    , Cmn.GetChipNumber(work.soundWork.currentChip)
                     , work.soundWork.currentCh
                     );
             }
