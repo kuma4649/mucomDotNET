@@ -152,6 +152,54 @@ namespace Vgm
 
         }
 
+        public void WriteYM2151(int v, byte address, byte data)
+        {
+            if (dest == null) return;
+
+            if (waitCounter != 0)
+            {
+                totalSample += waitCounter;
+
+                //waitコマンド出力
+                Log.WriteLine(LogLevel.TRACE
+                    , string.Format("wait:{0}", waitCounter)
+                    );
+
+                if (waitCounter <= 882 * 3)
+                {
+                    while (waitCounter > 882)
+                    {
+                        dest.WriteByte(0x63);
+                        waitCounter -= 882;
+                    }
+                    while (waitCounter > 735)
+                    {
+                        dest.WriteByte(0x62);
+                        waitCounter -= 735;
+                    }
+                }
+
+                while (waitCounter > 0)
+                {
+                    dest.WriteByte(0x61);
+                    dest.WriteByte((byte)waitCounter);
+                    dest.WriteByte((byte)(waitCounter >> 8));
+                    waitCounter -= (waitCounter & 0xffff);
+                }
+
+                waitCounter = 0;
+            }
+
+            Log.WriteLine(LogLevel.TRACE
+                , string.Format("a:{0} d:{1}", address, data)
+                );
+
+            dest.WriteByte((byte)(v == 0 ? 0x54 : 0xa4));
+            dest.WriteByte(address);
+            dest.WriteByte(data);
+
+        }
+
         public void Close(List<Tuple<string, string>> tags)
         {
             if (dest == null) return;
@@ -237,9 +285,16 @@ namespace Vgm
             dest.WriteByte(0);
             dest.WriteByte(0);
 
-            for (int i = 0; i < 4; i++)
+            //YM2151 offset
+            dest.Position = 0x30;
+            dest.WriteByte(0);
+            dest.WriteByte(0);
+            dest.WriteByte(0);
+            dest.WriteByte(0);
+
+            for (int i = 0; i < 5; i++)
             {
-                if (useChips[i] == 0 || useChips[i] > 4) continue;
+                if (useChips[i] == 0 || useChips[i] > 5) continue;
                 switch (useChips[i])
                 {
                     case 1:
@@ -259,6 +314,14 @@ namespace Vgm
                         dest.WriteByte(0x7a);
                         if (useChips[i] == 3) dest.WriteByte(0);
                         else dest.WriteByte(0x40);
+                        break;
+                    case 5:
+                        dest.Position = 0x30;
+                        dest.WriteByte(0x99);
+                        dest.WriteByte(0x9e);
+                        dest.WriteByte(0x36);
+                        if (useChips[i] == 5) dest.WriteByte(0);
+                        else dest.WriteByte(0x00);
                         break;
                 }
             }
@@ -347,6 +410,7 @@ namespace Vgm
             ret.Add(0);//0:unuse
             ret.Add(0);
             ret.Add(0);
+            ret.Add(0);
             useChips = ret.ToArray();
 
             //標準的なmubファイル
@@ -421,6 +485,7 @@ namespace Vgm
             ret.Add(0);
             ret.Add(0);
             ret.Add(0);
+            ret.Add(0);
 
             if (chipsCount > 0)
             {
@@ -471,6 +536,19 @@ namespace Vgm
                         n += pageCount[3][i];
                     }
                     if (n > 0) ret[3] = 4;
+                }
+            }
+
+            if (chipsCount > 4)
+            {
+                if (partCount[4] > 0)
+                {
+                    uint n = 0;
+                    for (int i = 0; i < partCount[4]; i++)
+                    {
+                        n += pageCount[4][i];
+                    }
+                    if (n > 0) ret[4] = 5;
                 }
             }
 

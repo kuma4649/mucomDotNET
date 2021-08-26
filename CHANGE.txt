@@ -1,4 +1,8 @@
 更新履歴
+TAG120 2021/08/27
+  ToVGM ToWAV
+  　OPMに対応していなかったのを修正
+
 TAG119 2021/08/23
   Compiler Driver
   　トレース向け情報にOPMが抜けていたので追加

@@ -2,7 +2,7 @@
   "profiles": {
     "Wav.Net4": {
       "commandName": "Project",
-      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\MUC\\Call2opn.mub\""
+      "commandLineArgs": "\"C:\\Users\\kuma\\Desktop\\compilerNET5\\win_x64\\StreetsOfRage4\\sor403.mub\""
     }
   }
 }
