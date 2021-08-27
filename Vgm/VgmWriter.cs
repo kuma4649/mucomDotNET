@@ -59,6 +59,7 @@ namespace Vgm
         public void WriteYM2608(int v, byte port, byte address, byte data)
         {
             if (dest == null) return;
+            if (useChips[0 + v] == 0) return;
 
             if (waitCounter != 0)
             {
@@ -108,6 +109,8 @@ namespace Vgm
         {
             if (dest == null) return;
 
+            if (useChips[2 + v]==0) return;
+
             if (waitCounter != 0)
             {
                 totalSample += waitCounter;
@@ -155,6 +158,7 @@ namespace Vgm
         public void WriteYM2151(int v, byte address, byte data)
         {
             if (dest == null) return;
+            if (useChips[4 + v] == 0) return;
 
             if (waitCounter != 0)
             {
@@ -349,6 +353,8 @@ namespace Vgm
 
         public void WriteAdpcm(byte chipId, byte[] AdpcmData)
         {
+            if (useChips[chipId] == 0 || AdpcmData == null || AdpcmData.Length < 1) return;
+
             dest.WriteByte(0x67);
             dest.WriteByte(0x66);
             dest.WriteByte(0x81);
@@ -412,6 +418,9 @@ namespace Vgm
             ret.Add(0);
             ret.Add(0);
             useChips = ret.ToArray();
+
+            //dest.WriteByte(0x56); dest.WriteByte(0x29); dest.WriteByte(0x82);
+            //WriteAdpcm(0, new byte[65536]);
 
             //標準的なmubファイル
             if (buf[0] == 0x4d
@@ -509,7 +518,11 @@ namespace Vgm
                     {
                         n += pageCount[1][i];
                     }
-                    if (n > 0) ret[1] = 2;
+                    if (n > 0)
+                    {
+                        ret[1] = 2;
+                        dest.WriteByte(0xa6); dest.WriteByte(0x29); dest.WriteByte(0x82);
+                    }
                 }
             }
 

@@ -92,8 +92,20 @@ namespace Vgm
                     }
                 }
 
-                //byte[] pcmdata = drv.GetPCMFromSrcBuf();
-                //if (pcmdata != null && pcmdata.Length > 0) vw.WriteAdpcm(pcmdata);
+                for (int i = 0; i < 2; i++)
+                {
+                    byte[] pcmSrcdata = ((Driver)drv).pcm[i];
+                    if (pcmSrcdata != null)
+                    {
+                        int pcmStartPos = ((Driver)drv).pcmStartPos[i];
+                        if (pcmStartPos < pcmSrcdata.Length)
+                        {
+                            byte[] pcmdata = new byte[pcmSrcdata.Length - pcmStartPos];
+                            Array.Copy(pcmSrcdata, pcmStartPos, pcmdata, 0, pcmdata.Length - pcmStartPos);
+                            if (pcmdata != null && pcmdata.Length > 0) vw.WriteAdpcm((byte)i, pcmdata);
+                        }
+                    }
+                }
 
                 drv.StartRendering((int)SamplingRate,
                     new Tuple<string, int>[]{

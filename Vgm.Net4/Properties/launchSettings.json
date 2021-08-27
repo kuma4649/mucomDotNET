@@ -2,7 +2,7 @@
   "profiles": {
     "Vgm.Net4": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\Users\\kuma\\Desktop\\compilerNET5\\win_x64\\StreetsOfRage4\\sor403.mub\""
+      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\player\\mucom\\mucom88win200305\\sampl1.mub\""
     }
   }
 }

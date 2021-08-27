@@ -14,9 +14,9 @@ namespace mucomDotNET.Driver
     {
         private MUBHeader header = null;
         private List<Tuple<string, string>> tags = null;
-        private byte[][] pcm = new byte[6][];
+        public byte[][] pcm = new byte[6][];
         private string[] pcmType = new string[6];
-        private int[] pcmStartPos = new int[6];
+        public int[] pcmStartPos = new int[6];
         private Action<ChipDatum> WriteOPNAP;
         private Action<ChipDatum> WriteOPNAS;
         private Action<ChipDatum> WriteOPNBP;
