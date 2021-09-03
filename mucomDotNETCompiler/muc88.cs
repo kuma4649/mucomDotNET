@@ -1155,6 +1155,11 @@ namespace mucomDotNET.Compiler
                 mucInfo.bufDst.Set(work.DATTBL - 1, new MmlDatum(n));// TIMER_B ﾆ ｱﾜｾﾙ
             }
 
+            if (mucInfo.DriverType == MUCInfo.enmDriverType.DotNet)
+            {
+                return TIMEB2ex(n);
+            }
+
             if (work.CHIP_CH >= 3 && work.CHIP_CH < 6)
             {
                 WriteWarning(msg.get("W0412"), mucInfo.row, mucInfo.col);
@@ -1176,6 +1181,26 @@ namespace mucomDotNET.Compiler
                 msub.MWRITE(new MmlDatum(0x00), new MmlDatum(0x00)); // chip:0  port:0
                 msub.MWRITE(new MmlDatum(0x26), new MmlDatum(n)); // adr:0x26  dat:n
             }
+            return EnmFCOMPNextRtn.fcomp1;
+        }
+
+        private EnmFCOMPNextRtn TIMEB2ex(byte n)
+        {
+            if (work.ChipIndex == 0)
+            {
+                if (work.CHIP_CH < 3 || work.CHIP_CH >= 6)
+                {
+                    msub.MWRITE(new MmlDatum(0xfa), new MmlDatum(0x26));
+                    msub.MWRIT2(new MmlDatum(n));
+
+                    return EnmFCOMPNextRtn.fcomp1;
+                }
+            }
+
+            msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xf7));
+            msub.MWRITE(new MmlDatum(0x00), new MmlDatum(0x00)); // chip:0  port:0
+            msub.MWRITE(new MmlDatum(0x26), new MmlDatum(n)); // adr:0x26  dat:n
+
             return EnmFCOMPNextRtn.fcomp1;
         }
 
