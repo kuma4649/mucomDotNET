@@ -62,7 +62,9 @@ namespace mucomDotNET.Compiler.PCMTool
                     bool isRaw;
                     int samplerate;
                     raw = GetPCMDataFromFile("", fileName, volume, out isRaw, out is16bit, out samplerate);
-                    length = (ushort)raw.Length;
+                    if (raw != null) length = (ushort)raw.Length;
+                    else
+                        throw new mucomDotNET.Common.MucException(string.Format("Fail get pcm data from file[{0}].", fileName));
                 }
                 else
                 {
@@ -74,8 +76,11 @@ namespace mucomDotNET.Compiler.PCMTool
                 bool isRaw;
                 int samplerate;
                 raw = GetPCMDataFromFile(buf, volume, out isRaw, out is16bit, out samplerate);
-                length = (ushort)raw.Length;
+                if (raw != null) length = (ushort)raw.Length;
+                else
+                    throw new mucomDotNET.Common.MucException(string.Format("Fail get pcm data from file[{0}].", fileName));
             }
+
         }
 
         /// <summary>

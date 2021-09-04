@@ -89,8 +89,8 @@ namespace mucomDotNET.Compiler
                         pcmdata[i] = GetPackedPCM(i, mucInfo.pcmAt[i], appendFileReaderCallback);
                     }
 
-                    if(pcmdata[i]==null)
-                    { 
+                    if (pcmdata[i] == null)
+                    {
                         using (Stream pd = appendFileReaderCallback?.Invoke(string.IsNullOrEmpty(mucInfo.pcm[i])
                         ? pcmdefaultFilename[i]
                         : mucInfo.pcm[i]))
@@ -134,11 +134,13 @@ namespace mucomDotNET.Compiler
             }
             catch (MucException me)
             {
+                if (work.compilerInfo == null) work.compilerInfo = new CompilerInfo();
                 work.compilerInfo.errorList.Add(new Tuple<int, int, string>(-1, -1, me.Message));
                 Log.WriteLine(LogLevel.ERROR, me.Message);
             }
             catch (Exception e)
             {
+                if (work.compilerInfo == null) work.compilerInfo = new CompilerInfo();
                 work.compilerInfo.errorList.Add(new Tuple<int, int, string>(-1, -1, e.Message));
                 Log.WriteLine(LogLevel.ERROR, string.Format(
                     msg.get("E0000")
