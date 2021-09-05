@@ -36,7 +36,7 @@ namespace mucomDotNET.Compiler
         ,0x53 //,'S'	SE DETUNE
         ,0x4c //,'L'	JUMP RESTART ADR
         ,0x71 //,'q'	COMMAND OF 'q'
-        ,0x45 //,'E'	SOFT ENV
+        ,0x45 //,'E'	SOFT ENV or Ch3SpMode
         ,0x50 //,'P'	MIX PORT
         ,0x77 //,'w'	NOIZE WAVE
         ,0x74 //,'t'	TEMPO(DIRECT CLOCK)

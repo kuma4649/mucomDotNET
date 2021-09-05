@@ -198,7 +198,7 @@ namespace mucomDotNET.Driver
                 ,REVSW	       // 0xFF 0xF5 - ﾘﾊﾞｰﾌﾞ ｽｲｯﾁ
                 ,SetKeyOnDelay // 0xFF 0xF6 - キーオンディレイ 'KD' n1,n2,n3,n4
                 ,MW_REG        // 0xFF 0xF7 - multi Write Register n1,n2,n3,n4
-                ,NTMEAN        // 0xFF 0xF8
+                ,NTMEAN        // 0xFF 0xF8 - 効果音モード系制御コマンド
                 ,NTMEAN        // 0xFF 0xF9
                 ,NTMEAN        // 0xFF 0xFA
                 ,NTMEAN        // 0xFF 0xFB

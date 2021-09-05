@@ -44,7 +44,7 @@ namespace mucomDotNET.Compiler
             , SETSEorSETHE
             , SETJMP
             , SETQLG
-            , SETSEV
+            , SETSEVorSETC3SP
             , SETMIXorSETPOR
             , SETWAV
             , TIMERB
@@ -1227,6 +1227,17 @@ namespace mucomDotNET.Compiler
             return EnmFCOMPNextRtn.fcomp1;
         }
 
+        private EnmFCOMPNextRtn SETSEVorSETC3SP()
+        {
+            char ch = mucInfo.lin.Item2.Length > (mucInfo.srcCPtr + 1) ? mucInfo.lin.Item2[mucInfo.srcCPtr + 1] : (char)0;
+            if (ch == 'X')
+            {
+                return SETCh3SpecialMode();
+            }
+
+            return SETSEV();
+        }
+
         private EnmFCOMPNextRtn SETMIXorSETPOR()
         {
             char ch = mucInfo.lin.Item2.Length > (mucInfo.srcCPtr + 1) ? mucInfo.lin.Item2[mucInfo.srcCPtr + 1] : (char)0;
@@ -1283,6 +1294,83 @@ namespace mucomDotNET.Compiler
             return EnmFCOMPNextRtn.fcomp1;
         }
 
+        private EnmFCOMPNextRtn SETCh3SpecialMode()
+        {
+            mucInfo.srcCPtr++;
+            char ch = mucInfo.lin.Item2.Length > (mucInfo.srcCPtr + 1) ? mucInfo.lin.Item2[mucInfo.srcCPtr + 1] : (char)0;
+            if (ch == 'O')
+            {
+                //EXON/EXOF
+                return SETCh3SpecialMode_SW();
+            }
+
+            //EXnコマンド
+
+            skipSpaceAndTab();
+
+            //数値の取得
+            int ptr = mucInfo.srcCPtr;
+            int n = (byte)msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0524"));
+            mucInfo.srcCPtr = ptr;
+
+            //簡易チェック
+            if (n < 1 || n > 4321)
+            {
+                //error
+                throw new MucException(string.Format(msg.get("E0525"), n)
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            string s = n.ToString();
+            int sw = 0;
+            //重複指定できるけどまあ良しｗ
+            foreach (char c in s)
+            {
+                if (c < '1' || c > '4')
+                {
+                    //error
+                    throw new MucException(string.Format(msg.get("E0526"), c)
+                        , mucInfo.row, mucInfo.col);
+                }
+                int d = int.Parse(c.ToString());
+                sw |= (1 << (d - 1));
+            }
+
+            //EXコマンドの発行
+            msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xf8));
+            msub.MWRITE(new MmlDatum(0x00), new MmlDatum(sw));
+
+            return EnmFCOMPNextRtn.fcomp1;
+        }
+
+        private EnmFCOMPNextRtn SETCh3SpecialMode_SW()
+        {
+            mucInfo.srcCPtr++;
+            char ch = mucInfo.lin.Item2.Length > (mucInfo.srcCPtr + 1) ? mucInfo.lin.Item2[mucInfo.srcCPtr + 1] : (char)0;
+            int sw = -1;
+            if (ch == 'N')
+            {
+                sw = 1;
+            }
+            else if (ch == 'F')
+            {
+                sw = 0;
+            }
+            if (sw == -1)
+            {
+                //error
+                throw new MucException(msg.get("E0527")
+                    , mucInfo.row, mucInfo.col);
+            }
+            mucInfo.srcCPtr++;
+            mucInfo.srcCPtr++;
+
+            //EXON/EXOFコマンドの発行
+            msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xf8));
+            msub.MWRITE(new MmlDatum(0x00), new MmlDatum(sw));
+
+            return EnmFCOMPNextRtn.fcomp1;
+        }
 
         private EnmFCOMPNextRtn SETPOR()
         {
