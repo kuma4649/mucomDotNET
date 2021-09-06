@@ -1267,9 +1267,13 @@ namespace mucomDotNET.Driver
                                                     // A4-A6 ﾎﾟｰﾄ ｼｭﾂﾘｮｸﾖｳ ﾆ ｱﾜｾﾙ
                                                     // GET FNUM2
                                                     // A= KEY CODE & FNUM HI
+
+                    hl = (uint)(hl + work.pg.detune);// GET DETUNE DATA
+                                                     // DETUNE PLUS
                 }
                 else
                 {
+                    //OPM専用処理
                     short val = work.soundWork.FNUMBopm[work.header.OPMClockMode == MUBHeader.enmOPMClockMode.normal ? 0 : 1][a & 0xf];// GET KEY CODE(C, C+, D...B)
                     int oct = (a & 0x70) >> 4;
                     if (val < 0)
@@ -1282,11 +1286,10 @@ namespace mucomDotNET.Driver
                             val = 0;
                         }
                     }
-                    hl =(ushort)((ushort)val | ((oct & 0x7) << 11));
-                }
 
-                hl = (uint)(hl + work.pg.detune);// GET DETUNE DATA
-                                                 // DETUNE PLUS
+                    //detune加算
+                    hl = AddDetuneToFNumopm((ushort)((ushort)val | ((oct & 0x7) << 11)), (short)work.pg.detune);
+                }
 
                 if (!work.pg.tlLfoflg)
                 {
