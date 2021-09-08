@@ -198,7 +198,7 @@ namespace mucomDotNET.Driver
                 ,REVSW	       // 0xFF 0xF5 - ﾘﾊﾞｰﾌﾞ ｽｲｯﾁ
                 ,SetKeyOnDelay // 0xFF 0xF6 - キーオンディレイ 'KD' n1,n2,n3,n4
                 ,MW_REG        // 0xFF 0xF7 - multi Write Register n1,n2,n3,n4
-                ,NTMEAN        // 0xFF 0xF8 - 効果音モード系制御コマンド
+                ,CH3SP         // 0xFF 0xF8 - 効果音モード系制御コマンド
                 ,NTMEAN        // 0xFF 0xF9
                 ,NTMEAN        // 0xFF 0xFA
                 ,NTMEAN        // 0xFF 0xFB
@@ -860,7 +860,9 @@ namespace mucomDotNET.Driver
                 return;
             }
 
-            if (work.soundWork.DRMF1 != 0 || work.cd.currentPageNo == work.pg.pageNo)
+            if ((work.soundWork.FMPORT == 0 && work.pg.channelNumber == 2 && work.soundWork.Ch3SpMode)
+                ||work.soundWork.DRMF1 != 0 
+                || work.cd.currentPageNo == work.pg.pageNo)
                 KEYOFF();
         }
 
@@ -885,13 +887,59 @@ namespace mucomDotNET.Driver
 
             c = work.soundWork.CRYDAT[work.pg.algo];
 
-            for (int b = 0; b < 4; b++)
+            if (work.soundWork.FMPORT == 0 && work.pg.channelNumber == 2 && work.soundWork.Ch3SpMode)
             {
-                if ((c & (1 << b)) != 0)
+                if ((work.pg.useSlot & 1) != 0)
                 {
-                    byte v = e;
-                    if (work.isDotNET) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[b], 0), 127);
-                    PSGOUT((byte)(d + b * 4), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
+                    if ((c & (1 << 0)) != 0)//slot1
+                    {
+                        byte v = e;
+                        if (work.isDotNET) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[0], 0), 127);
+                        PSGOUT((byte)(d + 0 * 4), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
+                    }
+                }
+
+                if ((work.pg.useSlot & 4) != 0)
+                {
+                    if ((c & (1 << 1)) != 0)//slot3
+                    {
+                        byte v = e;
+                        if (work.isDotNET) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[1], 0), 127);
+                        PSGOUT((byte)(d + 1 * 4), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
+                    }
+                }
+
+                if ((work.pg.useSlot & 2) != 0)
+                {
+                    if ((c & (1 << 2)) != 0)//slot2
+                    {
+                        byte v = e;
+                        if (work.isDotNET) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[2], 0), 127);
+                        PSGOUT((byte)(d + 2 * 4), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
+                    }
+                }
+
+                if ((work.pg.useSlot & 8) != 0)
+                {
+                    if ((c & (1 << 3)) != 0)//slot4
+                    {
+                        byte v = e;
+                        if (work.isDotNET) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[3], 0), 127);
+                        PSGOUT((byte)(d + 3 * 4), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
+                    }
+                }
+
+            }
+            else
+            {
+                for (int b = 0; b < 4; b++)
+                {
+                    if ((c & (1 << b)) != 0)
+                    {
+                        byte v = e;
+                        if (work.isDotNET) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[b], 0), 127);
+                        PSGOUT((byte)(d + b * 4), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
+                    }
                 }
             }
 
@@ -936,8 +984,8 @@ namespace mucomDotNET.Driver
                     port = 1;
                 }
             }
-            
-            //if (d >= 0x10 && d <= 0x1d)
+
+            //if (d == 0x42)// && d <= 0x1d)
             //{
             //    Console.WriteLine("{0:x} {1:x}", d, e);
             //}
@@ -1030,7 +1078,18 @@ namespace mucomDotNET.Driver
             work.pg.KDWork[1] = 0;
             work.pg.KDWork[2] = 0;
             work.pg.KDWork[3] = 0;
-            PSGOUT(0x28, (byte)(work.soundWork.FMPORT + work.pg.channelNumber));//  KEY-OFF
+
+            if (work.soundWork.FMPORT == 0 && work.pg.channelNumber == 2 && work.soundWork.Ch3SpMode)
+            {
+                work.cd.ch3KeyOn &= (byte)~(work.pg.useSlot << 4);
+                byte a = (byte)(work.cd.ch3KeyOn | 0x2);
+                PSGOUT(0x28, a);//KEY-OFF
+                //Console.WriteLine("KEYOFF : {0:x02}", a);
+            }
+            else
+            {
+                PSGOUT(0x28, (byte)(work.soundWork.FMPORT + work.pg.channelNumber));//  KEY-OFF
+            }
 
         }
 
@@ -1142,7 +1201,10 @@ namespace mucomDotNET.Driver
 
                 if (work.pg.reverbMode)
                 {
-                    if (work.cd.currentPageNo == work.pg.pageNo || work.soundWork.DRMF1 != 0)
+                    if (
+                        (work.soundWork.FMPORT == 0 && work.pg.channelNumber == 2 && work.soundWork.Ch3SpMode)
+                        || work.cd.currentPageNo == work.pg.pageNo
+                        || work.soundWork.DRMF1 != 0)
                         KEYOFF();
                     return;
                 }
@@ -1151,7 +1213,10 @@ namespace mucomDotNET.Driver
                     FS2();
                     return;
                 }
-                if (work.cd.currentPageNo == work.pg.pageNo || work.soundWork.DRMF1 != 0)
+                if (
+                    (work.soundWork.FMPORT == 0 && work.pg.channelNumber == 2 && work.soundWork.Ch3SpMode)
+                    || work.cd.currentPageNo == work.pg.pageNo
+                    || work.soundWork.DRMF1 != 0)
                     KEYOFF();
 
                 DummyOUT();
@@ -1214,7 +1279,8 @@ namespace mucomDotNET.Driver
                 PCMEND();
                 return;
             }
-            if (work.cd.currentPageNo == work.pg.pageNo)
+            if ((work.soundWork.FMPORT == 0 && work.pg.channelNumber == 2 && work.soundWork.Ch3SpMode)
+                || work.cd.currentPageNo == work.pg.pageNo)
                 KEYOFF();
         }
 
@@ -1315,6 +1381,48 @@ namespace mucomDotNET.Driver
             DKEYON();//戻り値がcarry
         }
 
+        /// <summary>
+        /// 効果音モード専用のFMSUB4
+        /// </summary>
+        public void FMSUB4ex(uint hl)
+        {
+            byte a;
+            work.carry = false;
+
+            a = (byte)work.pg.mData[hl].dat;// A=BLOCK(OCTAVE-1 ) & KEY CODE DATA
+            work.pg.dataAddressWork = hl + 1;// SET NEXT SOUND DATA ADD
+            if (!work.pg.keyoffflg // CHECK KEYOFF FLAG
+                && work.pg.beforeCode == a)// GET BEFORE CODE DATA
+            {
+                work.carry = true;
+                return;
+            }
+
+            work.pg.beforeCode = a;
+
+            hl = work.soundWork.FNUMB[work.soundWork.currentChip / 2][a & 0xf];// GET KEY CODE(C, C+, D...B)
+            hl |= (ushort)((a & 0x70) << 7);// GET BLOCK DATA
+                                            // A4-A6 ﾎﾟｰﾄ ｼｭﾂﾘｮｸﾖｳ ﾆ ｱﾜｾﾙ
+                                            // GET FNUM2
+                                            // A= KEY CODE & FNUM HI
+
+            hl = (uint)(hl + work.pg.detune);// GET DETUNE DATA
+                                             // DETUNE PLUS
+            if (!work.pg.tlLfoflg)
+            {
+                work.pg.fnum = (int)hl;// FOR LFO
+                                       // FOR LFO
+                work.soundWork.FNUM = hl;
+            }
+            if (work.pg.keyoffflg)
+            {
+                LFORST();
+            }
+            LFORST2();
+
+            return;
+        }
+
         public void FMSUB6(uint hl, uint bc)
         {
             if (work.soundWork.currentChip == 4)
@@ -1342,8 +1450,33 @@ namespace mucomDotNET.Driver
             e = (byte)hl;// F-NUMBER1 DATA
                          //FMSUB7:
             PSGOUT(d, e);
+
             KEYON();
             work.carry = false;
+        }
+
+        public void FMSUB6ex(uint hl, uint bc)
+        {
+            if (work.isDotNET)
+            {
+                hl = AddDetuneToFNum((ushort)hl, (short)(ushort)bc);
+            }
+            else
+            {
+                hl += bc;// BLOCK/FNUM1&2 DETUNE PLUS(for SE MODE)
+            }
+
+            byte e = (byte)(hl >> 8);// BLOCK/F-NUMBER2 DATA
+                                     //FPORT:
+            byte d = work.soundWork.FPORT_VAL;// 0x0A4;// PORT A4H
+            d += (byte)work.pg.channelNumber;
+            PSGOUT(d, e);
+
+            d -= 4;
+            e = (byte)hl;// F-NUMBER1 DATA
+                         //FMSUB7:
+            PSGOUT(d, e);
+
         }
 
         public void FMSUB6opm(uint hl, uint bc)
@@ -1450,29 +1583,35 @@ namespace mucomDotNET.Driver
 
         public void EXMODE(uint hl)
         {
-            work.soundWork.FMSUB8_VAL = (ushort)work.soundWork.DETDAT[work.soundWork.currentChip][0];
-            FMSUB4(hl);// SET OP1
+            //fnum算出
+
+            FMSUB4ex(hl);// SET OP1
             if (work.carry)
             {
-                work.soundWork.FMSUB8_VAL = 0;//忘れずに戻す
                 return;
             }
 
-            hl = 1;
-            byte a = 0x0AA;//  A = CH3 F-NUM2 OP1 PORT - 2
-                           //EXMLP:
-            while (a != 0xad)//END PORT+1
-            {
-                work.soundWork.FPORT_VAL = a;
-                a++;
-                //HLSTC0:
-                FMSUB6(work.soundWork.FNUM, (ushort)work.soundWork.DETDAT[work.soundWork.currentChip][hl++]);// SET OP2-OP4
-            }
+            //Ch3 のスロット毎にfnumをセット
+            if ((work.pg.useSlot & 8) != 0) //slot4
+                FMSUB6ex(work.soundWork.FNUM, (ushort)work.soundWork.DETDAT[work.soundWork.currentChip][0]);
+
+            work.soundWork.FPORT_VAL = 0xaa;
+            if ((work.pg.useSlot & 4) != 0) //slot3
+                FMSUB6ex(work.soundWork.FNUM, (ushort)work.soundWork.DETDAT[work.soundWork.currentChip][1]);
+
+            work.soundWork.FPORT_VAL = 0xab;
+            if ((work.pg.useSlot & 1) != 0) //slot1
+                FMSUB6ex(work.soundWork.FNUM, (ushort)work.soundWork.DETDAT[work.soundWork.currentChip][2]);
+
+            work.soundWork.FPORT_VAL = 0xac;
+            if ((work.pg.useSlot & 2) != 0) //slot2
+                FMSUB6ex(work.soundWork.FNUM, (ushort)work.soundWork.DETDAT[work.soundWork.currentChip][3]);
 
             work.soundWork.FPORT_VAL = 0xa4;
-            //BRESET:
-            work.soundWork.FMSUB8_VAL = 0;
-            //  RET TO MAIN
+
+            KEYONex();
+            work.carry = false;
+
         }
 
         // ---	RESET PEAK L.&DELAY	---
@@ -1685,6 +1824,49 @@ namespace mucomDotNET.Driver
             }
         }
 
+        public void KEYONex()
+        {
+            if (work.soundWork.READY == 0) return;
+            //if (work.cd.keyOnCh != -1) return;//KUMA:既に他のページが発音中の場合は処理しない
+
+            byte a = 0x02;
+            //if (work.soundWork.FMPORT == 0)
+            //{
+            //    a = 0x00;
+            //}
+
+            if (!work.pg.KeyOnDelayFlag)
+            {
+                a += work.pg.keyOnSlot;
+            }
+            else
+            {
+                work.pg.keyOnSlot = 0x00;
+                if (work.pg.KD[0] == 0) work.pg.keyOnSlot += 0x10;
+                if (work.pg.KD[1] == 0) work.pg.keyOnSlot += 0x20;
+                if (work.pg.KD[2] == 0) work.pg.keyOnSlot += 0x40;
+                if (work.pg.KD[3] == 0) work.pg.keyOnSlot += 0x80;
+                a += work.pg.keyOnSlot;
+
+                work.pg.KDWork[0] = work.pg.KD[0];
+                work.pg.KDWork[1] = work.pg.KD[1];
+                work.pg.KDWork[2] = work.pg.KD[2];
+                work.pg.KDWork[3] = work.pg.KD[3];
+            }
+
+            ////発音ページ情報セット
+            //work.cd.keyOnCh = work.pg.pageNo;
+
+            work.cd.ch3KeyOn |= (byte)(work.pg.useSlot << 4);
+            a &= (byte)(work.cd.ch3KeyOn | 0xf);
+            PSGOUT(0x28, a);//KEY-ON
+
+            if (work.pg.reverbFlg)
+            {
+                STVOL();
+            }
+        }
+
         public void KEYONopm()
         {
             if (work.soundWork.READY == 0) return;
@@ -1886,17 +2068,37 @@ namespace mucomDotNET.Driver
             byte c = 6;// 6 PARAMATER(Det/Mul, Total, KS/AR, DR, SR, SL/RR)
             do
             {
-                b = 4;// 4 OPERATER
-                      //STENV3:
-                do
+                if (work.soundWork.FMPORT == 0 && work.pg.channelNumber == 2 && work.soundWork.Ch3SpMode)
                 {
-                    // GET DATA
-                    //PSGOUT(d, work.mData[hl++].dat);
-                    PSGOUT(d, work.fmVoiceAtMusData[hl++]);
+                    if ((work.pg.useSlot & 1) != 0) PSGOUT(d, work.fmVoiceAtMusData[hl]);
+                    hl++;
                     d += 4;// SKIP BLANK PORT
-                    b--;
-                } while (b != 0);
+                    if ((work.pg.useSlot & 4) != 0) PSGOUT(d, work.fmVoiceAtMusData[hl]);
+                    hl++;
+                    d += 4;// SKIP BLANK PORT
+                    if ((work.pg.useSlot & 2) != 0) PSGOUT(d, work.fmVoiceAtMusData[hl]);
+                    hl++;
+                    d += 4;// SKIP BLANK PORT
+                    if ((work.pg.useSlot & 8) != 0) PSGOUT(d, work.fmVoiceAtMusData[hl]);
+                    hl++;
+                    d += 4;// SKIP BLANK PORT
+                }
+                else
+                {
+                    b = 4;// 4 OPERATER
+                          //STENV3:
+                    do
+                    {
+                        // GET DATA
+                        //PSGOUT(d, work.mData[hl++].dat);
+                        PSGOUT(d, work.fmVoiceAtMusData[hl++]);
+                        d += 4;// SKIP BLANK PORT
+                        b--;
+                    } while (b != 0);
+                }
+
                 c--;
+
             } while (c != 0);
 
             //e = work.mData[hl].dat;// GET FEEDBACK/ALGORIZM
@@ -2883,6 +3085,25 @@ namespace mucomDotNET.Driver
             byte d = (byte)work.pg.mData[work.hl++].dat;
             byte e = (byte)work.pg.mData[work.hl++].dat;
             PSGOUT(c, p, d, e);
+        }
+
+        public void CH3SP()
+        {
+            byte c = (byte)work.pg.mData[work.hl++].dat;
+            if (c == 0x00)
+            {
+                byte sw = (byte)work.pg.mData[work.hl++].dat;
+                if (work.soundWork.currentChip != 4)//OPM以外であれば効果音モードを設定
+                {
+                    if (sw == 0) TO_NML();
+                    else TO_EFC();
+                }
+            }
+            else
+            {
+                byte slot = (byte)work.pg.mData[work.hl++].dat;
+                work.pg.useSlot = slot;
+            }
         }
 
         // **	VOLUME UP & DOWN**

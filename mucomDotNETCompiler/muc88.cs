@@ -1310,14 +1310,14 @@ namespace mucomDotNET.Compiler
 
             //数値の取得
             int ptr = mucInfo.srcCPtr;
-            int n = (byte)msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0524"));
+            int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0534"));
             mucInfo.srcCPtr = ptr;
 
             //簡易チェック
             if (n < 1 || n > 4321)
             {
                 //error
-                throw new MucException(string.Format(msg.get("E0525"), n)
+                throw new MucException(string.Format(msg.get("E0535"), n)
                     , mucInfo.row, mucInfo.col);
             }
 
@@ -1329,7 +1329,7 @@ namespace mucomDotNET.Compiler
                 if (c < '1' || c > '4')
                 {
                     //error
-                    throw new MucException(string.Format(msg.get("E0526"), c)
+                    throw new MucException(string.Format(msg.get("E0536"), c)
                         , mucInfo.row, mucInfo.col);
                 }
                 int d = int.Parse(c.ToString());
@@ -1338,7 +1338,7 @@ namespace mucomDotNET.Compiler
 
             //EXコマンドの発行
             msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xf8));
-            msub.MWRITE(new MmlDatum(0x00), new MmlDatum(sw));
+            msub.MWRITE(new MmlDatum(0x01), new MmlDatum(sw));
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -1359,7 +1359,7 @@ namespace mucomDotNET.Compiler
             if (sw == -1)
             {
                 //error
-                throw new MucException(msg.get("E0527")
+                throw new MucException(msg.get("E0537")
                     , mucInfo.row, mucInfo.col);
             }
             mucInfo.srcCPtr++;

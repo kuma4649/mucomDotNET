@@ -110,6 +110,12 @@ namespace mucomDotNET.Driver
         public uint TB_TOP { get; internal set; }
         public int NOTSB2 { get; internal set; }
         public byte PLSET1_VAL { get; internal set; }
+        public bool Ch3SpMode {
+            get
+            {
+                return PLSET1_VAL == 0x78;
+            }
+        }
         public byte PLSET2_VAL { get; internal set; }
         public int[] PCMLR { get; internal set; } = new int[6];
         public int FMPORT { get; internal set; }
@@ -374,6 +380,7 @@ namespace mucomDotNET.Driver
 
         public int keyOnCh { get; internal set; }
         public int currentPageNo { get; internal set; }
+        public int ch3KeyOn { get; internal set; }
     }
 
     public class PGDAT
@@ -443,9 +450,11 @@ namespace mucomDotNET.Driver
         public int pageNo { get; internal set; }
 
         public bool KeyOnDelayFlag = false;
-        public byte keyOnSlot = 0xf0;
+        public byte keyOnSlot = 0xf0;//Keyonslot制御向け
         public byte[] KD = new byte[4];
         public byte[] KDWork = new byte[4];
+        public byte useSlot = 0xf0;//ページが使用するスロット(bit)
+
         public byte backupMIXPort { get; internal set; } = 0x38;
         public byte backupNoiseFrq { get; internal set; } = 0;
         public byte backupHardEnv { get; internal set; } = 0;

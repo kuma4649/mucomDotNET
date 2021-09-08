@@ -1,4 +1,8 @@
 更新履歴
+TAG126 2021/09/08
+  Compiler Driver
+  　OPNA/OPNB:効果音モードに対応。
+
 TAG125 2021/09/07
   Driver
   　OPM:Detuneにマイナス値を指定すると音痴になるのを修正
