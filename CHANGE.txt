@@ -1,4 +1,8 @@
 更新履歴
+TAG127 2021/09/09
+  Driver
+  　効果音モード:ページ機能回避処理追加
+
 TAG126 2021/09/08
   Compiler Driver
   　OPNA/OPNB:効果音モードに対応。

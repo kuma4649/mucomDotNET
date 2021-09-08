@@ -860,7 +860,7 @@ namespace mucomDotNET.Driver
                 return;
             }
 
-            if ((work.soundWork.FMPORT == 0 && work.pg.channelNumber == 2 && work.soundWork.Ch3SpMode)
+            if (CheckCh3SpecialMode()
                 ||work.soundWork.DRMF1 != 0 
                 || work.cd.currentPageNo == work.pg.pageNo)
                 KEYOFF();
@@ -887,7 +887,7 @@ namespace mucomDotNET.Driver
 
             c = work.soundWork.CRYDAT[work.pg.algo];
 
-            if (work.soundWork.FMPORT == 0 && work.pg.channelNumber == 2 && work.soundWork.Ch3SpMode)
+            if (CheckCh3SpecialMode())
             {
                 if ((work.pg.useSlot & 1) != 0)
                 {
@@ -1079,7 +1079,7 @@ namespace mucomDotNET.Driver
             work.pg.KDWork[2] = 0;
             work.pg.KDWork[3] = 0;
 
-            if (work.soundWork.FMPORT == 0 && work.pg.channelNumber == 2 && work.soundWork.Ch3SpMode)
+            if (CheckCh3SpecialMode())
             {
                 work.cd.ch3KeyOn &= (byte)~(work.pg.useSlot << 4);
                 byte a = (byte)(work.cd.ch3KeyOn | 0x2);
@@ -1202,7 +1202,7 @@ namespace mucomDotNET.Driver
                 if (work.pg.reverbMode)
                 {
                     if (
-                        (work.soundWork.FMPORT == 0 && work.pg.channelNumber == 2 && work.soundWork.Ch3SpMode)
+                        CheckCh3SpecialMode()
                         || work.cd.currentPageNo == work.pg.pageNo
                         || work.soundWork.DRMF1 != 0)
                         KEYOFF();
@@ -1214,7 +1214,7 @@ namespace mucomDotNET.Driver
                     return;
                 }
                 if (
-                    (work.soundWork.FMPORT == 0 && work.pg.channelNumber == 2 && work.soundWork.Ch3SpMode)
+                    CheckCh3SpecialMode()
                     || work.cd.currentPageNo == work.pg.pageNo
                     || work.soundWork.DRMF1 != 0)
                     KEYOFF();
@@ -1230,7 +1230,7 @@ namespace mucomDotNET.Driver
                 return;
             }
 
-            if (work.cd.currentPageNo != work.pg.pageNo)
+            if (!CheckCh3SpecialMode() && work.cd.currentPageNo != work.pg.pageNo)
             {
                 //切り替え処理
                 RestoreOTOPST();
@@ -1279,7 +1279,7 @@ namespace mucomDotNET.Driver
                 PCMEND();
                 return;
             }
-            if ((work.soundWork.FMPORT == 0 && work.pg.channelNumber == 2 && work.soundWork.Ch3SpMode)
+            if (CheckCh3SpecialMode()
                 || work.cd.currentPageNo == work.pg.pageNo)
                 KEYOFF();
         }
@@ -1957,7 +1957,8 @@ namespace mucomDotNET.Driver
 
             work.pg.instrumentNumber = work.pg.mData[work.hl++].dat;
 
-            if (work.cd.currentPageNo != work.pg.pageNo) return;//KUMA:カレントページの場合のみ音色を変更する
+            //KUMA:カレントページの場合、または効果音モード有効時のみ音色を変更する
+            if (!CheckCh3SpecialMode() && work.cd.currentPageNo != work.pg.pageNo) return;
 
             STENV();
             STVOL();
@@ -2035,12 +2036,26 @@ namespace mucomDotNET.Driver
             byte e = 0xf;
             byte b = 4;
             //ENVLP:
-            do
+
+            if (CheckCh3SpecialMode())
             {
-                PSGOUT(a, e);// ﾘﾘｰｽ(RR) ｶｯﾄ ﾉ ｼｮﾘ
+                if ((work.pg.useSlot & 1) != 0) PSGOUT(a, e);
                 a += 4;
-                b--;
-            } while (b != 0);
+                if ((work.pg.useSlot & 4) != 0) PSGOUT(a, e);
+                a += 4;
+                if ((work.pg.useSlot & 2) != 0) PSGOUT(a, e);
+                a += 4;
+                if ((work.pg.useSlot & 8) != 0) PSGOUT(a, e);
+            }
+            else
+            {
+                do
+                {
+                    PSGOUT(a, e);// ﾘﾘｰｽ(RR) ｶｯﾄ ﾉ ｼｮﾘ
+                    a += 4;
+                    b--;
+                } while (b != 0);
+            }
 
             // ﾜｰｸ ｶﾗ ｵﾝｼｮｸ ﾅﾝﾊﾞｰ ｦ ｴﾙ
             //STENV0:
@@ -2068,7 +2083,7 @@ namespace mucomDotNET.Driver
             byte c = 6;// 6 PARAMATER(Det/Mul, Total, KS/AR, DR, SR, SL/RR)
             do
             {
-                if (work.soundWork.FMPORT == 0 && work.pg.channelNumber == 2 && work.soundWork.Ch3SpMode)
+                if (CheckCh3SpecialMode())
                 {
                     if ((work.pg.useSlot & 1) != 0) PSGOUT(d, work.fmVoiceAtMusData[hl]);
                     hl++;
@@ -2108,6 +2123,11 @@ namespace mucomDotNET.Driver
             // GET ALGO SET ADDRES
             d = (byte)(0xb0 + work.pg.channelNumber);// CH PLUS
             PSGOUT(d, e);
+        }
+
+        private bool CheckCh3SpecialMode()
+        {
+            return (work.soundWork.FMPORT == 0 && work.pg.channelNumber == 2 && work.soundWork.Ch3SpMode);
         }
 
         public void STENVopm()
@@ -2545,7 +2565,7 @@ namespace mucomDotNET.Driver
             work.soundWork.PALDAT[work.soundWork.FMPORT + work.pg.channelNumber * 10 + work.pg.pageNo] = d;
             a = (byte)(0x0B4 + work.pg.channelNumber);
 
-            if (work.cd.currentPageNo == work.pg.pageNo)
+            if (CheckCh3SpecialMode() || work.cd.currentPageNo == work.pg.pageNo)
                 PSGOUT(a, d);
 
             return;
@@ -2602,7 +2622,7 @@ namespace mucomDotNET.Driver
                 work.soundWork.PALDAT[work.soundWork.FMPORT + work.pg.channelNumber * 10 + work.pg.pageNo] = d;
                 a = (byte)(0x0B4 + work.pg.channelNumber);
 
-                if (work.cd.currentPageNo == work.pg.pageNo)
+                if (CheckCh3SpecialMode() || work.cd.currentPageNo == work.pg.pageNo)
                     PSGOUT(a, d);
             }
             else
@@ -2640,15 +2660,27 @@ namespace mucomDotNET.Driver
 
             a = (byte)autoPantable[a];
 
-            c = (byte)(a << 6);
-            d = work.soundWork.PALDAT[work.soundWork.FMPORT + work.pg.channelNumber * 10 + work.pg.pageNo];
-            d = (byte)((d & 0b0011_1111) | c);
-            work.soundWork.PALDAT[work.soundWork.FMPORT + work.pg.channelNumber * 10 + work.pg.pageNo] = d;
-            a = (byte)(0x0B4 + work.pg.channelNumber);
+            if (work.soundWork.currentChip != 4)
+            {
+                c = (byte)(a << 6);
+                d = work.soundWork.PALDAT[work.soundWork.FMPORT + work.pg.channelNumber * 10 + work.pg.pageNo];
+                d = (byte)((d & 0b0011_1111) | c);
+                work.soundWork.PALDAT[work.soundWork.FMPORT + work.pg.channelNumber * 10 + work.pg.pageNo] = d;
+                a = (byte)(0x0B4 + work.pg.channelNumber);
 
-            if (work.cd.currentPageNo == work.pg.pageNo)
-                PSGOUT(a, d);
+                if (CheckCh3SpecialMode() || work.cd.currentPageNo == work.pg.pageNo)
+                    PSGOUT(a, d);
+            }
+            else
+            {
+                work.pg.panValue = (byte)a;
+                a = (byte)(((a & 1) << 1) | ((a & 2) >> 1));
+                c = (byte)((a << 6) | (work.pg.feedback << 3) | work.pg.algo);
+                a = (byte)(0x20 + work.pg.channelNumber);
 
+                if (work.cd.currentPageNo == work.pg.pageNo)
+                    PSGOUT(a, c);
+            }
         }
 
         public void STEREO_AMD98_RHYTHM()
@@ -2973,7 +3005,7 @@ namespace mucomDotNET.Driver
                     work.soundWork.PALDAT[work.soundWork.FMPORT + work.pg.channelNumber * 10 + work.pg.pageNo] = d;
                     a = (byte)(0x0B4 + work.pg.channelNumber);
 
-                    if (work.cd.currentPageNo == work.pg.pageNo)
+                    if (CheckCh3SpecialMode() || work.cd.currentPageNo == work.pg.pageNo)
                         PSGOUT(a, d);
 
                     return;
@@ -3450,7 +3482,7 @@ namespace mucomDotNET.Driver
 
         public void PLLFO()
         {
-            if (work.pg.pageNo != work.cd.currentPageNo) return;
+            if (!CheckCh3SpecialMode() && work.pg.pageNo != work.cd.currentPageNo) return;
 
             // ---	FOR FM & SSG LFO	---
             if (!work.pg.lfoflg)

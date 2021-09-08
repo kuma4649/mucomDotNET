@@ -1,0 +1,24 @@
+#driver            mucomDotNET
+
+
+
+
+  @M1
+      0   7
+     28  31  0   13   0   0   1   2   0   0   0
+     28  31  0   13   0   0   1   2   0   0   0
+     28  31  0   13   0   0   1   2   0   0   0
+     28  31  0   13   0   0   1   2   0   0   0
+
+
+C0123 C48
+C0    t60
+C0    EXON EX1 @1 v15 D0
+C1         EX2 @1 v10 D5  r8
+C2         EX3 @1 v8  D-5 r4
+C3         EX4 @1 v6  D10 r4.
+C0123 o5 q1 l16
+
+ C0123 [ g+rg+r8f+r8f+r8f+r4  r8g+r8f+r8g+r8f+r8b8 ]2
+C0123 cdefg
+

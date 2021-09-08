@@ -453,7 +453,7 @@ namespace mucomDotNET.Driver
         public byte keyOnSlot = 0xf0;//Keyonslot制御向け
         public byte[] KD = new byte[4];
         public byte[] KDWork = new byte[4];
-        public byte useSlot = 0xf0;//ページが使用するスロット(bit)
+        public byte useSlot = 0x0f;//ページが使用するスロット(bit)
 
         public byte backupMIXPort { get; internal set; } = 0x38;
         public byte backupNoiseFrq { get; internal set; } = 0;
