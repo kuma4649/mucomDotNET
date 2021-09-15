@@ -2589,8 +2589,23 @@ namespace mucomDotNET.Compiler
                     msg.get("E0464")
                     , mucInfo.row, mucInfo.col);
             }
+            if (work.ChipIndex == 4 && i == 6)
+            {
+                throw new MucException(
+                    msg.get("E0464")
+                    , mucInfo.row, mucInfo.col);
+            }
 
-            byte SETR9_VAL = (byte)(i * 16);
+            byte SETR9_VAL;
+            if (work.ChipIndex != 4)
+            {
+                SETR9_VAL = (byte)(i * 16);
+            }
+            else
+            {
+                SETR9_VAL = (byte)((i * 0x20) + 0x40);
+            }
+
             char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
             if (c != ',')//0x2c
             {
@@ -2621,19 +2636,36 @@ namespace mucomDotNET.Compiler
             }
 
             n--;
-            n *= 4;
+            if (work.ChipIndex != 4)
+                n *= 4;
+            else
+                n *= 8;
 
             byte ch = (byte)work.CHIP_CH;
-            if (ch < 0 || (ch >= 3 && ch < 7) || ch >= 10)
+            if (work.ChipIndex != 4)
+            {
+                if (ch < 0 || (ch >= 3 && ch < 7) || ch >= 10)
+                {
+                    throw new MucException(
+                        string.Format(msg.get("E0467"), (char)('A' + ch))
+                        , mucInfo.row, mucInfo.col);
+                }
+                if (ch > 6) ch -= 7;
+
+                n += ch;// Op*4+CH No.
+                n += 0x30 + SETR9_VAL;
+                return SETR1(n);
+            }
+
+            if (ch < 0 || ch > 7)
             {
                 throw new MucException(
                     string.Format(msg.get("E0467"), (char)('A' + ch))
                     , mucInfo.row, mucInfo.col);
             }
-            if (ch > 6) ch -= 7;
 
             n += ch;// Op*4+CH No.
-            n += 0x30 + SETR9_VAL;
+            n += SETR9_VAL;
             return SETR1(n);
         }
 
