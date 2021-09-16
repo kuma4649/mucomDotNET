@@ -1,4 +1,8 @@
 更新履歴
+TAG129 2021/09/16
+  Compiler Driver
+  　コア:各種チップのタイマーを使用できるように修正。
+
 TAG128 2021/09/15
   Compiler
   　OPM:yDM/yTL/yKA/yDR/ySR/ySLコマンドに対応

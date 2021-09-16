@@ -32,6 +32,8 @@ namespace mucomDotNET.Driver
 
         private int renderingFreq = 44100;
         private int opnaMasterClock = 7987200;
+        private int opnbMasterClock = 8000000;
+        private int opmMasterClock = 3579545;
         private Work work = new Work();
         private Music2 music2 = null;
         private object lockObjWriteReg = new object();
@@ -445,7 +447,19 @@ namespace mucomDotNET.Driver
                 {
                     this.opnaMasterClock = chipsMasterClock[0].Item2 <= 0 ? 7987200 : chipsMasterClock[0].Item2;
                 }
-                work.timer = new OPNATimer(renderingFreq, opnaMasterClock);
+                if (chipsMasterClock != null && chipsMasterClock.Length > 2)
+                {
+                    this.opnbMasterClock = chipsMasterClock[2].Item2 <= 0 ? 8000000 : chipsMasterClock[2].Item2;
+                }
+                if (chipsMasterClock != null && chipsMasterClock.Length > 4)
+                {
+                    this.opmMasterClock = chipsMasterClock[4].Item2 <= 0 ? 3579545 : chipsMasterClock[4].Item2;
+                }
+                work.timerOPNA1 = new OPNATimer(renderingFreq, opnaMasterClock);
+                work.timerOPNA2 = new OPNATimer(renderingFreq, opnaMasterClock);
+                work.timerOPNB1 = new OPNATimer(renderingFreq, opnbMasterClock);
+                work.timerOPNB2 = new OPNATimer(renderingFreq, opnbMasterClock);
+                work.timerOPM = new OPMTimer(renderingFreq, opmMasterClock);
                 Log.WriteLine(LogLevel.TRACE, "Start rendering.");
 
             }
@@ -480,7 +494,12 @@ namespace mucomDotNET.Driver
         {
             lock (lockObjWriteReg)
             {
-                if (reg.port == 0) { work.timer?.WriteReg((byte)reg.address, (byte)reg.data); }
+                if (reg.port == 0)
+                {
+                    bool? ret = work.timerOPNA1?.WriteReg((byte)reg.address, (byte)reg.data);
+                    if (ret != null && (bool)ret) 
+                        work.currentTimer = 0;
+                }
                 WriteOPNAP?.Invoke(reg);
             }
         }
@@ -489,7 +508,12 @@ namespace mucomDotNET.Driver
         {
             lock (lockObjWriteReg)
             {
-                if (reg.port == 0) { work.timer?.WriteReg((byte)reg.address, (byte)reg.data); }
+                if (reg.port == 0)
+                {
+                    bool? ret = work.timerOPNA2?.WriteReg((byte)reg.address, (byte)reg.data);
+                    if (ret != null && (bool)ret) 
+                        work.currentTimer = 1;
+                }
                 WriteOPNAS?.Invoke(reg);
             }
         }
@@ -498,7 +522,12 @@ namespace mucomDotNET.Driver
         {
             lock (lockObjWriteReg)
             {
-                if (reg.port == 0) { work.timer?.WriteReg((byte)reg.address, (byte)reg.data); }
+                if (reg.port == 0)
+                {
+                    bool? ret = work.timerOPNB1?.WriteReg((byte)reg.address, (byte)reg.data);
+                    if (ret != null && (bool)ret) 
+                        work.currentTimer = 2;
+                }
                 WriteOPNBP?.Invoke(reg);
             }
         }
@@ -507,7 +536,12 @@ namespace mucomDotNET.Driver
         {
             lock (lockObjWriteReg)
             {
-                if (reg.port == 0) { work.timer?.WriteReg((byte)reg.address, (byte)reg.data); }
+                if (reg.port == 0) 
+                {
+                    bool? ret = work.timerOPNB2?.WriteReg((byte)reg.address, (byte)reg.data);
+                    if (ret != null && (bool)ret) 
+                        work.currentTimer = 3;
+                }
                 WriteOPNBS?.Invoke(reg);
             }
         }
@@ -516,7 +550,9 @@ namespace mucomDotNET.Driver
         {
             lock (lockObjWriteReg)
             {
-                //if (reg.port == 0) { work.timer?.WriteReg((byte)reg.address, (byte)reg.data); }
+                bool? ret = work.timerOPM?.WriteReg((byte)reg.address, (byte)reg.data);
+                if (ret != null && (bool)ret) 
+                    work.currentTimer = 4;
                 WriteOPMP?.Invoke(reg);
             }
         }

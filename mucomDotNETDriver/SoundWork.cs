@@ -109,14 +109,14 @@ namespace mucomDotNET.Driver
         public byte TIMER_B { get; internal set; }
         public uint TB_TOP { get; internal set; }
         public int NOTSB2 { get; internal set; }
-        public byte PLSET1_VAL { get; internal set; }
-        public bool Ch3SpMode {
-            get
-            {
-                return PLSET1_VAL == 0x78;
-            }
+
+        public bool Ch3SpMode(int chip)
+        {
+            return (PLSET1_VAL[chip] & 0x40) != 0;
         }
-        public byte PLSET2_VAL { get; internal set; }
+        public byte[] PLSET1_VAL = new byte[5];
+        public byte[] PLSET2_VAL = new byte[5];
+
         public int[] PCMLR { get; internal set; } = new int[6];
         public int FMPORT { get; internal set; }
         public int SSGF1 { get; internal set; }

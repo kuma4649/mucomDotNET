@@ -630,13 +630,13 @@ namespace mucomDotNET.Compiler
                     , mucInfo.row, mucInfo.col);
             }
 
-            int HL = (25600 - 346 * (byte)(60000 / (work.CLOCK / 4 * (byte)n) + 1)) / 100;
-            if (HL <= 0)
+            byte HL = (byte)((25600 - 346 * (byte)(60000 / (work.CLOCK / 4 * (byte)n) + 1)) / 100);
+            if (HL < 1)
             {
                 HL = 1;
             }
 
-            return TIMEB2((byte)HL);
+            return TIMEB2(HL);
         }
 
 
@@ -1179,27 +1179,33 @@ namespace mucomDotNET.Compiler
             {
                 msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xf7));
                 msub.MWRITE(new MmlDatum(0x00), new MmlDatum(0x00)); // chip:0  port:0
-                msub.MWRITE(new MmlDatum(0x26), new MmlDatum(n)); // adr:0x26  dat:n
+                if (work.ChipIndex != 4)
+                    msub.MWRITE(new MmlDatum(0x26), new MmlDatum(n)); // adr:0x26  dat:n
+                else
+                    msub.MWRITE(new MmlDatum(0x12), new MmlDatum(n)); // adr:0x12  dat:n
             }
             return EnmFCOMPNextRtn.fcomp1;
         }
 
         private EnmFCOMPNextRtn TIMEB2ex(byte n)
         {
-            if (work.ChipIndex == 0)
-            {
-                if (work.CHIP_CH < 3 || work.CHIP_CH >= 6)
-                {
-                    msub.MWRITE(new MmlDatum(0xfa), new MmlDatum(0x26));
-                    msub.MWRIT2(new MmlDatum(n));
+            //if (work.ChipIndex == 0)
+            //{
+            //    if (work.CHIP_CH < 3 || work.CHIP_CH >= 6)
+            //    {
+            //        msub.MWRITE(new MmlDatum(0xfa), new MmlDatum(0x26));
+            //        msub.MWRIT2(new MmlDatum(n));
 
-                    return EnmFCOMPNextRtn.fcomp1;
-                }
-            }
+            //        return EnmFCOMPNextRtn.fcomp1;
+            //    }
+            //}
 
             msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xf7));
-            msub.MWRITE(new MmlDatum(0x00), new MmlDatum(0x00)); // chip:0  port:0
-            msub.MWRITE(new MmlDatum(0x26), new MmlDatum(n)); // adr:0x26  dat:n
+            msub.MWRITE(new MmlDatum(work.ChipIndex), new MmlDatum(0x00)); // chip:0  port:0
+            if (work.ChipIndex != 4)
+                msub.MWRITE(new MmlDatum(0x26), new MmlDatum(n)); // adr:0x26  dat:n
+            else
+                msub.MWRITE(new MmlDatum(0x12), new MmlDatum(n)); // adr:0x12  dat:n
 
             return EnmFCOMPNextRtn.fcomp1;
         }

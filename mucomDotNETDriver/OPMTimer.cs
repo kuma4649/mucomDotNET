@@ -1,44 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace mucomDotNET.Driver
 {
-
     //
-    //  OPNA timer エミュレーション
+    //  OPM timer エミュレーション
     //
     //
 
 
-    public class OPNATimer : FMTimer
+    public class OPMTimer : FMTimer
     {
 
-        public OPNATimer(int renderingFreq, int opnaMasterClock) : base(renderingFreq, opnaMasterClock)
+        public OPMTimer(int renderingFreq, int opmMasterClock) : base(renderingFreq, opmMasterClock)
         {
-            step = opnaMasterClock / 72.0 / 2.0 / (double)renderingFreq;
+            step = opmMasterClock / 64.0 / 1.0 / (double)renderingFreq;
         }
 
         public override bool WriteReg(byte adr, byte data)
         {
             switch (adr)
             {
-                // TimerA
-                case 0x24:
+                case 0x10:
                     TimerA &= 0x3;
                     TimerA |= (data << 2);
                     return true;
-                case 0x25:
+                case 0x11:
                     TimerA &= 0x3fc;
                     TimerA |= (data & 3);
                     return true;
-                case 0x26:
+                case 0x12:
                     // TimerB
-                    TimerB = (256 - data) << 4;
+                    TimerB = (256 - (int)data) << (10 - 6);
                     return true;
-                case 0x27:
+                case 0x14:
                     // タイマー制御レジスタ
                     TimerReg = data & 0x8F;
                     StatReg &= 0xFF - ((data >> 4) & 3);

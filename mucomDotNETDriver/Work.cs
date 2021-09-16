@@ -46,8 +46,14 @@ namespace mucomDotNET.Driver
         public int[] rhythmORKeyOff { get; internal set; } = new int[4];
         public int[] rhythmOR { get; internal set; } = new int[4];
         public bool abnormalEnd { get; internal set; } = false;
+        public int currentTimer { get; internal set; }
 
-        public OPNATimer timer = null;
+        public OPNATimer timerOPNA1 = null;
+        public OPNATimer timerOPNA2 = null;
+        public OPNATimer timerOPNB1 = null;
+        public OPNATimer timerOPNB2 = null;
+        public OPMTimer timerOPM = null;
+
         public ulong timeCounter = 0L;
         public byte[][] fmVoice = new byte[4][] { null, null, null, null };
         public Tuple<string, ushort[]>[][] pcmTables = new Tuple<string, ushort[]>[6][] { null, null, null, null, null, null };

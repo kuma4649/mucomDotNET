@@ -59,7 +59,12 @@ namespace mucomDotNET.Driver
                 CHK();//added
                 INT57();
                 ENBL();
-                TO_NML();
+                for (int c = 0; c < 5; c++)
+                {
+                    work.soundWork.currentChip = c;
+                    TO_NML();
+                }
+                work.soundWork.currentChip = 0;
 
                 work.Status = 1;
             }
@@ -118,12 +123,38 @@ namespace mucomDotNET.Driver
             lock (work.SystemInterrupt)
             {
                 //work.SystemInterrupt = true;
-                work.timer.timer();
+
+                work.timerOPNA1.timer();
+                work.timerOPNA2.timer();
+                work.timerOPNB1.timer();
+                work.timerOPNB2.timer();
+                work.timerOPM.timer();
+
                 work.timeCounter++;
-                if ((work.timer.StatReg & 3) != 0)
+                bool flg = false;
+                switch (work.currentTimer)
+                {
+                    case 0:
+                        flg = (work.timerOPNA1.StatReg & 3) != 0;
+                        break;
+                    case 1:
+                        flg = (work.timerOPNA2.StatReg & 3) != 0;
+                        break;
+                    case 2:
+                        flg = (work.timerOPNB1.StatReg & 3) != 0;
+                        break;
+                    case 3:
+                        flg = (work.timerOPNB2.StatReg & 3) != 0;
+                        break;
+                    case 4:
+                        flg = (work.timerOPM.StatReg & 3) != 0;
+                        break;
+                }
+                if (flg)
                 {
                     PL_SND();
                 }
+
                 //work.SystemInterrupt = false;
             }
         }
@@ -505,7 +536,13 @@ namespace mucomDotNET.Driver
 
             //割り込み系の設定は不要
 
-            TO_NML();
+            for (int c = 0; c < 5; c++)
+            {
+                work.soundWork.currentChip = c;
+                TO_NML();
+            }
+            work.soundWork.currentChip = 0;
+
             MONO();
             AKYOFF();// ALL KEY OFF
             SSGOFF();
@@ -642,14 +679,28 @@ namespace mucomDotNET.Driver
 
         private void STTMB(byte e)
         {
-            ChipDatum dat = new ChipDatum(0, 0x26, e);
-            WriteRegister(0, dat);
+            ChipDatum dat;
 
-            dat = new ChipDatum(0, 0x27, 0x78);
-            WriteRegister(0, dat);
+            for (int c = 0; c < 4; c++)
+            {
+                dat = new ChipDatum(0, 0x26, e);
+                WriteRegister(c, dat);
 
-            dat = new ChipDatum(0, 0x27, 0x7a);
-            WriteRegister(0, dat);
+                dat = new ChipDatum(0, 0x27, 0x78);
+                WriteRegister(c, dat);
+
+                dat = new ChipDatum(0, 0x27, 0x7a);
+                WriteRegister(c, dat);
+            }
+
+            dat = new ChipDatum(0, 0x12, e);
+            WriteRegister(4, dat);
+
+            dat = new ChipDatum(0, 0x14, 0x78);
+            WriteRegister(4, dat);
+
+            dat = new ChipDatum(0, 0x14, 0x7a);
+            WriteRegister(4, dat);
 
             //割り込みレベルリセット不要
             //Z80.A = 5;
@@ -668,10 +719,21 @@ namespace mucomDotNET.Driver
 
         public void PL_SND()
         {
-            ChipDatum dat = new ChipDatum(0, 0x27, work.soundWork.PLSET1_VAL);//  TIMER-OFF DATA
-            WriteRegister(0, dat);
-            dat = new ChipDatum(0, 0x27, work.soundWork.PLSET2_VAL);//  TIMER-ON DATA
-            WriteRegister(0, dat);
+            ChipDatum dat;
+            if (work.currentTimer != 4)
+            {
+                dat = new ChipDatum(0, 0x27, work.soundWork.PLSET1_VAL[work.currentTimer]);//  TIMER-OFF DATA
+                WriteRegister(work.currentTimer, dat);
+                dat = new ChipDatum(0, 0x27, work.soundWork.PLSET2_VAL[work.currentTimer]);//  TIMER-ON DATA
+                WriteRegister(work.currentTimer, dat);
+            }
+            else
+            {
+                dat = new ChipDatum(0, 0x14, work.soundWork.PLSET1_VAL[work.currentTimer]);//  TIMER-OFF DATA
+                WriteRegister(work.currentTimer, dat);
+                dat = new ChipDatum(0, 0x14, work.soundWork.PLSET2_VAL[work.currentTimer]);//  TIMER-ON DATA
+                WriteRegister(work.currentTimer, dat);
+            }
 
             DRIVE();
             //FDOUT();
@@ -1246,7 +1308,7 @@ namespace mucomDotNET.Driver
                 KEYOFF();
             }
 
-            if (work.soundWork.PLSET1_VAL != 0x78)//効果音モードでは無い場合
+            if (!work.soundWork.Ch3SpMode(work.soundWork.currentChip))//効果音モードでは無い場合
             {
                 FMSUB4(hl);
                 return;
@@ -2127,7 +2189,9 @@ namespace mucomDotNET.Driver
 
         private bool CheckCh3SpecialMode()
         {
-            return (work.soundWork.FMPORT == 0 && work.pg.channelNumber == 2 && work.soundWork.Ch3SpMode);
+            return (work.soundWork.FMPORT == 0 
+                && work.pg.channelNumber == 2 
+                && work.soundWork.Ch3SpMode(work.soundWork.currentChip));
         }
 
         public void STENVopm()
@@ -2528,20 +2592,21 @@ namespace mucomDotNET.Driver
 
         public void TO_NML()
         {
-            work.soundWork.PLSET1_VAL = 0x38;
+            work.soundWork.PLSET1_VAL[work.soundWork.currentChip] = 0x38;
             TNML2(0x3a);
         }
 
         public void TO_EFC()
         {
-            work.soundWork.PLSET1_VAL = 0x78;
+            work.soundWork.PLSET1_VAL[work.soundWork.currentChip] = 0x78;
             TNML2(0x7a);
         }
 
         public void TNML2(byte a)
         {
-            work.soundWork.PLSET2_VAL = a;
-            PSGOUT(0x27, a);
+            work.soundWork.PLSET2_VAL[work.soundWork.currentChip] = a;
+            if (work.soundWork.currentChip != 4) PSGOUT(0x27, a);
+            else PSGOUT(0x14, a);
         }
 
         // **	STEREO**
@@ -3676,7 +3741,7 @@ namespace mucomDotNET.Driver
                 return;
             }
 
-            if (work.soundWork.PLSET1_VAL != 0x78)
+            if (!work.soundWork.Ch3SpMode(work.soundWork.currentChip))
             {
                 PLLFO2(hl);// NOT SE MODE
                 return;
