@@ -12,6 +12,7 @@ namespace mucomDotNET.Driver
     {
         public object lockObj = new object();
         public object SystemInterrupt = new object();
+        public bool resetPlaySync = false;
 
         private int _status = 0;
 

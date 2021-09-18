@@ -1,4 +1,12 @@
 更新履歴
+TAG130 2021/09/18
+  Compiler Driver
+  　各種チップのタイマーを己のマスタークロックから計算するように修正。
+  Compiler
+  　OPNBのポルタメント時のfnum計算にOPNAのfnumテーブルを使用していたのを修正
+  Driver
+  　OPNBのADPCM-Bのfnum計算にOPNAのfnumテーブルを使用していたのを修正
+
 TAG129 2021/09/16
   Compiler Driver
   　コア:各種チップのタイマーを使用できるように修正。

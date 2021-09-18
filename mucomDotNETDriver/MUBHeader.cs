@@ -345,7 +345,7 @@ namespace mucomDotNET.Driver
                         string val = tag.Item2.ToLower().Trim();
 
                         OPMClockMode = enmOPMClockMode.normal;
-                        if (val == "x68000" || val == "x68k" || val == "x68" || val == "x" || val == "40000" || val == "x680x0")
+                        if (val == "x68000" || val == "x68k" || val == "x68" || val == "x" || val == "4000000" || val == "x680x0")
                         {
                             OPMClockMode = enmOPMClockMode.X68000;
                         }

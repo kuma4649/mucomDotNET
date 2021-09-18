@@ -12,11 +12,17 @@ namespace mucomDotNET.Driver
 {
     public class Driver :iDriver
     {
+        public static readonly uint cOPNAMasterClock = 7987200;
+        public static readonly uint cOPNBMasterClock = 8000000;
+        public static readonly uint cOPMMasterClock_X68k = 4000000;
+        public static readonly uint cOPMMasterClock_Normal = 3579545;
+
+        public byte[][] pcm = new byte[6][];
+        public int[] pcmStartPos = new int[6];
+
         private MUBHeader header = null;
         private List<Tuple<string, string>> tags = null;
-        public byte[][] pcm = new byte[6][];
         private string[] pcmType = new string[6];
-        public int[] pcmStartPos = new int[6];
         private Action<ChipDatum> WriteOPNAP;
         private Action<ChipDatum> WriteOPNAS;
         private Action<ChipDatum> WriteOPNBP;
@@ -31,9 +37,11 @@ namespace mucomDotNET.Driver
         private string[] fnPcm = { "", "", "", "", "", "" };
 
         private int renderingFreq = 44100;
-        private int opnaMasterClock = 7987200;
-        private int opnbMasterClock = 8000000;
-        private int opmMasterClock = 3579545;
+        
+        private int opnaMasterClock = (int)cOPNAMasterClock;
+        private int opnbMasterClock = (int)cOPNBMasterClock;
+        private int opmMasterClock = (int)cOPMMasterClock_Normal;
+
         private Work work = new Work();
         private Music2 music2 = null;
         private object lockObjWriteReg = new object();
@@ -46,6 +54,7 @@ namespace mucomDotNET.Driver
             , EFfeCt
             , RETurnWork
         }
+
         private iEncoding enc = null;
 
         public Driver(iEncoding enc = null)

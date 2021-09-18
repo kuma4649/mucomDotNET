@@ -10,7 +10,7 @@ namespace Vgm
     class Program
     {
         private static readonly int SamplingRate = 44100;//vgm format freq
-        private static readonly uint opmMasterClock = 3579545;
+        private static uint opmMasterClock = 3579545;
         private static readonly uint opnaMasterClock = 7987200;
         private static readonly uint opnbMasterClock = 8000000;
 
@@ -66,6 +66,11 @@ namespace Vgm
                 byte[] srcBuf = File.ReadAllBytes(args[fnIndex]);
                 foreach (byte b in srcBuf) bl.Add(new MmlDatum(b));
                 vw.useChipsFromMub(srcBuf);
+                MmlDatum[] blary = bl.ToArray();
+
+                MUBHeader mh = new MUBHeader(blary, myEncoding.Default);
+                mh.GetTags();
+                if (mh.OPMClockMode == MUBHeader.enmOPMClockMode.X68000) opmMasterClock = Driver.cOPMMasterClock_X68k;
 
                 drv = new Driver();
                 ((Driver)drv).Init(
@@ -143,7 +148,7 @@ namespace Vgm
             {
                 if (vw != null)
                 {
-                    vw.Close(tags);
+                    vw.Close(tags, opnaMasterClock, opnbMasterClock, opmMasterClock);
                 }
             }
 

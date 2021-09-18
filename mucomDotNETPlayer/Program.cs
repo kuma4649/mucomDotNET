@@ -46,7 +46,7 @@ namespace mucomDotNET.Player
         private static MDSound.MDSound mds = null;
         private static short[] emuRenderBuf = new short[2];
         private static musicDriverInterface.iDriver drv = null;
-        private static readonly uint opmMasterClock = 3579545;
+        private static uint opmMasterClock = 3579545;
         private static readonly uint opnaMasterClock = 7987200;
         private static readonly uint opnbMasterClock = 8000000;
         private static int device = 0;
@@ -107,6 +107,19 @@ namespace mucomDotNET.Player
                         swFreq = Stopwatch.Frequency;
                         break;
                 }
+
+#if NETCOREAPP
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+#endif
+
+                List<MmlDatum> bl = new List<MmlDatum>();
+                byte[] srcBuf = File.ReadAllBytes(args[fnIndex]);
+                foreach (byte b in srcBuf) bl.Add(new MmlDatum(b));
+                MmlDatum[] blary = bl.ToArray();
+
+                Driver.MUBHeader mh = new Driver.MUBHeader(blary, myEncoding.Default);
+                mh.GetTags();
+                if (mh.OPMClockMode == Driver.MUBHeader.enmOPMClockMode.X68000) opmMasterClock = Driver.Driver.cOPMMasterClock_X68k;
 
                 List<MDSound.MDSound.Chip> lstChips = new List<MDSound.MDSound.Chip>();
                 MDSound.MDSound.Chip chip = null;
@@ -171,25 +184,20 @@ namespace mucomDotNET.Player
                 mds = new MDSound.MDSound(SamplingRate, samplingBuffer
                     , lstChips.ToArray());
 
-#if NETCOREAPP
-                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-#endif
+
+
                 List<ChipAction> lca = new List<ChipAction>();
                 mucomChipAction ca;
-                ca = new mucomChipAction(OPNAWriteP, null, OPNAWaitSend);lca.Add(ca);
+                ca = new mucomChipAction(OPNAWriteP, null, OPNAWaitSend); lca.Add(ca);
                 ca = new mucomChipAction(OPNAWriteS, null, null); lca.Add(ca);
                 ca = new mucomChipAction(OPNBWriteP, OPNBWriteAdpcmP, null); lca.Add(ca);
                 ca = new mucomChipAction(OPNBWriteS, OPNBWriteAdpcmS, null); lca.Add(ca);
                 ca = new mucomChipAction(OPMWriteP, null, null); lca.Add(ca);
 
-                List<MmlDatum> bl = new List<MmlDatum>();
-                byte[] srcBuf = File.ReadAllBytes(args[fnIndex]);
-                foreach (byte b in srcBuf) bl.Add(new MmlDatum(b));
-
                 drv = new Driver.Driver();
                 ((Driver.Driver)drv).Init(
                     lca
-                    , bl.ToArray()
+                    , blary
                     , null
                     , new object[] {
                         false

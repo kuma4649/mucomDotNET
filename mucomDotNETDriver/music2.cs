@@ -66,6 +66,7 @@ namespace mucomDotNET.Driver
                 }
                 work.soundWork.currentChip = 0;
 
+                work.resetPlaySync = true;
                 work.Status = 1;
             }
         }
@@ -123,6 +124,13 @@ namespace mucomDotNET.Driver
             lock (work.SystemInterrupt)
             {
                 //work.SystemInterrupt = true;
+
+                if (work.resetPlaySync)
+                {
+                    work.resetPlaySync = false;
+                    ChipDatum dat = new ChipDatum(-1, -1, -1, 0, new MmlDatum(enmMMLType.ResetPlaySync, null, null, 0));
+                    WriteRegister(0, dat);
+                }
 
                 work.timerOPNA1.timer();
                 work.timerOPNA2.timer();

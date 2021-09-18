@@ -204,7 +204,7 @@ namespace Vgm
 
         }
 
-        public void Close(List<Tuple<string, string>> tags)
+        public void Close(List<Tuple<string, string>> tags, uint opnaMasterClock, uint opnbMasterClock, uint opmMasterClock)
         {
             if (dest == null) return;
 
@@ -304,28 +304,28 @@ namespace Vgm
                     case 1:
                     case 2:
                         dest.Position = 0x48;
-                        dest.WriteByte(0);
-                        dest.WriteByte(0xe0);
-                        dest.WriteByte(0x79);
+                        dest.WriteByte((byte)(opnaMasterClock >> 0));
+                        dest.WriteByte((byte)(opnaMasterClock >> 8));
+                        dest.WriteByte((byte)(opnaMasterClock >> 16));
                         if (useChips[i] == 1) dest.WriteByte(0);
                         else dest.WriteByte(0x40);
                         break;
                     case 3:
                     case 4:
                         dest.Position = 0x4c;
-                        dest.WriteByte(0);
-                        dest.WriteByte(0x12);
-                        dest.WriteByte(0x7a);
+                        dest.WriteByte((byte)(opnbMasterClock >> 0));
+                        dest.WriteByte((byte)(opnbMasterClock >> 8));
+                        dest.WriteByte((byte)(opnbMasterClock >> 16));
                         if (useChips[i] == 3) dest.WriteByte(0);
                         else dest.WriteByte(0x40);
                         break;
                     case 5:
                         dest.Position = 0x30;
-                        dest.WriteByte(0x99);
-                        dest.WriteByte(0x9e);
-                        dest.WriteByte(0x36);
+                        dest.WriteByte((byte)(opmMasterClock >> 0));
+                        dest.WriteByte((byte)(opmMasterClock >> 8));
+                        dest.WriteByte((byte)(opmMasterClock >> 16));
                         if (useChips[i] == 5) dest.WriteByte(0);
-                        else dest.WriteByte(0x00);
+                        else dest.WriteByte(0x40);
                         break;
                 }
             }
@@ -336,7 +336,7 @@ namespace Vgm
 
         public void Open(string fullPath)
         {
-            if (dest != null) Close(null);
+            if (dest != null) Close(null, 0, 0, 0);
             dest = new FileStream(fullPath, FileMode.Create, FileAccess.Write);
 
             List<byte> des = new List<byte>();

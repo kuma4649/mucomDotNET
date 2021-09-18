@@ -375,10 +375,11 @@ namespace mucomDotNET.Compiler
             int depth;
             if (work.ChipIndex != 4)
             {
-                depth = expand.CULPTM(note, endNote, clk);//KUMA:DEPTHを計算
+                depth = expand.CULPTM(work.ChipIndex, note, endNote, clk);//KUMA:DEPTHを計算
             }
             else
             {
+                //ここでは距離を求めたいだけなのでopmのマスタークロックの違いを考慮する必要は無い
                 int s = ((note & 0xf0) >> 4) * 12 + (note & 0xf);
                 int e = ((endNote & 0xf0) >> 4) * 12 + (endNote & 0xf);
                 depth = (e - s) * 64 / clk;
@@ -551,7 +552,20 @@ namespace mucomDotNET.Compiler
                     : (char)0;
             }
 
-            int depth = expand.CULPTM();//KUMA:DEPTHを計算
+            //int depth = expand.CULPTM();//KUMA:DEPTHを計算
+            int depth;
+            if (work.ChipIndex != 4)
+            {
+                depth = expand.CULPTM(work.ChipIndex);//KUMA:DEPTHを計算
+            }
+            else
+            {
+                //ここでは距離を求めたいだけなのでopmのマスタークロックの違いを考慮する必要は無い
+                int s = ((note & 0xf0) >> 4) * 12 + (note & 0xf);
+                int e = ((work.BEFTONE[0] & 0xf0) >> 4) * 12 + (work.BEFTONE[0] & 0xf);
+                depth = (e - s) * 64 / work.BEFCO;
+            }
+
             if (mucInfo.Carry)
             {
                 throw new MucException(
@@ -630,11 +644,37 @@ namespace mucomDotNET.Compiler
                     , mucInfo.row, mucInfo.col);
             }
 
-            byte HL = (byte)((25600 - 346 * (byte)(60000 / (work.CLOCK / 4 * (byte)n) + 1)) / 100);
-            if (HL < 1)
+            byte HL;
+            if (work.ChipIndex < 2)
             {
-                HL = 1;
+                //OPNA : 7987200 Hz
+                HL = (byte)((25600 - 346 * (byte)(60000 / (work.CLOCK / 4 * (byte)n) + 1)) / 100);
             }
+            else if (work.ChipIndex < 4)
+            {
+                //OPNB : 8000000 Hz
+                HL = (byte)((25600 - 347 * (byte)(60000 / (work.CLOCK / 4 * (byte)n) + 1)) / 100);
+            }
+            else
+            {
+                //OPM
+
+                if (mucInfo.opmclockmode == MUCInfo.enmOpmClockMode.normal)
+                {
+                    //Normal : 3579545 Hz
+                    HL = (byte)((25600 - 350 * (byte)(60000 / (work.CLOCK / 4 * (byte)n) + 1)) / 100);
+                }
+                else
+                {
+                    //X68k : 400000 Hz
+                    HL = (byte)((25600 - 391 * (byte)(60000 / (work.CLOCK / 4 * (byte)n) + 1)) / 100);
+                }
+            }
+
+            //if (HL < 1)
+            //{
+            //    HL = 1;
+            //}
 
             return TIMEB2(HL);
         }

@@ -13,15 +13,53 @@ namespace mucomDotNET.Compiler
         public Msub msub = null;
         public smon smon = null;
         public Muc88 muc88 = null;
-        public ushort[] FNUMB = new ushort[] {
-            0x26A,0x28F,0x2B6,0x2DF,0x30B,0x339,0x36A,0x39E,
-            0x3D5,0x410,0x44E,0x48F
+        //public ushort[] FNUMB = new ushort[] {
+        //    0x26A,0x28F,0x2B6,0x2DF,0x30B,0x339,0x36A,0x39E,
+        //    0x3D5,0x410,0x44E,0x48F
+        //};
+
+        //public ushort[] SNUMB = new ushort[] {
+        //    0x0EE8,0x0E12,0x0D48,0x0C89,0x0BD5,0x0B2B,0x0A8A,0x09F3,
+        //    0x0964,0x08DD,0x085E,0x07E6
+        //};
+
+        public ushort[][] FNUMB = new ushort[2][]{
+                new ushort[] {
+                 0x026A    ,0x028F    ,0x02B6    ,0x02DF
+                ,0x030B    ,0x0339    ,0x036A    ,0x039E
+                ,0x03D5    ,0x0410    ,0x044E    ,0x048F
+                },
+                new ushort[] {
+                 0x0269    ,0x028E    ,0x02b4    ,0x02De
+                ,0x0309    ,0x0337    ,0x0368    ,0x039c
+                ,0x03d3    ,0x040e    ,0x044b    ,0x048d
+                }
+        };
+        public ushort[][] SNUMB = new ushort[2][]{
+                new ushort[] {
+                    0x0EE8    ,0x0E12    ,0x0D48    ,0x0C89
+                    ,0x0BD5    ,0x0B2B    ,0x0A8A    ,0x09F3
+                    ,0x0964    ,0x08DD    ,0x085E    ,0x07E6
+                },
+                new ushort[] {
+                    0x0EEe    ,0x0E18    ,0x0D4d    ,0x0C8e
+                    ,0x0BDa    ,0x0B30    ,0x0A8f    ,0x09F7
+                    ,0x0968    ,0x08e1    ,0x0861    ,0x07E9
+                }
+        };
+        public short[][] FNUMBopm = new short[2][]{
+                new short[] {
+                 0x0000    ,0x0040    ,0x0080    ,0x00c0
+                ,0x0100    ,0x0140    ,0x0180    ,0x01c0
+                ,0x0200    ,0x0240    ,0x0280    ,0x02c0
+                },
+                new short[] {
+                 0x0000-59-64 ,0x0040-59-64 ,0x0080-59-64 ,0x00c0-59-64
+                ,0x0100-59-64 ,0x0140-59-64 ,0x0180-59-64 ,0x01c0-59-64
+                ,0x0200-59-64 ,0x0240-59-64 ,0x0280-59-64 ,0x02c0-59-64
+                }
         };
 
-        public ushort[] SNUMB = new ushort[] {
-            0x0EE8,0x0E12,0x0D48,0x0C89,0x0BD5,0x0B2B,0x0A8A,0x09F3,
-            0x0964,0x08DD,0x085E,0x07E6
-        };
         public expand(work work, MUCInfo mucInfo)
         {
             this.work = work;
@@ -193,9 +231,9 @@ namespace mucomDotNET.Compiler
         // IN:	HL<={CG}ﾀﾞｯﾀﾗ GﾉﾃｷｽﾄADR
         // EXIT:	DE<=Mｺﾏﾝﾄﾞﾉ 3ﾊﾞﾝﾒ ﾉ ﾍﾝｶﾘｮｳ
         //	Zﾌﾗｸﾞ=1 ﾅﾗ ﾍﾝｶｼﾅｲ
-        public int CULPTM(byte startNote, byte endNote, byte clk)
+        public int CULPTM(int chipIndex, byte startNote, byte endNote, byte clk)
         {
-            int depth = CULP2Ex(startNote, endNote) / (byte)(clk >> 0);
+            int depth = CULP2Ex(chipIndex, startNote, endNote) / (byte)(clk >> 0);
             //int depth = CULP2(note) / (byte)(work.BEFCO >> 0);//Mem.LD_8(BEFCO + 1); ?
 
             if (!mucInfo.Carry) return depth;
@@ -221,7 +259,7 @@ namespace mucomDotNET.Compiler
             return CTONE(endNote) - CTONE(startNote);
         }
 
-        private int CULP2Ex(byte startNote, byte endNote)
+        private int CULP2Ex(int chipIndex, byte startNote, byte endNote)
         {
             int HL;
             bool up;
@@ -238,8 +276,17 @@ namespace mucomDotNET.Compiler
             }
 
             int C = startNote & 0x0F;//KEY
-            if (!CULP2_Ptn) work.FRQBEF = FNUMB[C];
-            else work.FRQBEF = SNUMB[C];
+            if (!CULP2_Ptn)
+            {
+                if (chipIndex < 2) work.FRQBEF = FNUMB[0][C];
+                else if (chipIndex < 4) work.FRQBEF = FNUMB[1][C];
+                else work.FRQBEF = FNUMBopm[0][C];
+            }
+            else
+            {
+                if (chipIndex < 2) work.FRQBEF = SNUMB[0][C];
+                else if (chipIndex < 4) work.FRQBEF = SNUMB[1][C];
+            }
 
             int noteNum = CTONE(endNote) - CTONE(startNote);
             if (noteNum == 0) return 0;//変化なし
@@ -275,7 +322,7 @@ namespace mucomDotNET.Compiler
         // IN:	HL<={CG}ﾀﾞｯﾀﾗ GﾉﾃｷｽﾄADR
         // EXIT:	DE<=Mｺﾏﾝﾄﾞﾉ 3ﾊﾞﾝﾒ ﾉ ﾍﾝｶﾘｮｳ
         //	Zﾌﾗｸﾞ=1 ﾅﾗ ﾍﾝｶｼﾅｲ
-        public int CULPTM()
+        public int CULPTM(int chipIndex)
         {
             int DE = work.MDATA;
             byte note = msub.STTONE();
@@ -286,14 +333,14 @@ namespace mucomDotNET.Compiler
                 return 0;//    RET
             }
 
-            int depth = CULP2(note) / work.BEFCO;//Mem.LD_8(BEFCO + 1); ?
+            int depth = CULP2(chipIndex,note) / work.BEFCO;//Mem.LD_8(BEFCO + 1); ?
 
             if (!mucInfo.Carry) return depth;
             mucInfo.Carry = false;
             return -depth;//    RET
         }
 
-        private int CULP2(byte note)
+        private int CULP2(int chipIndex,byte note)
         {
             int HL;
             bool up;
@@ -310,8 +357,19 @@ namespace mucomDotNET.Compiler
             }
 
             int C = work.BEFTONE[0] & 0x0F;//KEY
-            if (!CULP2_Ptn) work.FRQBEF = FNUMB[C];
-            else work.FRQBEF = SNUMB[C];
+            //if (!CULP2_Ptn) work.FRQBEF = FNUMB[C];
+            //else work.FRQBEF = SNUMB[C];
+            if (!CULP2_Ptn)
+            {
+                if (chipIndex < 2) work.FRQBEF = FNUMB[0][C];
+                else if (chipIndex < 4) work.FRQBEF = FNUMB[1][C];
+                else work.FRQBEF = FNUMBopm[0][C];
+            }
+            else
+            {
+                if (chipIndex < 2) work.FRQBEF = SNUMB[0][C];
+                else if (chipIndex < 4) work.FRQBEF = SNUMB[1][C];
+            }
 
             int noteNum = CTONE(note) - CTONE(work.BEFTONE[0]);
             if (noteNum == 0) return 0;//変化なし
