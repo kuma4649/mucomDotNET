@@ -380,6 +380,7 @@ namespace mucomDotNET.Compiler
             else
             {
                 //ここでは距離を求めたいだけなのでopmのマスタークロックの違いを考慮する必要は無い
+                mucInfo.Carry = false;
                 int s = ((note & 0xf0) >> 4) * 12 + (note & 0xf);
                 int e = ((endNote & 0xf0) >> 4) * 12 + (endNote & 0xf);
                 depth = (e - s) * 64 / clk;
