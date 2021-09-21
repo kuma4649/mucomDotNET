@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <AssemblyName>mucomDotNETCompiler</AssemblyName>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\mucomDotNETCompiler\AutoExtendList.cs" Link="AutoExtendList.cs" />
+    <Compile Include="..\mucomDotNETCompiler\compiler.cs" Link="compiler.cs" />
+    <Compile Include="..\mucomDotNETCompiler\expand.cs" Link="expand.cs" />
+    <Compile Include="..\mucomDotNETCompiler\msub.cs" Link="msub.cs" />
+    <Compile Include="..\mucomDotNETCompiler\muc88.cs" Link="muc88.cs" />
+    <Compile Include="..\mucomDotNETCompiler\PCMTool\AdpcmMaker.cs" Link="PCMTool\AdpcmMaker.cs" />
+    <Compile Include="..\mucomDotNETCompiler\PCMTool\Config.cs" Link="PCMTool\Config.cs" />
+    <Compile Include="..\mucomDotNETCompiler\PCMTool\EncAdpcmA.cs" Link="PCMTool\EncAdpcmA.cs" />
+    <Compile Include="..\mucomDotNETCompiler\PCMTool\enmFormatType.cs" Link="PCMTool\enmFormatType.cs" />
+    <Compile Include="..\mucomDotNETCompiler\PCMTool\PCMFileInfo.cs" Link="PCMTool\PCMFileInfo.cs" />
+    <Compile Include="..\mucomDotNETCompiler\PCMTool\PCMFileManager.cs" Link="PCMTool\PCMFileManager.cs" />
+    <Compile Include="..\mucomDotNETCompiler\smon.cs" Link="smon.cs" />
+    <Compile Include="..\mucomDotNETCompiler\work.cs" Link="work.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\mucomDotNETCompiler\lang\mucomDotNETmessage.ja-JP.txt" Link="lang\mucomDotNETmessage.ja-JP.txt" />
+    <Content Include="..\mucomDotNETCompiler\lang\mucomDotNETmessage.txt" Link="lang\mucomDotNETmessage.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="lang\" />
+    <Folder Include="PCMTool\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Common_NET5\Common_NET5.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="musicDriverInterface">
+      <HintPath>..\Common_NET5\musicDriverInterface.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

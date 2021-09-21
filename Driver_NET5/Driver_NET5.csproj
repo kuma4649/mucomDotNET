@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <AssemblyName>mucomDotNETDriver</AssemblyName>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\mucomDotNETDriver\driver.cs" Link="driver.cs" />
+    <Compile Include="..\mucomDotNETDriver\FMTimer.cs" Link="FMTimer.cs" />
+    <Compile Include="..\mucomDotNETDriver\MUBHeader.cs" Link="MUBHeader.cs" />
+    <Compile Include="..\mucomDotNETDriver\MupbInfo.cs" Link="MupbInfo.cs" />
+    <Compile Include="..\mucomDotNETDriver\music2.cs" Link="music2.cs" />
+    <Compile Include="..\mucomDotNETDriver\OPMTimer.cs" Link="OPMTimer.cs" />
+    <Compile Include="..\mucomDotNETDriver\OPNAData.cs" Link="OPNAData.cs" />
+    <Compile Include="..\mucomDotNETDriver\OPNATimer.cs" Link="OPNATimer.cs" />
+    <Compile Include="..\mucomDotNETDriver\SoundWork.cs" Link="SoundWork.cs" />
+    <Compile Include="..\mucomDotNETDriver\Work.cs" Link="Work.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Common_NET5\Common_NET5.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="musicDriverInterface">
+      <HintPath>..\Common_NET5\musicDriverInterface.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

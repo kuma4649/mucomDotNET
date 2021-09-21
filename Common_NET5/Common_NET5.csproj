@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <AssemblyName>mucomDotNETCommon</AssemblyName>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\mucomDotNETCommon\AutoExtendList.cs" Link="AutoExtendList.cs" />
+    <Compile Include="..\mucomDotNETCommon\Common.cs" Link="Common.cs" />
+    <Compile Include="..\mucomDotNETCommon\iEncoding.cs" Link="iEncoding.cs" />
+    <Compile Include="..\mucomDotNETCommon\message.cs" Link="message.cs" />
+    <Compile Include="..\mucomDotNETCommon\MubException.cs" Link="MubException.cs" />
+    <Compile Include="..\mucomDotNETCommon\MucException.cs" Link="MucException.cs" />
+    <Compile Include="..\mucomDotNETCommon\MUCInfo.cs" Link="MUCInfo.cs" />
+    <Compile Include="..\mucomDotNETCommon\mucomChipAction.cs" Link="mucomChipAction.cs" />
+    <Compile Include="..\mucomDotNETCommon\myEncoding.cs" Link="myEncoding.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="musicDriverInterface">
+      <HintPath>musicDriverInterface.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
