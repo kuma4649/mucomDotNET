@@ -458,7 +458,7 @@ namespace mucomDotNET.Player
             loop = 0;
             isLoadADPCM = true;
 
-            while (args[i] != null && args[i].Length > 0 && args[i][0] == '-')
+            while (i < args.Length && args[i] != null && args[i].Length > 0 && args[i][0] == '-')
             {
                 string op = args[i].Substring(1).ToUpper();
                 if (op == "D=EMU")
@@ -478,7 +478,7 @@ namespace mucomDotNET.Player
                     device = 3;
                 }
 
-                if (op.Length>2 && op.Substring(0, 2) == "L=")
+                if (op.Length > 2 && op.Substring(0, 2) == "L=")
                 {
                     if (!int.TryParse(op.Substring(2), out loop))
                     {

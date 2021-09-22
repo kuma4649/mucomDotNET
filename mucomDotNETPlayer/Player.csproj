@@ -23,13 +23,16 @@
     <AssemblyTitle>Player</AssemblyTitle>
     <Product>Player</Product>
     <Copyright>Copyright ©  2019</Copyright>
-    <OutputPath>bin\$(Configuration)\</OutputPath>
     <PlatformTarget>x86</PlatformTarget>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <Configurations>Debug;Release;Debug64</Configurations>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
     <DebugType>full</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
     <DebugType>none</DebugType>
     <DefineConstants />
     <ErrorReport>none</ErrorReport>
@@ -45,7 +48,7 @@
     <Exec Command="copy &quot;$(ProjectDir)lib\*.dll&quot; &quot;$(TargetDir)&quot;" />
   </Target>
   <ItemGroup>
-    <PackageReference Include="NAudio" Version="1.9.0" />
+    <PackageReference Include="NAudio" Version="2.0.1" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MDSound, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">

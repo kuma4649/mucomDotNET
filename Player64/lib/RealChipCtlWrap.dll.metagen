@@ -1,0 +1,201 @@
+ImageRuntimeVersion: v4.0.30319
+Assembly RealChipCtlWrap, Version=0.0.*, Culture=ロケールに依存しない言語 (ロケールに依存しない国): 
+	hash=SHA1, flags=PublicKey
+Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Class Nc86ctl.Devinfo: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Fields:
+    System.String Devname : Public
+    Int32 Rev : Public
+    System.String Serial : Public
+Class Nc86ctl.NIGimic2: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.IDisposable
+  Fields:
+    c86ctl.IGimic2* pIGimic : Public
+  Methods:
+    getFWVer(UInt16&, UInt16&, UInt16&, UInt16&): PrivateScope, Public, HideBySig
+    getMBInfo(): PrivateScope, Public, HideBySig
+    getModuleType(): PrivateScope, Public, HideBySig
+    getModuleInfo(): PrivateScope, Public, HideBySig
+    setSSGVolume(Byte): PrivateScope, Public, HideBySig
+    getSSGVolume(): PrivateScope, Public, HideBySig
+    setPLLClock(UInt32): PrivateScope, Public, HideBySig
+    getPLLClock(): PrivateScope, Public, HideBySig
+    Dispose(): PrivateScope, Public, Final, Virtual, HideBySig
+Class Nc86ctl.NIRealChip: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.IDisposable
+  Fields:
+    c86ctl.IRealChip* pRC : Public
+  Methods:
+    reset(): PrivateScope, Public, HideBySig
+    out(UInt16, Byte): PrivateScope, Public, HideBySig
+    in(UInt16): PrivateScope, Public, HideBySig
+    QueryInterface(): PrivateScope, Public, HideBySig
+    Dispose(): PrivateScope, Public, Final, Virtual, HideBySig
+Class Nc86ctl.Nc86ctl: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.IDisposable
+  Methods:
+    getNumberOfChip(): PrivateScope, Public, HideBySig
+    initialize(): PrivateScope, Public, HideBySig
+    deinitialize(): PrivateScope, Public, HideBySig
+    getChipInterface(Int32): PrivateScope, Public, HideBySig
+    Dispose(): PrivateScope, Public, Final, Virtual, HideBySig
+Struct Nc86ctl.ChipType: AutoLayout, AnsiClass, Class, Public, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    Nc86ctl.ChipType CHIP_UNKNOWN = 0 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_OPNA = 1 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_YM2608 = 1 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_YM2608NOADPCM = 65537 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_OPM = 2 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_YM2151 = 2 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_OPN3L = 3 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_YMF288 = 3 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_OPL3 = 4 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_YMF262 = 4 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_OPLL = 5 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_YM2413 = 5 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_SN76489 = 6 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_SN76496 = 65542 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_AY38910 = 7 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_YM2149 = 65543 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_YM2203 = 8 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_YM2612 = 9 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_YM3526 = 10 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_YM3812 = 11 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_YMF271 = 12 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_YMF278B = 13 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_YMZ280B = 14 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_YMF297 = 15 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_YM2610B = 16 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_Y8950 = 32 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_Y8950ADPCM = 65568 : Public, Static, Literal, HasDefault
+    Nc86ctl.ChipType CHIP_YM3438 = 33 : Public, Static, Literal, HasDefault
+Class NScci.NSCCI_INTERFACE_INFO: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.IDisposable
+  Fields:
+    SCCI_INTERFACE_INFO* SCCI_INTERFACE_INFO_ : Public
+  Properties:
+    Int32 iSoundChipCount 'get ' : 
+    System.String cInterfaceName 'get ' : 
+  Methods:
+    get_cInterfaceName(): PrivateScope, Public, HideBySig, SpecialName
+    get_iSoundChipCount(): PrivateScope, Public, HideBySig, SpecialName
+    Dispose(): PrivateScope, Public, Final, Virtual, HideBySig
+Class NScci.NSCCI_SOUND_CHIP_INFO: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.IDisposable
+  Fields:
+    SCCI_SOUND_CHIP_INFO* SCCI_SOUND_CHIP_INFO_ : Public
+  Properties:
+    Int32 dSoundLocation 'get ' IsLong : 
+    Int32 dBusID 'get ' IsLong : 
+    Boolean bIsUsed 'get ' : 
+    Int32[] dCompatibleClock 'get ' : 
+    Int32 dClock 'get ' IsLong : 
+    Int32[] iCompatibleSoundChip 'get ' : 
+    Int32 iSoundChip 'get ' : 
+    System.String cSoundChipName 'get ' : 
+  Methods:
+    get_cSoundChipName(): PrivateScope, Public, HideBySig, SpecialName
+    get_iSoundChip(): PrivateScope, Public, HideBySig, SpecialName
+    get_iCompatibleSoundChip(): PrivateScope, Public, HideBySig, SpecialName
+    get_dClock(): PrivateScope, Public, HideBySig, SpecialName
+    get_dCompatibleClock(): PrivateScope, Public, HideBySig, SpecialName
+    get_bIsUsed(): PrivateScope, Public, HideBySig, SpecialName
+    get_dBusID(): PrivateScope, Public, HideBySig, SpecialName
+    get_dSoundLocation(): PrivateScope, Public, HideBySig, SpecialName
+    Dispose(): PrivateScope, Public, Final, Virtual, HideBySig
+Class NScci.NSoundInterfaceManager: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.IDisposable
+  Fields:
+    SoundInterfaceManager* SoundInterfaceManager_ : Public
+  Methods:
+    getInterfaceCount(): PrivateScope, Public, HideBySig
+    getInterfaceInfo(Int32): PrivateScope, Public, HideBySig
+    getInterface(Int32): PrivateScope, Public, HideBySig
+    releaseInterface(NSoundInterface IsByValue): PrivateScope, Public, HideBySig
+    releaseAllInterface(): PrivateScope, Public, HideBySig
+    getSoundChip(Int32, Int32 IsLong): PrivateScope, Public, HideBySig
+    releaseSoundChip(NSoundChip IsByValue): PrivateScope, Public, HideBySig
+    releaseAllSoundChip(): PrivateScope, Public, HideBySig
+    setDelay(Int32 IsLong): PrivateScope, Public, HideBySig
+    getDelay(): PrivateScope, Public, HideBySig
+    reset(): PrivateScope, Public, HideBySig
+    init(): PrivateScope, Public, HideBySig
+    initializeInstance(): PrivateScope, Public, HideBySig
+    releaseInstance(): PrivateScope, Public, HideBySig
+    getVersion(Int32&): PrivateScope, Public, HideBySig
+    isValidLevelDisp(): PrivateScope, Public, HideBySig
+    isLevelDisp(): PrivateScope, Public, HideBySig
+    setLevelDisp(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig
+    setMode(Int32): PrivateScope, Public, HideBySig
+    sendData(): PrivateScope, Public, HideBySig
+    clearBuff(): PrivateScope, Public, HideBySig
+    setAcquisitionMode(Int32): PrivateScope, Public, HideBySig
+    setAcquisitionModeClockRenge(Int32 IsLong): PrivateScope, Public, HideBySig
+    setCommandBuffetSize(Int32 IsLong): PrivateScope, Public, HideBySig
+    isBufferEmpty(): PrivateScope, Public, HideBySig
+    Dispose(): PrivateScope, Public, Final, Virtual, HideBySig
+Class NScci.NSoundInterface: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.IDisposable
+  Fields:
+    SoundInterface* SoundInterface_ : Public
+  Methods:
+    isSupportLowLevelApi(): PrivateScope, Public, HideBySig
+    setData(Byte[], Int32 IsLong): PrivateScope, Public, HideBySig
+    getData(Byte[], Int32 IsLong): PrivateScope, Public, HideBySig
+    setDelay(Int32 IsLong): PrivateScope, Public, HideBySig
+    getDelay(): PrivateScope, Public, HideBySig
+    reset(): PrivateScope, Public, HideBySig
+    init(): PrivateScope, Public, HideBySig
+    getSoundChipCount(): PrivateScope, Public, HideBySig
+    getSoundChip(Int32 IsLong): PrivateScope, Public, HideBySig
+    Dispose(): PrivateScope, Public, Final, Virtual, HideBySig
+Class NScci.NSoundChip: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.IDisposable
+  Fields:
+    SoundChip* SoundChip_ : Public
+  Methods:
+    getSoundChipInfo(): PrivateScope, Public, HideBySig
+    getSoundChipType(): PrivateScope, Public, HideBySig
+    setRegister(Int32 IsLong, Int32 IsLong): PrivateScope, Public, HideBySig
+    getRegister(Int32 IsLong): PrivateScope, Public, HideBySig
+    init(): PrivateScope, Public, HideBySig
+    getSoundChipClock(): PrivateScope, Public, HideBySig
+    getWrittenRegisterData(Int32 IsLong): PrivateScope, Public, HideBySig
+    isBufferEmpty(): PrivateScope, Public, HideBySig
+    Dispose(): PrivateScope, Public, Final, Virtual, HideBySig
+Class NScci.NScci: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.IDisposable
+  Fields:
+    NScci.NSoundInterfaceManager NSoundInterfaceManager_ : Public
+    NScci.NSoundInterface NSoundInterface_ : Public
+    NScci.NSoundChip NSoundChip_ : Public
+  Methods:
+    Dispose(): PrivateScope, Public, Final, Virtual, HideBySig

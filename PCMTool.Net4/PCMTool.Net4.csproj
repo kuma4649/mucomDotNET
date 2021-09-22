@@ -6,6 +6,8 @@
     <AssemblyName>PCMTool</AssemblyName>
     <RootNamespace>PCMTool</RootNamespace>
     <StartupObject>PCMTool.Program</StartupObject>
+    <Configurations>Debug;Release;Debug64</Configurations>
+    <Platforms>AnyCPU;x64;x86</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
