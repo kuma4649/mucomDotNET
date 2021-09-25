@@ -241,6 +241,15 @@ namespace mucomDotNET.Compiler
             return -depth;//    RET
         }
 
+        public double CULPTMex(int chipIndex, byte startNote, byte endNote, byte clk)
+        {
+            double depth = CULP2Ex(chipIndex, startNote, endNote) / (double)clk;
+
+            if (!mucInfo.Carry) return depth;
+            mucInfo.Carry = false;
+            return -depth;//    RET
+        }
+
         public byte GetEndNote()
         {
             int DE = work.MDATA;

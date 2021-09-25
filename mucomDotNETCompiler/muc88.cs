@@ -311,6 +311,7 @@ namespace mucomDotNET.Compiler
             //26を超えたら分割が必要?
 
             int noteDiv = noteNum / 2 + 1; //2おんずつ
+            //int noteDiv = noteNum;// 1おんずつ
             if (noteDiv > befco) noteDiv = befco;
             double noteStep = (double)noteNum / noteDiv * sign;
             //int noteMod = Math.Abs(noteNum % noteDiv);
@@ -363,7 +364,14 @@ namespace mucomDotNET.Compiler
                 if (i == lstPrt.Count - 1) tie = false;
                 byte st = (byte)(((it.Item1 / 12) << 4) | ((it.Item1 % 12) & 0xf));
                 byte ed = (byte)(((it.Item2 / 12) << 4) | ((it.Item2 % 12) & 0xf));
-                WritePortament(st, ed, (byte)it.Item3, (byte)(it.Item3 - it.Item4), tie);
+                if (mucInfo.DriverType != MUCInfo.enmDriverType.DotNet)
+                {
+                    WritePortament(st, ed, (byte)it.Item3, (byte)(it.Item3 - it.Item4), tie);
+                }
+                else
+                {
+                    WritePortamentEx(st, ed, (byte)it.Item3, (byte)(it.Item3 - it.Item4), tie);
+                }
             }
 
             PortamentEnd();
@@ -375,7 +383,7 @@ namespace mucomDotNET.Compiler
             int depth;
             if (work.ChipIndex != 4)
             {
-                depth = expand.CULPTM(work.ChipIndex, note, endNote, clk);//KUMA:DEPTHを計算
+                    depth = expand.CULPTM(work.ChipIndex, note, endNote, clk);//KUMA:DEPTHを計算
             }
             else
             {
@@ -396,12 +404,59 @@ namespace mucomDotNET.Compiler
             FC162p_write(note, clk,q, tie);
         }
 
+        private void WritePortamentEx(byte note, byte endNote, byte clk, byte q, bool tie)
+        {
+            double depth;
+            if (work.ChipIndex != 4)
+            {
+                depth = expand.CULPTMex(work.ChipIndex, note, endNote, clk);//KUMA:DEPTHを計算
+            }
+            else
+            {
+                //ここでは距離を求めたいだけなのでopmのマスタークロックの違いを考慮する必要は無い
+                mucInfo.Carry = false;
+                int s = ((note & 0xf0) >> 4) * 12 + (note & 0xf);
+                int e = ((endNote & 0xf0) >> 4) * 12 + (endNote & 0xf);
+                depth = (e - s) * 64 / clk;
+            }
+            if (mucInfo.Carry)
+            {
+                throw new MucException(
+                    msg.get("E0406")
+                    , mucInfo.row, mucInfo.col);
+            }
+
+            int speed = 1;
+            while (Math.Abs(depth) < 1.0)
+            {
+                speed++;
+                depth *= 2.0;
+            }
+
+            PortamentStartEx((int)depth, speed);
+            FC162p_write(note, clk, q, tie);
+        }
+
         private void PortamentStart(int depth)
         {
             msub.MWRIT2(new MmlDatum(0xf4));// PTMDAT;
             msub.MWRIT2(new MmlDatum(0x00));
             msub.MWRIT2(new MmlDatum(0x01));
             msub.MWRIT2(new MmlDatum(0x01));
+            work.BEFMD = work.MDATA;//KUMA:DEPTHの書き込み位置を退避
+            //work.MDATA += 2;
+            msub.MWRIT2(new MmlDatum((byte)(depth & 0xff)));
+            msub.MWRIT2(new MmlDatum((byte)(depth >> 8)));
+
+            msub.MWRIT2(new MmlDatum(0xff));//KUMA:回数(255回)を書き込む
+        }
+
+        private void PortamentStartEx(int depth,int speed)
+        {
+            msub.MWRIT2(new MmlDatum(0xf4));// PTMDAT;
+            msub.MWRIT2(new MmlDatum(0x00));
+            msub.MWRIT2(new MmlDatum(0x01));
+            msub.MWRIT2(new MmlDatum((byte)speed));// speed
             work.BEFMD = work.MDATA;//KUMA:DEPTHの書き込み位置を退避
             //work.MDATA += 2;
             msub.MWRIT2(new MmlDatum((byte)(depth & 0xff)));
