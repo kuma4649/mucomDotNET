@@ -292,11 +292,26 @@ namespace mucomDotNET.Compiler
             mucInfo.srcCPtr++;
             lp.length = mucInfo.srcCPtr - lp.length;
 
-            PortamentMain(before_note, after_note, befco, qbefco);
+            if (mucInfo.DriverType != MUCInfo.enmDriverType.DotNet)
+                PortamentMain(before_note, after_note, befco, qbefco);
+            else
+                PortamentMainEx(before_note, after_note, befco, befco - qbefco);
 
             work.latestNote = 1;//KUMA:チェック用(音符)
 
             return EnmFCOMPNextRtn.fcomp1;
+        }
+
+        private void PortamentMainEx(byte before_note, byte after_note, int clk, int q)
+        {
+            msub.MWRIT2(new MmlDatum(0xff));// PTMDAT;
+            msub.MWRIT2(new MmlDatum(0xf9));
+            msub.MWRIT2(new MmlDatum(before_note));
+            msub.MWRIT2(new MmlDatum(after_note));
+            msub.MWRIT2(new MmlDatum((byte)clk));
+            msub.MWRIT2(new MmlDatum((byte)(clk >> 8)));
+
+            FC162p_write(before_note, (byte)clk, (byte)q, false);
         }
 
         private void PortamentMain(byte before_note, byte after_note, int befco, int qbefco)

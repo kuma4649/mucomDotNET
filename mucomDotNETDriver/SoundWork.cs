@@ -479,5 +479,17 @@ namespace mucomDotNET.Driver
         public byte backupHardEnvFine { get; internal set; } = 0;
         public byte backupHardEnvCoarse { get; internal set; } = 0;
         public byte[] v_tl = new byte[4] { 0, 0, 0, 0 };
+
+        //portament処理 
+
+        //work
+        public bool portaFlg = false;
+        public bool portaContFlg = false;
+        public int portaWorkClock = 0;
+        //設定値
+        public int portaStNote = 0;
+        public int portaEdNote = 0;
+        public int portaTotalClock = 0;
+        public double portaBeforeFNum = 0;
     }
 }

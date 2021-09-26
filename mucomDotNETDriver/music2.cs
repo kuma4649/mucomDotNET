@@ -238,7 +238,7 @@ namespace mucomDotNET.Driver
                 ,SetKeyOnDelay // 0xFF 0xF6 - キーオンディレイ 'KD' n1,n2,n3,n4
                 ,MW_REG        // 0xFF 0xF7 - multi Write Register n1,n2,n3,n4
                 ,CH3SP         // 0xFF 0xF8 - 効果音モード系制御コマンド
-                ,NTMEAN        // 0xFF 0xF9
+                ,PORTAON       // 0xFF 0xF9 - ポルタメント n1,n2,n3  (st ed totalclock)
                 ,NTMEAN        // 0xFF 0xFA
                 ,NTMEAN        // 0xFF 0xFB
                 ,NTMEAN        // 0xFF 0xFC
@@ -890,15 +890,43 @@ namespace mucomDotNET.Driver
             KeyOnDelaying();
 
             FMSUB();
+            if (work.isDotNET)
+            {
+                AddEffect();
+                return;
+            }
             PLLFO();
         }
 
         public void SSGENT()
         {
             SSGSUB();
+            if (work.isDotNET)
+            {
+                AddEffect();
+                return;
+            }
             PLLFO();
         }
 
+        public void AddEffect()
+        {
+            // !! ここにくる以前に最新のfnumが送信されている前提になっています !!
+
+            uint fnum = (uint)work.pg.fnum;
+            if (work.soundWork.PCMFLG != 0)
+                fnum = work.soundWork.DELT_N[work.soundWork.currentChip];
+
+            prcLFO();
+            prcPortament();
+
+
+            if ((work.soundWork.PCMFLG == 0 && fnum != work.pg.fnum)
+                || (work.soundWork.PCMFLG != 0 && fnum != work.soundWork.DELT_N[work.soundWork.currentChip]))
+            {
+                prcWriteFnum();
+            }
+        }
 
         //**	FM ｵﾝｹﾞﾝ ﾆ ﾀｲｽﾙ ｴﾝｿｳ ﾙｰﾁﾝ	**
 
@@ -3551,6 +3579,10 @@ namespace mucomDotNET.Driver
             }
         }
 
+
+
+
+
         // **	LFO ﾙｰﾁﾝ	**
 
         public void PLLFO()
@@ -3616,16 +3648,8 @@ namespace mucomDotNET.Driver
             hl += (int)work.soundWork.DELT_N[work.soundWork.currentChip];
             work.soundWork.DELT_N[work.soundWork.currentChip] = (uint)hl;
 
-            if (work.soundWork.currentChip < 2)
-            {
-                PCMOUT(0x09, (byte)hl);
-                PCMOUT(0x0a, (byte)(hl >> 8));
-            }
-            else
-            {
-                PCMOUT(0,0x19, (byte)hl);
-                PCMOUT(0,0x1a, (byte)(hl >> 8));
-            }
+            PCMOUT(0x09, (byte)hl);
+            PCMOUT(0x0a, (byte)(hl >> 8));
         }
 
         public void PLSKI2(int hl)
@@ -3645,20 +3669,12 @@ namespace mucomDotNET.Driver
                 short dlt = (short)(ushort)hl;
                 //Console.Write("b:{0} num:{1:x} -> +{2}", blk, num, dlt);
 
-                if (work.soundWork.currentChip != 4)
-                {
-                    num = work.pg.fnum & 0x7ff;
-                    int blk = work.pg.fnum >> 11;
-                    num += dlt;
-                    GetFnum(ref blk, ref num);
-                    ////Console.WriteLine(" -> b:{0} num:{1:x}",blk,num);
-                    hl = (blk << 11) | num;
-                }
-                else
-                {
-                    num = AddDetuneToFNumopm((ushort)work.pg.fnum, dlt);
-                    hl = num;
-                }
+                num = work.pg.fnum & 0x7ff;
+                int blk = work.pg.fnum >> 11;
+                num += dlt;
+                GetFnum(ref blk, ref num);
+                ////Console.WriteLine(" -> b:{0} num:{1:x}",blk,num);
+                hl = (blk << 11) | num;
             }
             else
             {
@@ -3849,6 +3865,319 @@ namespace mucomDotNET.Driver
             d += 4;
         }
 
+
+
+        public void prcLFO()
+        {
+            if (!CheckCh3SpecialMode() && work.pg.pageNo != work.cd.currentPageNo) return;
+
+            // ---	FOR FM & SSG LFO	---
+            if (!work.pg.lfoflg)
+            {
+                return;
+            }
+
+            uint hl = work.pg.dataAddressWork;
+            hl--;
+            byte a = (byte)work.pg.mData[hl].dat;
+            if (a == 0xf0)
+            {
+                return;//  ｲｾﾞﾝ ﾉ ﾃﾞｰﾀ ｶﾞ '&' ﾅﾗ RET
+            }
+
+            if (!work.pg.lfoContFlg)
+            {
+                // **	LFO INITIARIZE   **
+                LFORST();
+                LFORST2();
+                work.pg.lfoCounterWork = work.pg.lfoCounter;
+                work.pg.lfoContFlg = true;// SET CONTINUE FLAG
+            }
+
+            //CTLFO:
+            if (work.pg.lfoDelayWork == 0)//delayが完了していたら次の処理へ
+            {
+                prcCTLFO1();
+                return;
+            }
+            work.pg.lfoDelayWork--;//delayのカウントダウン
+        }
+
+        public void prcCTLFO1()
+        {
+            work.pg.lfoCounterWork--;// ｶｳﾝﾀ
+            if (work.pg.lfoCounterWork != 0)
+            {
+                return;
+            }
+
+            work.pg.lfoCounterWork = work.pg.lfoCounter;//ｶｳﾝﾀ ｻｲ ｾｯﾃｲ
+            if (work.pg.lfoPeakWork == 0)//  GET PEAK LEVEL COUNTER(P.L.C)
+            {
+                work.pg.lfoDeltaWork = -work.pg.lfoDeltaWork;// WAVE ﾊﾝﾃﾝ
+                work.pg.lfoPeakWork = work.pg.lfoPeak;//  P.L.C ｻｲ ｾｯﾃｲ
+            }
+
+            //PLLFO1:
+            work.pg.lfoPeakWork--;// P.L.C.-1
+            int hl = work.pg.lfoDeltaWork;
+            prcPLS2(hl);
+        }
+
+        public void prcPLS2(int hl)
+        {
+            if (work.soundWork.PCMFLG == 0)
+            {
+                prcPLSKI2(hl);
+                return;
+            }
+
+            hl += (int)work.soundWork.DELT_N[work.soundWork.currentChip];
+            work.soundWork.DELT_N[work.soundWork.currentChip] = (uint)hl;
+
+        }
+
+        public void prcPLSKI2(int hl)
+        {
+            if (work.soundWork.SSGF1 != 0 && work.pg.SSGTremoloFlg)
+            {
+                work.pg.SSGTremoloVol += (short)(ushort)hl;
+                //Console.WriteLine(work.pg.SSGTremoloVol);
+                return;
+            }
+
+            if (work.soundWork.SSGF1 == 0)
+            {
+                //KUMA:FMの時はリミットチェック処理
+
+                int num;
+                short dlt = (short)(ushort)hl;
+                //Console.Write("b:{0} num:{1:x} -> +{2}", blk, num, dlt);
+
+                if (work.soundWork.currentChip != 4)
+                {
+                    num = work.pg.fnum & 0x7ff;
+                    int blk = work.pg.fnum >> 11;
+                    num += dlt;
+                    GetFnum(ref blk, ref num);
+                    ////Console.WriteLine(" -> b:{0} num:{1:x}",blk,num);
+                    hl = (blk << 11) | num;
+                }
+                else
+                {
+                    num = AddDetuneToFNumopm((ushort)work.pg.fnum, dlt);
+                    hl = num;
+                }
+            }
+            else
+            {
+                //KUMA:SSGの時は既存の処理
+
+                int de = work.pg.fnum;// GET FNUM1
+                // GET B/FNUM2
+                hl += de;//  HL= NEW F-NUMBER
+                hl = (ushort)hl;
+            }
+
+            work.pg.fnum = hl;// SET NEW F-NUM1
+                              // SET NEW F-NUM2
+
+        }
+
+
+
+        private void PORTAON()
+        {
+            work.pg.portaFlg = true;
+            work.pg.portaContFlg = false;
+            work.pg.portaWorkClock = 0;
+
+            work.pg.portaStNote = (byte)work.pg.mData[work.hl++].dat;
+            work.pg.portaEdNote = (byte)work.pg.mData[work.hl++].dat;
+            work.pg.portaTotalClock = (byte)work.pg.mData[work.hl++].dat;
+            work.pg.portaTotalClock += ((byte)work.pg.mData[work.hl++].dat) << 8;
+        }
+
+
+        public void prcPortament()
+        {
+            if (!CheckCh3SpecialMode() && work.pg.pageNo != work.cd.currentPageNo) return;
+
+            if (!work.pg.portaFlg)
+            {
+                return;
+            }
+
+            uint hl = work.pg.dataAddressWork;
+            hl--;
+            byte a = (byte)work.pg.mData[hl].dat;
+            if (a == 0xf0)
+            {
+                return;//  ｲｾﾞﾝ ﾉ ﾃﾞｰﾀ ｶﾞ '&' ﾅﾗ RET
+            }
+
+            if (!work.pg.portaContFlg)
+            {
+                //portament initialize
+                work.pg.portaWorkClock = 0;
+                work.pg.portaContFlg = true;
+            }
+
+            prcCTPRO1();
+        }
+
+        public void prcCTPRO1()
+        {
+            if (work.pg.portaTotalClock == 0) return;
+
+            int stOct = work.pg.portaStNote >> 4;
+            int stNote = work.pg.portaStNote & 0xf;
+            int edOct = work.pg.portaEdNote >> 4;
+            int edNote = work.pg.portaEdNote & 0xf;
+            bool isNeg = work.pg.portaEdNote < work.pg.portaStNote;
+
+            int noteDisatance = isNeg
+                ? ((stOct * 12 + stNote) - (edOct * 12 + edNote))
+                : ((edOct * 12 + edNote) - (stOct * 12 + stNote));
+
+            //音程変化範囲 * 経過クロック / ポルタメント総クロック = 開始音程からどの程度音程が変化したか
+            double noteDelta = noteDisatance * work.pg.portaWorkClock / (double)work.pg.portaTotalClock;
+
+            //整数部と小数部に分離
+            int iNoteDelta = (int)noteDelta;
+            iNoteDelta = isNeg ? -iNoteDelta : iNoteDelta;
+            noteDelta -= iNoteDelta;
+
+            //音程からfnumを取得
+            int a = iNoteDelta + (stNote + stOct * 12);
+            int b = a % 12;
+            int n = (a + (isNeg ? 11 : 1)) % 12;
+            int bsOct = a / 12;
+            int nxOct = (a + (isNeg ? -1 : 1)) / 12;
+            int bsFnum = 0, nxFnum = 0;
+            if (work.soundWork.SSGF1 == 0)
+            {
+                if (work.soundWork.currentChip < 2)
+                {
+                    bsFnum = work.soundWork.FNUMB[0][b] + bsOct * work.soundWork.FNUMB[0][0];
+                    nxFnum = work.soundWork.FNUMB[0][n] + nxOct * work.soundWork.FNUMB[0][0];
+                }
+                else if (work.soundWork.currentChip < 4)
+                {
+                    bsFnum = work.soundWork.FNUMB[1][b] + bsOct * work.soundWork.FNUMB[1][0];
+                    nxFnum = work.soundWork.FNUMB[1][n] + nxOct * work.soundWork.FNUMB[1][0];
+                }
+                else
+                {
+                    bsFnum = work.soundWork.FNUMBopm[0][b] + bsOct * 0x300;
+                    nxFnum = work.soundWork.FNUMBopm[0][n] + nxOct * 0x300;
+                }
+            }
+            else
+            {
+                if (work.soundWork.currentChip < 2)
+                {
+                    bsFnum = work.soundWork.SNUMB[0][b];
+                    if (nxOct - bsOct >= 0) nxFnum = work.soundWork.SNUMB[0][n] >> (nxOct - bsOct);
+                    else nxFnum = work.soundWork.SNUMB[0][n] << (bsOct - nxOct);
+                }
+                else if (work.soundWork.currentChip < 4)
+                {
+                    bsFnum = work.soundWork.SNUMB[1][b];
+                    if (nxOct - bsOct >= 0) nxFnum = work.soundWork.SNUMB[1][n] >> (nxOct - bsOct);
+                    else nxFnum = work.soundWork.SNUMB[1][n] << (bsOct - nxOct);
+                }
+            }
+
+            //小数部からfnumを算出
+            double d = (double)(isNeg ? ((bsFnum - nxFnum) * (1.0 - (noteDelta - (int)noteDelta))) : ((nxFnum - bsFnum) * noteDelta));
+            //d = isNeg ? -d : d;
+            d += isNeg ? nxFnum : bsFnum;
+
+            if (work.pg.portaWorkClock == 0) work.pg.portaBeforeFNum = isNeg ? (int)bsFnum : (int)d;
+            int delta = (int)d - (int)work.pg.portaBeforeFNum;
+            work.pg.portaBeforeFNum = (int)d;
+
+            //Console.WriteLine("{0} {1} {2}", isNeg, d, nxFnum);
+
+
+            if (work.soundWork.SSGF1 == 0)
+            {
+                int num;
+                short dlt = (short)(ushort)delta;
+
+                if (work.soundWork.currentChip != 4)
+                {
+                    num = work.pg.fnum & 0x7ff;
+                    int blk = work.pg.fnum >> 11;
+                    num += dlt;
+                    GetFnum(ref blk, ref num);
+                    delta = (blk << 11) | num;
+                }
+                else
+                {
+                    num = AddDetuneToFNumopm((ushort)work.pg.fnum, dlt);
+                    delta = num;
+                }
+            }
+            else
+            {
+                delta += work.pg.fnum;
+                work.pg.beforeCode = bsOct << 4;
+            }
+
+            work.pg.fnum = delta;
+            work.pg.portaWorkClock++;
+            if (work.pg.portaWorkClock == work.pg.portaTotalClock) work.pg.portaFlg = false;
+
+        }
+
+
+        public void prcWriteFnum()
+        {
+            int hl;
+            if (work.soundWork.PCMFLG != 0)
+            {
+                hl = (int)work.soundWork.DELT_N[work.soundWork.currentChip];
+                if (work.soundWork.currentChip < 2)
+                {
+                    PCMOUT(0x09, (byte)hl);
+                    PCMOUT(0x0a, (byte)(hl >> 8));
+                }
+                else
+                {
+                    PCMOUT(0, 0x19, (byte)hl);
+                    PCMOUT(0, 0x1a, (byte)(hl >> 8));
+                }
+                return;
+            }
+
+            if (work.soundWork.SSGF1 != 0)
+            {
+                // ---	FOR SSG LFO	---
+                hl = work.pg.fnum;
+                byte a = (byte)work.pg.beforeCode;// GET KEY CODE&OCTAVE
+                a >>= 4;
+                if (a != 0)//  OCTAVE=1?
+                {
+                    byte b = a;
+                    do
+                    {
+                        hl >>= 1;
+                        b--;
+                    } while (b != 0);
+                }
+                byte e = (byte)hl;
+                byte d = (byte)work.pg.channelNumber;
+                PSGOUT(d, e);
+                d++;
+                e = (byte)(hl >> 8);
+                PSGOUT(d, e);
+                return;
+            }
+
+            LFOP5(work.pg.fnum);
+        }
 
 
 
