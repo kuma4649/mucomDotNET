@@ -442,7 +442,7 @@ namespace mucomDotNET.Compiler
             }
 
             int speed = 1;
-            while (Math.Abs(depth) < 1.0)
+            while (depth != 0 && Math.Abs(depth) < 1.0)
             {
                 speed++;
                 depth *= 2.0;
@@ -4871,7 +4871,7 @@ namespace mucomDotNET.Compiler
             //ポルタメント作成
             if (time > 0)
             {
-                PortamentMain((byte)work.porOldNote, note, time, qtime);
+                PortamentMainEx((byte)work.porOldNote, note, time, qtime);
 
                 clk = (byte)(clk - time);
 
