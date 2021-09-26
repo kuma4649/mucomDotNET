@@ -4871,7 +4871,7 @@ namespace mucomDotNET.Compiler
             //ポルタメント作成
             if (time > 0)
             {
-                PortamentMainEx((byte)work.porOldNote, note, time, qtime);
+                PortamentMainEx((byte)work.porOldNote, note, time, time - qtime);
 
                 clk = (byte)(clk - time);
 

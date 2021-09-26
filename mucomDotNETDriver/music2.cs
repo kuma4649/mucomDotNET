@@ -3244,7 +3244,7 @@ namespace mucomDotNET.Driver
         public void VOLUPF()
         {
             List<object> args;
-            LinePos lp;
+            //LinePos lp;
 
             if (work.soundWork.DRMF1 != 0)
             {
