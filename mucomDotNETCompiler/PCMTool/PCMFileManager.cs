@@ -32,13 +32,23 @@ namespace mucomDotNET.Compiler.PCMTool
         public List<byte> GetRawData()
         {
             List<byte> ret = new List<byte>();
-            foreach (PCMFileInfo o in dicFile.Values)
+            int num = 0;
+            int cnt = 0;
+            while (cnt < dicFile.Count && num < 65536)
             {
-                if (o.encData != null)
-                    foreach (byte d in o.encData) ret.Add(d);
-                else if(o.raw!=null)
-                    foreach (byte d in o.raw) ret.Add(d);
+                if (dicFile.ContainsKey(num))
+                {
+                    PCMFileInfo o = dicFile[num];
+                    if (o.encData != null)
+                        foreach (byte d in o.encData) ret.Add(d);
+                    else if (o.raw != null)
+                        foreach (byte d in o.raw) ret.Add(d);
+
+                    cnt++;
+                }
+                num++;
             }
+
             return ret;
         }
 
