@@ -295,6 +295,9 @@ namespace mucomDotNET.Compiler
                     case "invert":
                         mucInfo.invert = tag.Item2;
                         break;
+                    case "pcminvert":
+                        mucInfo.pcminvert = tag.Item2;
+                        break;
                     case "carriercorrection":
                         string val = tag.Item2.ToLower().Trim();
 

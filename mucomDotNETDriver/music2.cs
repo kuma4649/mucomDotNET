@@ -914,15 +914,16 @@ namespace mucomDotNET.Driver
             // !! ここにくる以前に最新のfnumが送信されている前提になっています !!
 
             uint fnum = (uint)work.pg.fnum;
-            //if (work.soundWork.PCMFLG != 0)
-            //fnum = work.soundWork.DELT_N[work.soundWork.currentChip];
+            uint deltn = 0;
+            if (work.soundWork.PCMFLG != 0)
+                deltn = work.soundWork.DELT_N[work.soundWork.currentChip];
 
             prcLFO();
             prcPortament();
 
 
-            //if ((work.soundWork.PCMFLG == 0 && fnum != work.pg.fnum)
-                //|| (work.soundWork.PCMFLG != 0 && fnum != work.soundWork.DELT_N[work.soundWork.currentChip]))
+            if ((work.soundWork.PCMFLG == 0 && fnum != work.pg.fnum)
+                || (work.soundWork.PCMFLG != 0 && fnum + deltn != work.pg.fnum + work.soundWork.DELT_N[work.soundWork.currentChip]))
             {
                 prcWriteFnum();
             }

@@ -26,6 +26,7 @@ namespace mucomDotNET.Common
         public string driver { get; set; }
 
         public string invert { get; set; }
+        public string pcminvert { get; set; }
 
         public const string DotNET = "mucomDotNET";
 
@@ -160,6 +161,7 @@ namespace mucomDotNET.Common
             }
             driver = "";
             invert = "";
+            pcminvert = "";
             lines = 0;
             voiceData = null;
             pcmData = null;

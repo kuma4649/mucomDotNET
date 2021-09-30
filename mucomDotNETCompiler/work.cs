@@ -60,6 +60,7 @@ namespace mucomDotNET.Compiler
         public byte VPCO = 1;//dummyで1としている
         public byte OctaveUDFLG = 0;
         public byte VolumeUDFLG = 0;
+        public bool pcmInvert = false;
         public int REPCOUNT = 0;
         public int TV_OFS = 0;
         public int POINTC = 0;// LOOPSTART ADR ｶﾞ ｾｯﾃｲｻﾚﾃｲﾙ ADR

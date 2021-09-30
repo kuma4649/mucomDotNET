@@ -1,4 +1,10 @@
 更新履歴
+TAG140 2021/10/01 2nd
+  Compiler
+    PCMInvertタグを追加。
+  Driver
+    DotNETのみPCMパートでもLFO可能に修正
+
 TAG139 2021/10/01
   Driver
     DotNETのみPCMパートでもポルタメント可能に修正

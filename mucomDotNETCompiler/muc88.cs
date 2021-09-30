@@ -2951,7 +2951,7 @@ namespace mucomDotNET.Compiler
         {
             mucInfo.srcCPtr++;
 
-            if (work.OctaveUDFLG != 0)
+            if (work.OctaveUDFLG != 0 || (work.pcmInvert && work.OctaveUDFLG == 0))
             {
                 SOD2();
                 return;
@@ -2975,7 +2975,7 @@ namespace mucomDotNET.Compiler
         {
             mucInfo.srcCPtr++;
 
-            if (work.OctaveUDFLG != 0)
+            if (work.OctaveUDFLG != 0 || (work.pcmInvert && work.OctaveUDFLG == 0))
             {
                 SOU2();
                 return;
@@ -4495,6 +4495,11 @@ namespace mucomDotNET.Compiler
             {
                 work.OctaveUDFLG = 1;
                 work.VolumeUDFLG = 1;
+            }
+            work.pcmInvert = false;
+            if (mucInfo.pcminvert.ToLower() == "on")
+            {
+                work.pcmInvert = true;
             }
             work.quantize = 0;//KUMA: ポルタメントむけq値保存
             work.rhythmRelMode = false;
