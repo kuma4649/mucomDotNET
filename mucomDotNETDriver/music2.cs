@@ -914,15 +914,15 @@ namespace mucomDotNET.Driver
             // !! ここにくる以前に最新のfnumが送信されている前提になっています !!
 
             uint fnum = (uint)work.pg.fnum;
-            if (work.soundWork.PCMFLG != 0)
-                fnum = work.soundWork.DELT_N[work.soundWork.currentChip];
+            //if (work.soundWork.PCMFLG != 0)
+            //fnum = work.soundWork.DELT_N[work.soundWork.currentChip];
 
             prcLFO();
             prcPortament();
 
 
-            if ((work.soundWork.PCMFLG == 0 && fnum != work.pg.fnum)
-                || (work.soundWork.PCMFLG != 0 && fnum != work.soundWork.DELT_N[work.soundWork.currentChip]))
+            //if ((work.soundWork.PCMFLG == 0 && fnum != work.pg.fnum)
+                //|| (work.soundWork.PCMFLG != 0 && fnum != work.soundWork.DELT_N[work.soundWork.currentChip]))
             {
                 prcWriteFnum();
             }
@@ -1412,6 +1412,7 @@ namespace mucomDotNET.Driver
                 }
                 //ASUB72:
                 work.soundWork.DELT_N[work.soundWork.currentChip] = hl;
+                work.pg.fnum = 0;
                 if (!work.pg.keyoffflg)
                 {
                     LFORST();
@@ -1753,15 +1754,19 @@ namespace mucomDotNET.Driver
 
             if (work.soundWork.READY == 0) return;
 
-            PCMOUT(0x0b, 0x00);
-            PCMOUT(0x01, 0x00);
-            PCMOUT(0x00, 0x21);
-            PCMOUT(0x10, 0x08);
-            PCMOUT(0x10, 0x80);// INIT
-            PCMOUT(0x02, (byte)work.soundWork.STTADR[work.soundWork.currentChip]);// START ADR
-            PCMOUT(0x03, (byte)(work.soundWork.STTADR[work.soundWork.currentChip] >> 8));
-            PCMOUT(0x04, (byte)work.soundWork.ENDADR[work.soundWork.currentChip]);// END ADR
-            PCMOUT(0x05, (byte)(work.soundWork.ENDADR[work.soundWork.currentChip] >> 8));
+            if (work.isDotNET && work.pg.keyoffflg)
+            {
+                PCMOUT(0x0b, 0x00);
+                PCMOUT(0x01, 0x00);
+                PCMOUT(0x00, 0x21);
+                PCMOUT(0x10, 0x08);
+                PCMOUT(0x10, 0x80);// INIT
+                PCMOUT(0x02, (byte)work.soundWork.STTADR[work.soundWork.currentChip]);// START ADR
+                PCMOUT(0x03, (byte)(work.soundWork.STTADR[work.soundWork.currentChip] >> 8));
+                PCMOUT(0x04, (byte)work.soundWork.ENDADR[work.soundWork.currentChip]);// END ADR
+                PCMOUT(0x05, (byte)(work.soundWork.ENDADR[work.soundWork.currentChip] >> 8));
+            }
+
             PCMOUT(0x09, (byte)work.soundWork.DELT_N[work.soundWork.currentChip]);// ｻｲｾｲ ﾚｰﾄ ｶｲ
             PCMOUT(0x0a, (byte)(work.soundWork.DELT_N[work.soundWork.currentChip] >> 8));// ｻｲｾｲ ﾚｰﾄ ｼﾞｮｳｲ
             PCMOUT(0x00, 0xa0);
@@ -1794,15 +1799,19 @@ namespace mucomDotNET.Driver
 
             if (work.soundWork.READY == 0) return;
 
-            PCMOUT(0,0x1b, 0x00);
-            PCMOUT(0,0x11, 0x00);
-            PCMOUT(0,0x10, 0x21);
-            PCMOUT(0,0x1c, 0x08);
-            PCMOUT(0,0x1c, 0x80);// INIT
-            PCMOUT(0,0x12, (byte)(work.soundWork.STTADR[work.soundWork.currentChip] >> 0));// START ADR
-            PCMOUT(0,0x13, (byte)(work.soundWork.STTADR[work.soundWork.currentChip] >> 8));
-            PCMOUT(0,0x14, (byte)(work.soundWork.ENDADR[work.soundWork.currentChip] >> 0));// END ADR
-            PCMOUT(0,0x15, (byte)(work.soundWork.ENDADR[work.soundWork.currentChip] >> 8));
+            if (work.pg.keyoffflg)
+            {
+                PCMOUT(0, 0x1b, 0x00);
+                PCMOUT(0, 0x11, 0x00);
+                PCMOUT(0, 0x10, 0x21);
+                PCMOUT(0, 0x1c, 0x08);
+                PCMOUT(0, 0x1c, 0x80);// INIT
+                PCMOUT(0, 0x12, (byte)(work.soundWork.STTADR[work.soundWork.currentChip] >> 0));// START ADR
+                PCMOUT(0, 0x13, (byte)(work.soundWork.STTADR[work.soundWork.currentChip] >> 8));
+                PCMOUT(0, 0x14, (byte)(work.soundWork.ENDADR[work.soundWork.currentChip] >> 0));// END ADR
+                PCMOUT(0, 0x15, (byte)(work.soundWork.ENDADR[work.soundWork.currentChip] >> 8));
+            }
+
             PCMOUT(0,0x19, (byte)(work.soundWork.DELT_N[work.soundWork.currentChip] >> 0));// ｻｲｾｲ ﾚｰﾄ ｶｲ
             PCMOUT(0,0x1a, (byte)(work.soundWork.DELT_N[work.soundWork.currentChip] >> 8));// ｻｲｾｲ ﾚｰﾄ ｼﾞｮｳｲ
             PCMOUT(0, 0x10, 0xa0);
@@ -4028,6 +4037,23 @@ namespace mucomDotNET.Driver
 
         public void prcCTPRO1()
         {
+            if (work.soundWork.PCMFLG != 0)
+            {
+                prcCTPRO1_PCM();
+                return;
+            }
+
+            if (work.soundWork.SSGF1 != 0)
+            {
+                prcCTPRO1_SSG();
+                return;
+            }
+
+            prcCTPRO1_FM();
+        }
+
+        public void prcCTPRO1_FM()
+        {
             if (work.pg.portaTotalClock == 0) return;
 
             int stOct = work.pg.portaStNote >> 4;
@@ -4035,10 +4061,7 @@ namespace mucomDotNET.Driver
             int edOct = work.pg.portaEdNote >> 4;
             int edNote = work.pg.portaEdNote & 0xf;
             bool isNeg = work.pg.portaEdNote < work.pg.portaStNote;
-
-            int noteDisatance = isNeg
-                ? ((stOct * 12 + stNote) - (edOct * 12 + edNote))
-                : ((edOct * 12 + edNote) - (stOct * 12 + stNote));
+            int noteDisatance = Math.Abs((stOct * 12 + stNote) - (edOct * 12 + edNote));
 
             //音程変化範囲 * 経過クロック / ポルタメント総クロック = 開始音程からどの程度音程が変化したか
             double noteDelta = noteDisatance * work.pg.portaWorkClock / (double)work.pg.portaTotalClock;
@@ -4050,43 +4073,29 @@ namespace mucomDotNET.Driver
 
             //音程からfnumを取得
             int a = iNoteDelta + (stNote + stOct * 12);
-            int b = a % 12;
+            int b = (a + 12) % 12;
             int n = (a + (isNeg ? 11 : 1)) % 12;
-            int bsOct = a / 12;
-            int nxOct = (a + (isNeg ? -1 : 1)) / 12;
+
+            int bsOct;
+            int nxOct;
+            bsOct = a / 12;
+            nxOct = (a + (isNeg ? -1 : 1)) / 12;
+
             int bsFnum = 0, nxFnum = 0;
-            if (work.soundWork.SSGF1 == 0)
+            if (work.soundWork.currentChip < 2)
             {
-                if (work.soundWork.currentChip < 2)
-                {
-                    bsFnum = work.soundWork.FNUMB[0][b] + bsOct * work.soundWork.FNUMB[0][0];
-                    nxFnum = work.soundWork.FNUMB[0][n] + nxOct * work.soundWork.FNUMB[0][0];
-                }
-                else if (work.soundWork.currentChip < 4)
-                {
-                    bsFnum = work.soundWork.FNUMB[1][b] + bsOct * work.soundWork.FNUMB[1][0];
-                    nxFnum = work.soundWork.FNUMB[1][n] + nxOct * work.soundWork.FNUMB[1][0];
-                }
-                else
-                {
-                    bsFnum = work.soundWork.FNUMBopm[0][b] + bsOct * 0x300;
-                    nxFnum = work.soundWork.FNUMBopm[0][n] + nxOct * 0x300;
-                }
+                bsFnum = work.soundWork.FNUMB[0][b] + bsOct * work.soundWork.FNUMB[0][0];
+                nxFnum = work.soundWork.FNUMB[0][n] + nxOct * work.soundWork.FNUMB[0][0];
+            }
+            else if (work.soundWork.currentChip < 4)
+            {
+                bsFnum = work.soundWork.FNUMB[1][b] + bsOct * work.soundWork.FNUMB[1][0];
+                nxFnum = work.soundWork.FNUMB[1][n] + nxOct * work.soundWork.FNUMB[1][0];
             }
             else
             {
-                if (work.soundWork.currentChip < 2)
-                {
-                    bsFnum = work.soundWork.SNUMB[0][b];
-                    if (nxOct - bsOct >= 0) nxFnum = work.soundWork.SNUMB[0][n] >> (nxOct - bsOct);
-                    else nxFnum = work.soundWork.SNUMB[0][n] << (bsOct - nxOct);
-                }
-                else if (work.soundWork.currentChip < 4)
-                {
-                    bsFnum = work.soundWork.SNUMB[1][b];
-                    if (nxOct - bsOct >= 0) nxFnum = work.soundWork.SNUMB[1][n] >> (nxOct - bsOct);
-                    else nxFnum = work.soundWork.SNUMB[1][n] << (bsOct - nxOct);
-                }
+                bsFnum = work.soundWork.FNUMBopm[0][b] + bsOct * 0x300;
+                nxFnum = work.soundWork.FNUMBopm[0][n] + nxOct * 0x300;
             }
 
             //小数部からfnumを算出
@@ -4100,45 +4109,184 @@ namespace mucomDotNET.Driver
 
             //Console.WriteLine("{0} {1} {2}", isNeg, d, nxFnum);
 
+            int num;
+            short dlt = (short)(ushort)delta;
 
-            if (work.soundWork.SSGF1 == 0)
+            if (work.soundWork.currentChip != 4)
             {
-                int num;
-                short dlt = (short)(ushort)delta;
-
-                if (work.soundWork.currentChip != 4)
-                {
-                    num = work.pg.fnum & 0x7ff;
-                    int blk = work.pg.fnum >> 11;
-                    num += dlt;
-                    GetFnum(ref blk, ref num);
-                    delta = (blk << 11) | num;
-                }
-                else
-                {
-                    num = AddDetuneToFNumopm((ushort)work.pg.fnum, dlt);
-                    delta = num;
-                }
+                num = work.pg.fnum & 0x7ff;
+                int blk = work.pg.fnum >> 11;
+                num += dlt;
+                GetFnum(ref blk, ref num);
+                delta = (blk << 11) | num;
             }
             else
             {
-                delta += work.pg.fnum;
-                work.pg.beforeCode = bsOct << 4;
+                num = AddDetuneToFNumopm((ushort)work.pg.fnum, dlt);
+                delta = num;
             }
 
             work.pg.fnum = delta;
             work.pg.portaWorkClock++;
-            if (work.pg.portaWorkClock == work.pg.portaTotalClock) work.pg.portaFlg = false;
+            if (work.pg.portaWorkClock == work.pg.portaTotalClock)
+            {
+                work.pg.portaFlg = false;
+            }
+        }
+
+        public void prcCTPRO1_SSG()
+        {
+            if (work.pg.portaTotalClock == 0) return;
+
+            int stOct = work.pg.portaStNote >> 4;
+            int stNote = work.pg.portaStNote & 0xf;
+            int edOct = work.pg.portaEdNote >> 4;
+            int edNote = work.pg.portaEdNote & 0xf;
+            bool isNeg = work.pg.portaEdNote < work.pg.portaStNote;
+            int noteDisatance = Math.Abs((stOct * 12 + stNote) - (edOct * 12 + edNote));
+
+            //音程変化範囲 * 経過クロック / ポルタメント総クロック = 開始音程からどの程度音程が変化したか
+            double noteDelta = noteDisatance * work.pg.portaWorkClock / (double)work.pg.portaTotalClock;
+
+            //整数部と小数部に分離
+            int iNoteDelta = (int)noteDelta;
+            iNoteDelta = isNeg ? -iNoteDelta : iNoteDelta;
+            noteDelta -= iNoteDelta;
+
+            //音程からfnumを取得
+            int a = iNoteDelta + (stNote + stOct * 12);
+            int b = (a + 12) % 12;
+            int n = (a + (isNeg ? 11 : 1)) % 12;
+
+            int bsOct;
+            int nxOct;
+            bsOct = a / 12;
+            nxOct = (a + (isNeg ? -1 : 1)) / 12;
+
+            int bsFnum = 0, nxFnum = 0;
+            if (work.soundWork.currentChip < 2)
+            {
+                bsFnum = work.soundWork.SNUMB[0][b];
+                if (nxOct - bsOct >= 0) nxFnum = work.soundWork.SNUMB[0][n] >> (nxOct - bsOct);
+                else nxFnum = work.soundWork.SNUMB[0][n] << (bsOct - nxOct);
+            }
+            else if (work.soundWork.currentChip < 4)
+            {
+                bsFnum = work.soundWork.SNUMB[1][b];
+                if (nxOct - bsOct >= 0) nxFnum = work.soundWork.SNUMB[1][n] >> (nxOct - bsOct);
+                else nxFnum = work.soundWork.SNUMB[1][n] << (bsOct - nxOct);
+            }
+
+            //小数部からfnumを算出
+            double d = (double)(isNeg ? ((bsFnum - nxFnum) * (1.0 - (noteDelta - (int)noteDelta))) : ((nxFnum - bsFnum) * noteDelta));
+            //d = isNeg ? -d : d;
+            d += isNeg ? nxFnum : bsFnum;
+
+            if (work.pg.portaWorkClock == 0) work.pg.portaBeforeFNum = isNeg ? (int)bsFnum : (int)d;
+            int delta = (int)d - (int)work.pg.portaBeforeFNum;
+            work.pg.portaBeforeFNum = (int)d;
+
+            //Console.WriteLine("{0} {1} {2}", isNeg, d, nxFnum);
+
+            delta += work.pg.fnum;
+            work.pg.beforeCode = bsOct << 4;
+
+            work.pg.fnum = delta;
+            work.pg.portaWorkClock++;
+            if (work.pg.portaWorkClock == work.pg.portaTotalClock)
+            {
+                work.pg.portaFlg = false;
+            }
 
         }
 
+        public void prcCTPRO1_PCM()
+        {
+            if (work.pg.portaTotalClock == 0) return;
+
+            int stOct = work.pg.portaStNote >> 4;
+            int stNote = work.pg.portaStNote & 0xf;
+            int edOct = work.pg.portaEdNote >> 4;
+            int edNote = work.pg.portaEdNote & 0xf;
+            bool isNeg = work.pg.portaEdNote < work.pg.portaStNote;
+            int noteDisatance = Math.Abs((stOct * 12 + stNote) - (edOct * 12 + edNote));
+            if (stOct != edOct)
+            {
+                isNeg = stOct < edOct;
+                noteDisatance = isNeg
+                    ? (stNote + 12 * (edOct - stOct) - edNote)
+                    : (edNote + 12 * (stOct - edOct) - stNote)
+                    ;
+            }
+
+            //音程変化範囲 * 経過クロック / ポルタメント総クロック = 開始音程からどの程度音程が変化したか
+            double noteDelta = noteDisatance * work.pg.portaWorkClock / (double)work.pg.portaTotalClock;
+
+            //整数部と小数部に分離
+            int iNoteDelta = (int)noteDelta;
+            iNoteDelta = isNeg ? -iNoteDelta : iNoteDelta;
+            noteDelta -= iNoteDelta;
+
+            //音程からfnumを取得
+            int a = iNoteDelta + (stNote + stOct * 12);
+            int b = (a + 12) % 12;
+            int n = (a + (isNeg ? 11 : 1)) % 12;
+
+            int bsOct;
+            int nxOct;
+            if (isNeg)
+            {
+                bsOct = stOct - (a - 11) / 12;
+                nxOct = b < n ? (bsOct + 1) : bsOct;
+            }
+            else
+            {
+                bsOct = stOct - (a - 12) / 12;
+                nxOct = b > n ? (bsOct - 1) : bsOct;
+            }
+
+            int bsFnum = 0, nxFnum = 0;
+            if (work.soundWork.currentChip < 2)
+            {
+                bsFnum = work.soundWork.PCMNMB[0][b] >> bsOct;
+                nxFnum = work.soundWork.PCMNMB[0][n] >> nxOct;
+            }
+            else if (work.soundWork.currentChip < 4)
+            {
+                bsFnum = work.soundWork.PCMNMB[1][b] >> bsOct;
+                nxFnum = work.soundWork.PCMNMB[1][n] >> nxOct;
+            }
+
+            //小数部からfnumを算出
+            double d = (double)(isNeg ? ((bsFnum - nxFnum) * (1.0 - (noteDelta - (int)noteDelta))) : ((nxFnum - bsFnum) * noteDelta));
+            //d = isNeg ? -d : d;
+            d += isNeg ? nxFnum : bsFnum;
+
+            if (work.pg.portaWorkClock == 0) work.pg.portaBeforeFNum = isNeg ? (int)bsFnum : (int)d;
+            int delta = (int)d - (int)work.pg.portaBeforeFNum;
+            work.pg.portaBeforeFNum = (int)d;
+
+            //Console.WriteLine("{0} {1} {2}", isNeg, d, nxFnum);
+
+            delta += work.pg.fnum;
+            work.pg.beforeCode = bsOct << 4;
+
+            work.pg.fnum = delta;
+            work.pg.portaWorkClock++;
+            if (work.pg.portaWorkClock == work.pg.portaTotalClock)
+            {
+                work.pg.portaFlg = false;
+            }
+
+        }
 
         public void prcWriteFnum()
         {
             int hl;
             if (work.soundWork.PCMFLG != 0)
             {
-                hl = (int)work.soundWork.DELT_N[work.soundWork.currentChip];
+                //hl = (int)work.soundWork.DELT_N[work.soundWork.currentChip];
+                hl = (int)work.soundWork.DELT_N[work.soundWork.currentChip] + work.pg.fnum;
                 if (work.soundWork.currentChip < 2)
                 {
                     PCMOUT(0x09, (byte)hl);
