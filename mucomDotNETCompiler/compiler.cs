@@ -218,7 +218,10 @@ namespace mucomDotNET.Compiler
                         mucInfo.author = tag.Item2;
                         break;
                     case "comment":
-                        mucInfo.comment = tag.Item2;
+                        if (string.IsNullOrEmpty(mucInfo.comment))
+                            mucInfo.comment = tag.Item2;
+                        else
+                            mucInfo.comment += "\r\n" + tag.Item2;
                         break;
                     case "mucom88":
                         mucInfo.mucom88 = tag.Item2;

@@ -64,7 +64,7 @@ namespace mucomDotNET.Player
             Log.writeLine += WriteLine;
 #if DEBUG
             //Log.writeLine += WriteLineF;
-            Log.level = LogLevel.TRACE;// TRACE;
+            Log.level = LogLevel.INFO;// TRACE;
 #else
             Log.level = LogLevel.INFO;
 #endif
