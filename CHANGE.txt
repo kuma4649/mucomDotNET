@@ -1,4 +1,8 @@
 更新履歴
+TAG142 2021/10/02
+  Compiler Driver
+    ADPCM/-Bパートのソフトエンベロープ対応
+
 TAG141 2021/10/01 3rd
   Compiler
     commentタグを複数使用した時、複文として定義できるよう修正。

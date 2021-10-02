@@ -239,7 +239,7 @@ namespace mucomDotNET.Driver
                 ,MW_REG        // 0xFF 0xF7 - multi Write Register n1,n2,n3,n4
                 ,CH3SP         // 0xFF 0xF8 - 効果音モード系制御コマンド
                 ,PORTAON       // 0xFF 0xF9 - ポルタメント n1,n2,n3  (st ed totalclock)
-                ,NTMEAN        // 0xFF 0xFA
+                ,ENVPSTex      // 0xFF 0xFA - ソフトエンベロープ 'E' n1,n2,n3,n4,n5,n6
                 ,NTMEAN        // 0xFF 0xFB
                 ,NTMEAN        // 0xFF 0xFC
                 ,NTMEAN        // 0xFF 0xFD
@@ -911,8 +911,9 @@ namespace mucomDotNET.Driver
 
         public void AddEffect()
         {
-            // !! ここにくる以前に最新のfnumが送信されている前提になっています !!
 
+
+            // !! ここにくる以前に最新のfnumが送信されている前提になっています !!
             uint fnum = (uint)work.pg.fnum;
             uint deltn = 0;
             if (work.soundWork.PCMFLG != 0)
@@ -921,11 +922,27 @@ namespace mucomDotNET.Driver
             prcLFO();
             prcPortament();
 
-
             if ((work.soundWork.PCMFLG == 0 && fnum != work.pg.fnum)
                 || (work.soundWork.PCMFLG != 0 && fnum + deltn != work.pg.fnum + work.soundWork.DELT_N[work.soundWork.currentChip]))
             {
                 prcWriteFnum();
+            }
+
+
+
+            if (work.soundWork.PCMFLG != 0)
+            {
+                prcSoftEnvelope();
+                //Console.WriteLine("{0}", work.A_Reg);
+                //send volume
+
+                if ((work.pg.softEnvelopeFlag & 0x80) != 0)
+                {
+                    if (work.soundWork.currentChip < 2)
+                        PCMOUT(0xb, work.A_Reg);
+                    else
+                        PCMOUT(0, 0x1b, work.A_Reg);
+                }
             }
         }
 
@@ -1202,18 +1219,32 @@ namespace mucomDotNET.Driver
 
             if (work.cd.currentPageNo != work.pg.pageNo) return;
 
-            PCMOUT(0x0b, 0x00);
-            PCMOUT(0x01, 0x00);
-            PCMOUT(0x00, 0x21);
+            if ((work.pg.softEnvelopeFlag & 0x80) == 0)
+            {
+                PCMOUT(0x0b, 0x00);
+                PCMOUT(0x01, 0x00);
+                PCMOUT(0x00, 0x21);
+                return;
+            }
+
+            work.pg.softEnvelopeFlag &= 0b1000_1111;// STATE 4 (ﾘﾘｰｽ)
+
         }
 
         public void PCMEND2610()
         {
             if (work.cd.currentPageNo != work.pg.pageNo) return;
 
-            PCMOUT(0,0x1b, 0x00);
-            PCMOUT(0,0x11, 0x00);
-            PCMOUT(0,0x10, 0x21);
+            if ((work.pg.softEnvelopeFlag & 0x80) == 0)
+            {
+                PCMOUT(0, 0x1b, 0x00);
+                PCMOUT(0, 0x11, 0x00);
+                PCMOUT(0, 0x10, 0x21);
+                return;
+            }
+
+            work.pg.softEnvelopeFlag &= 0b1000_1111;// STATE 4 (ﾘﾘｰｽ)
+
         }
 
         // ***	ADPCM OUT	***
@@ -1766,6 +1797,12 @@ namespace mucomDotNET.Driver
                 PCMOUT(0x03, (byte)(work.soundWork.STTADR[work.soundWork.currentChip] >> 8));
                 PCMOUT(0x04, (byte)work.soundWork.ENDADR[work.soundWork.currentChip]);// END ADR
                 PCMOUT(0x05, (byte)(work.soundWork.ENDADR[work.soundWork.currentChip] >> 8));
+                work.pg.lfoContFlg = false;// RESET LFO CONTINE FLAG
+                if ((work.pg.softEnvelopeFlag & 0x80) != 0)
+                {
+                    work.pg.softEnvelopeFlag = 0x90;
+                    work.pg.softEnvelopeCounter = (byte)work.pg.softEnvelopeParam[0];//KUMA:ALがcounterの初期値として使用される
+                }
             }
 
             PCMOUT(0x09, (byte)work.soundWork.DELT_N[work.soundWork.currentChip]);// ｻｲｾｲ ﾚｰﾄ ｶｲ
@@ -1783,7 +1820,8 @@ namespace mucomDotNET.Driver
                 e += (byte)work.pg.volReg;
             }
             //PL2:
-            PCMOUT(0xb, e);// VOLUME
+            if ((work.pg.softEnvelopeFlag & 0x80) == 0)
+                PCMOUT(0xb, e);// VOLUME
 
             e = (byte)((work.soundWork.PCMLR[work.soundWork.currentChip] & 3) << 6);
             PCMOUT(0x01, e);// 1 bit TYPE, L&R OUT
@@ -1811,6 +1849,12 @@ namespace mucomDotNET.Driver
                 PCMOUT(0, 0x13, (byte)(work.soundWork.STTADR[work.soundWork.currentChip] >> 8));
                 PCMOUT(0, 0x14, (byte)(work.soundWork.ENDADR[work.soundWork.currentChip] >> 0));// END ADR
                 PCMOUT(0, 0x15, (byte)(work.soundWork.ENDADR[work.soundWork.currentChip] >> 8));
+                work.pg.lfoContFlg = false;// RESET LFO CONTINE FLAG
+                if ((work.pg.softEnvelopeFlag & 0x80) != 0)
+                {
+                    work.pg.softEnvelopeFlag = 0x90;
+                    work.pg.softEnvelopeCounter = (byte)work.pg.softEnvelopeParam[0];//KUMA:ALがcounterの初期値として使用される
+                }
             }
 
             PCMOUT(0,0x19, (byte)(work.soundWork.DELT_N[work.soundWork.currentChip] >> 0));// ｻｲｾｲ ﾚｰﾄ ｶｲ
@@ -1828,7 +1872,8 @@ namespace mucomDotNET.Driver
                 e += (byte)work.pg.volReg;
             }
             //PL2:
-            PCMOUT(0,0x1b, e);// VOLUME
+            if ((work.pg.softEnvelopeFlag & 0x80) == 0)
+                PCMOUT(0,0x1b, e);// VOLUME
 
             e = (byte)((work.soundWork.PCMLR[work.soundWork.currentChip] & 3) << 6);
             PCMOUT(0,0x11, e);// 1 bit TYPE, L&R OUT
@@ -3466,6 +3511,17 @@ namespace mucomDotNET.Driver
 
         }
 
+        public void ENVPSTex()
+        {
+
+            for (int i = 0; i < 6; i++)
+            {
+                work.pg.softEnvelopeParam[i] = work.pg.mData[work.hl++].dat;
+            }
+            work.pg.softEnvelopeFlag = 0b1001_0000;// ｴﾝﾍﾞﾌﾗｸﾞ ｱﾀｯｸﾌﾗｸﾞ ｾｯﾄ
+
+        }
+
         // **	PSG VOLUME	**
 
         public void PSGVOL()
@@ -4209,8 +4265,8 @@ namespace mucomDotNET.Driver
             int stNote = work.pg.portaStNote & 0xf;
             int edOct = work.pg.portaEdNote >> 4;
             int edNote = work.pg.portaEdNote & 0xf;
-            bool isNeg = work.pg.portaEdNote < work.pg.portaStNote;
-            int noteDisatance = Math.Abs((stOct * 12 + stNote) - (edOct * 12 + edNote));
+            bool isNeg = edNote < stNote;
+            int noteDisatance = Math.Abs(stNote - edNote);
             if (stOct != edOct)
             {
                 isNeg = stOct < edOct;
@@ -4225,24 +4281,27 @@ namespace mucomDotNET.Driver
 
             //整数部と小数部に分離
             int iNoteDelta = (int)noteDelta;
-            iNoteDelta = isNeg ? -iNoteDelta : iNoteDelta;
             noteDelta -= iNoteDelta;
+            iNoteDelta = isNeg ? -iNoteDelta : iNoteDelta;
+            //noteDelta = isNeg ? -noteDelta : noteDelta;
 
             //音程からfnumを取得
-            int a = iNoteDelta + (stNote + stOct * 12);
-            int b = (a + 12) % 12;
-            int n = (a + (isNeg ? 11 : 1)) % 12;
+            int a = iNoteDelta + stNote;
+            int b = a % 12;
+            b += b < 0 ? 12 : 0;
+            int n = (a + (isNeg ? -1 : 1)) % 12;
+            n += n < 0 ? 12 : 0;
 
             int bsOct;
             int nxOct;
             if (isNeg)
             {
-                bsOct = stOct - (a - 11) / 12;
+                bsOct = stOct + ((11 - stNote) - iNoteDelta) / 12;
                 nxOct = b < n ? (bsOct + 1) : bsOct;
             }
             else
             {
-                bsOct = stOct - (a - 12) / 12;
+                bsOct = stOct - (stNote + iNoteDelta) / 12;
                 nxOct = b > n ? (bsOct - 1) : bsOct;
             }
 
@@ -4259,7 +4318,7 @@ namespace mucomDotNET.Driver
             }
 
             //小数部からfnumを算出
-            double d = (double)(isNeg ? ((bsFnum - nxFnum) * (1.0 - (noteDelta - (int)noteDelta))) : ((nxFnum - bsFnum) * noteDelta));
+            double d = (double)(isNeg ? ((bsFnum - nxFnum) * (1.0 - noteDelta)) : ((nxFnum - bsFnum) * noteDelta));
             //d = isNeg ? -d : d;
             d += isNeg ? nxFnum : bsFnum;
 
@@ -4267,7 +4326,7 @@ namespace mucomDotNET.Driver
             int delta = (int)d - (int)work.pg.portaBeforeFNum;
             work.pg.portaBeforeFNum = (int)d;
 
-            //Console.WriteLine("{0} {1} {2}", isNeg, d, nxFnum);
+            //Console.WriteLine("{0} {1} {2} {3} {4}", isNeg, d, nxFnum,bsOct,nxOct);
 
             delta += work.pg.fnum;
             work.pg.beforeCode = bsOct << 4;
@@ -4329,6 +4388,11 @@ namespace mucomDotNET.Driver
         }
 
 
+        public void prcSoftEnvelope()
+        {
+            if ((work.pg.softEnvelopeFlag & 0x80) == 0) return;
+            SOFENVex();
+        }
 
 
         //SSG:
@@ -4756,6 +4820,133 @@ namespace mucomDotNET.Driver
             a >>= 1;
             work.A_Reg = a;
         }
+
+
+
+
+        public void SOFENVex()
+        {
+            if ((work.pg.softEnvelopeFlag & 0x10) == 0)// CHECK ATTACK FLAG
+            {
+                goto SOFEV2; //KUMA:decay flagのチェックへゴー
+            }
+
+            byte a = (byte)work.pg.softEnvelopeCounter;  //KUMA:get counter
+            byte d = (byte)work.pg.softEnvelopeParam[1];  //KUMA:get AR
+            bool carry = ((a + d) > 0xff); //KUMA:counter + AR が255を超えたか？
+            a += d;
+            if (!carry)
+            {
+                goto SOFEV1;
+            }
+            a = 0xff; //KUMA:counterが上限を突破したので,counterを255に修正
+        SOFEV1: //KUMA:counterとflagの更新
+            work.pg.softEnvelopeCounter = a; //KUMA: counter = counter + AR(毎クロック,AR分だけcounterが増える)
+            if ((a - 0xff) != 0)
+            {
+                SOFEV7ex(); //KUMA:counterが255に達していないならSOFEV7へ
+                return;
+            }
+            a = (byte)work.pg.softEnvelopeFlag;//KUMA:current volume & flagsを取得
+            a ^= 0b0011_0000;//KUMA:attack flag:off  decay flag:on をxorで実現(上手い)
+            work.pg.softEnvelopeFlag = a;// TO STATE 2 (DECAY) //KUMA:current volume & flagsを更新
+            SOFEV7ex();
+            return;
+        SOFEV2:
+            if ((work.pg.softEnvelopeFlag & 0x20) == 0)//KUMA: Check decay flag
+            {
+                goto SOFEV4;//KUMA:sustain flagのチェックへ
+            }
+            a = (byte)work.pg.softEnvelopeCounter;// KUMA:get counter
+            d = (byte)work.pg.softEnvelopeParam[2];// GET DECAY //KUMA:get DR
+            byte e = (byte)work.pg.softEnvelopeParam[3];// GET SUSTAIN //KUMA:get SR
+            carry = ((a - d) < 0); //KUMA:counter = counter - DR 結果、counterが0未満の場合はSOFEV8へ
+            a -= d;
+            if (carry)
+            {
+                goto SOFEV8;
+            }
+            if (a - e >= 0)//KUMA:counter-SR は0以上の場合はSOFEV3へ
+            {
+                goto SOFEV3;
+            }
+        SOFEV8:
+            a = e;//KUMA: counter = SR
+        SOFEV3:
+            work.pg.softEnvelopeCounter = a;//KUMA:counter=counter-DR(毎クロック,DR分だけcounterが減る)
+            if ((a - e) != 0)
+            {
+                SOFEV7ex();//KUMA: counterがSRに到達していないならSOFEV7へ
+                return;
+            }
+            a = (byte)work.pg.softEnvelopeFlag;//KUMA:current volume & flagsを取得
+            a ^= 0b0110_0000;//KUMA:dcay flag:off  sustain flag:on
+            work.pg.softEnvelopeFlag = a;// TO STATE 3 (SUSTAIN) //KUMA:current volume & flagsを更新
+            SOFEV7ex();
+            return;
+        SOFEV4:
+            if ((work.pg.softEnvelopeFlag & 0x40) == 0)//KUMA: Check sustain flag
+            {
+                SOFEV9ex();//KUMA:release 処理へ
+                return;
+            }
+            a = (byte)work.pg.softEnvelopeCounter;// KUMA:get counter
+            d = (byte)work.pg.softEnvelopeParam[4];// GET SUSTAIN LEVEL// KUMA:get SL
+            carry = ((a - d) < 0);//KUMA:counter = counter - SL 結果、counterが0以上の場合はSOFEV5へ
+            a -= d;
+            if (!carry)
+            {
+                goto SOFEV5;
+            }
+            a = 0;//KUMA: counter=0
+        SOFEV5:
+            work.pg.softEnvelopeCounter = a;//KUMA:counter=counter-SL(毎クロック,SL分だけcounterが減る)
+            if (a != 0)
+            {
+                SOFEV7ex();
+                return;
+            }
+            a = (byte)work.pg.softEnvelopeFlag;//KUMA:current volume & flagsを取得
+            a &= 0b1000_1111;//KUMA:エンベロープで使用した進捗に関わるフラグをリセット
+            work.pg.softEnvelopeFlag = a;// END OF ENVE //KUMA:KEYON中にSLにきて更にcounterが0になったらエンベロープ処理は終了する
+            SOFEV7ex();
+        }
+
+        public void SOFEV9ex()
+        {
+            byte a = (byte)work.pg.softEnvelopeCounter;//KUMA:get counter
+            byte d = (byte)work.pg.softEnvelopeParam[5];// GET REREASE//KUMA:get RR
+            bool carry = ((a - d) < 0);//KUMA:RRでcounterを減算
+            a -= d;
+            if (!carry)
+            {
+                goto SOFEVA;
+            }
+            a = 0;
+        SOFEVA:
+            work.pg.softEnvelopeCounter = a;//KUMA:counterを更新
+            SOFEV7ex();
+        }
+
+        public void SOFEV7ex()
+        {
+            byte e = (byte)work.pg.softEnvelopeCounter;//KUMA:get counter
+            int a = (byte)work.pg.volume;// GET VOLUME
+            a++;
+            a = (byte)((e * a) >> 8);//AにはVOLUME+1を最大値としたcounter/256の割合分の値が入る
+            work.A_Reg = (byte)a;
+            if (work.pg.keyoffflg) return;
+            if (!work.pg.reverbFlg) return;
+
+            a += (byte)work.pg.reverbVol;//.softEnvelopeParam[5];
+            work.carry = ((a & 0x01) != 0);
+            a >>= 1;
+            work.A_Reg = (byte)a;
+        }
+
+
+
+
 
         // **   SET POINTER   **
 

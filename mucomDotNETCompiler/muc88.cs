@@ -1609,7 +1609,21 @@ namespace mucomDotNET.Compiler
         private EnmFCOMPNextRtn SETSEV()
         {
 
+            int ptr, n;
             ChannelType tp = CHCHK();
+
+            if (mucInfo.DriverType == MUCInfo.enmDriverType.DotNet && tp == ChannelType.ADPCM)
+            {
+                ptr = mucInfo.srcCPtr;
+                n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0430"));
+                mucInfo.srcCPtr = ptr;
+
+                msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xfa));// COM OF 'E'
+                msub.MWRIT2(new MmlDatum((byte)n));// SET DATA ONLY
+
+                return SETSE1(5, "E0512", "E0513");//ﾉｺﾘ 5 PARAMETER
+            }
+
             if (tp != ChannelType.SSG)
             {
                 throw new MucException(
@@ -1617,9 +1631,8 @@ namespace mucomDotNET.Compiler
                     , mucInfo.row, mucInfo.col);
             }
 
-            int ptr;
             ptr = mucInfo.srcCPtr;
-            int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0430"));
+            n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0430"));
             mucInfo.srcCPtr = ptr;
 
             msub.MWRITE(new MmlDatum(0xfa), new MmlDatum((byte)n));// COM OF 'E'
