@@ -3194,8 +3194,9 @@ namespace mucomDotNET.Compiler
                     mucInfo.fnSrcOnlyFile
                     , mucInfo.row, mucInfo.col
                     , mucInfo.srcCPtr - mucInfo.col + 1
-                    , "ADPCM"
-                    , "YM2608", 0, work.ChipIndex % 2, work.CHIP_CH * 10 + work.pageNow);
+                    , work.currentPartType
+                    , work.currentChipName
+                    , 0, work.ChipIndex % 2, work.CHIP_CH * 10 + work.pageNow);
 
                 n = (byte)n;
                 work.VOLUME = n;

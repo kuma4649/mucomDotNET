@@ -839,6 +839,11 @@ namespace mucomDotNET.Driver
 
                             if (work.pg.muteFlg) work.soundWork.READY = 0xff;//KUMA: 0x08(bit3)=MUTE FLAG
                         }
+                        else
+                        {
+                            if (work.isDotNET)
+                                AddEffect();
+                        }
                         //KUMA:終了パートのカウント
                         if ((work.pg.dataTopAddress == -1 && work.pg.loopEndFlg)
                             || work.pg.loopCounter >= work.maxLoopCount) m++;
