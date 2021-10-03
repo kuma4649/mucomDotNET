@@ -3187,6 +3187,15 @@ namespace mucomDotNET.Compiler
                         , mucInfo.row, mucInfo.col);
                 }
 
+                n = (byte)n;
+                work.VOLUME = n;
+                work.VOLINT = n;
+                n += work.TV_OFS + 4;
+                if ((byte)n >= 246 && (byte)n <= 251 && mucInfo.VM == 0)
+                {
+                    WriteWarning(msg.get("W0411"), mucInfo.row, mucInfo.col);
+                }
+
                 List<object> args = new List<object>();
                 args.Add(n);
                 LinePos lp = new LinePos(
@@ -3198,14 +3207,6 @@ namespace mucomDotNET.Compiler
                     , work.currentChipName
                     , 0, work.ChipIndex % 2, work.CHIP_CH * 10 + work.pageNow);
 
-                n = (byte)n;
-                work.VOLUME = n;
-                work.VOLINT = n;
-                n += work.TV_OFS + 4;
-                if ((byte)n >= 246 && (byte)n <= 251 && mucInfo.VM == 0)
-                {
-                    WriteWarning(msg.get("W0411"), mucInfo.row, mucInfo.col);
-                }
                 msub.MWRITE(new MmlDatum(enmMMLType.Volume, args, lp, 0xf1), new MmlDatum((byte)n));
                 return EnmFCOMPNextRtn.fcomp1;
             }
