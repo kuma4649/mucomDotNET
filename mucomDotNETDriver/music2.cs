@@ -578,6 +578,11 @@ namespace mucomDotNET.Driver
                     if (c < 2) dat = new ChipDatum(0, 0x11, 63);//Rhythm volume initialize(max:63)
                     else dat = new ChipDatum(1, 0x01, 63);//ADPCM-A volume initialize(max:63)
                     WriteRegister(c, dat);
+
+                    dat = new ChipDatum(1, 0x06, 0xf0);
+                    WriteRegister(c, dat);
+                    dat = new ChipDatum(1, 0x07, 0x01);
+                    WriteRegister(c, dat);
                 }
                 else
                 {
@@ -2834,7 +2839,7 @@ namespace mucomDotNET.Driver
             }
             else
             {
-                work.pg.panValue = (byte)a;
+                //work.pg.panValue = (byte)a;
                 a = (byte)(((a & 1) << 1) | ((a & 2) >> 1));
                 c = (byte)((a << 6) | (work.pg.feedback << 3) | work.pg.algo);
                 a = (byte)(0x20 + work.pg.channelNumber);
@@ -3179,7 +3184,10 @@ namespace mucomDotNET.Driver
                 a = (byte)(0x20 + work.pg.channelNumber);
 
                 if (work.cd.currentPageNo == work.pg.pageNo)
+                {
                     PSGOUT(a, c);
+                    Console.WriteLine("{0:x}", c&0xc0);
+                }
 
                 return;
             }

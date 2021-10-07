@@ -2,7 +2,7 @@
   "profiles": {
     "Player": {
       "commandName": "Project",
-      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\自作\\mamonoro\\FineDay\\testFineDay.mub\""
+      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\自作\\Natsuki\\testDissatisfied_Sand_Yellow_DotNET.mub\""
     }
   }
 }
