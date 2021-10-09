@@ -138,6 +138,8 @@ namespace mucomDotNET.Driver
                 work.timerOPNB2.timer();
                 work.timerOPM.timer();
 
+                //Console.WriteLine("CurrentTimer:{0}", work.currentTimer);
+
                 work.timeCounter++;
                 bool flg = false;
                 switch (work.currentTimer)
@@ -2693,14 +2695,18 @@ namespace mucomDotNET.Driver
 
         public void TO_NML()
         {
+            int timer = work.currentTimer;
             work.soundWork.PLSET1_VAL[work.soundWork.currentChip] = 0x38;
             TNML2(0x3a);
+            work.currentTimer = timer;
         }
 
         public void TO_EFC()
         {
+            int timer = work.currentTimer;
             work.soundWork.PLSET1_VAL[work.soundWork.currentChip] = 0x78;
             TNML2(0x7a);
+            work.currentTimer = timer;
         }
 
         public void TNML2(byte a)

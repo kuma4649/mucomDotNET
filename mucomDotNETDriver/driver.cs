@@ -466,9 +466,12 @@ namespace mucomDotNET.Driver
                 }
                 work.timerOPNA1 = new OPNATimer(renderingFreq, opnaMasterClock);
                 work.timerOPNA2 = new OPNATimer(renderingFreq, opnaMasterClock);
+                Log.WriteLine(LogLevel.TRACE, string.Format("OPNA MasterClock {0}", opnaMasterClock));
                 work.timerOPNB1 = new OPNATimer(renderingFreq, opnbMasterClock);
                 work.timerOPNB2 = new OPNATimer(renderingFreq, opnbMasterClock);
+                Log.WriteLine(LogLevel.TRACE, string.Format("OPNB MasterClock {0}", opnbMasterClock));
                 work.timerOPM = new OPMTimer(renderingFreq, opmMasterClock);
+                Log.WriteLine(LogLevel.TRACE, string.Format("OPM  MasterClock {0}", opmMasterClock));
                 Log.WriteLine(LogLevel.TRACE, "Start rendering.");
 
             }
