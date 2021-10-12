@@ -491,5 +491,6 @@ namespace mucomDotNET.Driver
         public int portaEdNote = 0;
         public int portaTotalClock = 0;
         public double portaBeforeFNum = 0;
+        public bool enblKeyOff = true;
     }
 }

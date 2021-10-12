@@ -311,7 +311,7 @@ namespace mucomDotNET.Compiler
             msub.MWRIT2(new MmlDatum((byte)clk));
             msub.MWRIT2(new MmlDatum((byte)(clk >> 8)));
 
-            FC162p_write(before_note, (byte)clk, (byte)q, false);
+            FC162p_write(before_note, (byte)clk, (byte)q, false, true);
         }
 
         private void PortamentMain(byte before_note, byte after_note, int befco, int qbefco)
@@ -504,7 +504,7 @@ namespace mucomDotNET.Compiler
 
         }
 
-        private void FC162p_write(int note, byte clk,byte q, bool tie)
+        private void FC162p_write(int note, byte clk,byte q, bool tie,bool force=false)
         {
             //if (tie)
             //{
@@ -518,7 +518,7 @@ namespace mucomDotNET.Compiler
                 work.beforeQuantize = q;
             }
 
-            if (q < clk)
+            if (q < clk || force)
             {
                 FCOMP17(note, clk);// note
                 if (tie)

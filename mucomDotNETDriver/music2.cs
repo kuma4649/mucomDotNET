@@ -1170,8 +1170,10 @@ namespace mucomDotNET.Driver
 
         // **	KEY-OFF ROUTINE		**
 
-        public void KEYOFF()
+        public void KEYOFF(bool force = false)
         {
+            if (work.isDotNET && !work.pg.enblKeyOff && !force) return;
+
             if (work.soundWork.currentChip == 4)
             {
                 work.pg.KDWork[0] = 0;
@@ -2500,6 +2502,7 @@ namespace mucomDotNET.Driver
         public void SETQ()
         {
             work.pg.quantize = work.pg.mData[work.hl++].dat;
+            work.pg.enblKeyOff = (work.pg.quantize != 255);
         }
 
         // **	SOFT LFO SET(RESET) **
