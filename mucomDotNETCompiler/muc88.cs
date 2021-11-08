@@ -3010,6 +3010,8 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETVOL()
         {
+            ChannelType tp;
+
             if (work.ChipIndex != 4 && work.CHIP_CH == 10)
             {
                 return SETVOL_ADPCM();
@@ -3031,20 +3033,64 @@ namespace mucomDotNET.Compiler
                 if (mucInfo.DriverType == MUCInfo.enmDriverType.DotNet)
                 {
                     char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr - 1 ? mucInfo.lin.Item2[mucInfo.srcCPtr - 1] : (char)0;
-                    if (c == 'm' && work.CHIP_CH == 6)
+                    if (c == 'm')
                     {
-                        ptr = mucInfo.srcCPtr;
-                        n = msub.REDATA(mucInfo.lin, ref ptr);
-                        if (mucInfo.ErrSign)
+                        if (work.CHIP_CH == 6)
                         {
-                            throw new MucException(
-                                msg.get("E0472")
-                                , mucInfo.row, mucInfo.col);
+                            ptr = mucInfo.srcCPtr;
+                            n = msub.REDATA(mucInfo.lin, ref ptr);
+                            if (mucInfo.ErrSign)
+                            {
+                                throw new MucException(
+                                    msg.get("E0472")
+                                    , mucInfo.row, mucInfo.col);
+                            }
+                            mucInfo.srcCPtr = ptr;
+                            work.rhythmRelMode = false;
+                            if (n != 0) work.rhythmRelMode = true;
+                            return EnmFCOMPNextRtn.fcomp1;
                         }
-                        mucInfo.srcCPtr = ptr;
-                        work.rhythmRelMode = false;
-                        if (n != 0) work.rhythmRelMode = true;
-                        return EnmFCOMPNextRtn.fcomp1;
+
+                        tp = CHCHK();
+                        if (tp == ChannelType.FM)
+                        {
+                            ptr = mucInfo.srcCPtr;
+                            n = msub.REDATA(mucInfo.lin, ref ptr);
+                            if (mucInfo.ErrSign || n < 0 || n > 3)
+                            {
+                                throw new MucException(
+                                    msg.get("E0472")
+                                    , mucInfo.row, mucInfo.col);
+                            }
+                            mucInfo.srcCPtr = ptr;
+
+                            //実際の処理はドライバ任せだが、判定用に値を保持する
+                            work.FMVolMode = n;
+                            msub.MWRITE(new MmlDatum((byte)0xff), new MmlDatum((byte)0xfb));// COM OF 'vm'
+                            msub.MWRIT2(new MmlDatum((byte)n));
+                            if (n == 1)//vm1の場合は更に20個データを読み込む
+                            {
+                                for (int i = 0; i < 20; i++)
+                                {
+                                    do
+                                    {
+                                        c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+                                        mucInfo.srcCPtr++;
+                                    } while (c == ' ' || c == '\t');
+                                    if (c != ',') throw new MucException(msg.get("E0472"), mucInfo.row, mucInfo.col);
+                                    ptr = mucInfo.srcCPtr;
+                                    n = msub.REDATA(mucInfo.lin, ref ptr);
+                                    n = Math.Min(Math.Max(n, 0), 127);
+                                    mucInfo.srcCPtr = ptr;
+                                    if (mucInfo.Carry) throw new MucException(msg.get("E0472"), mucInfo.row, mucInfo.col);
+                                    if (mucInfo.ErrSign) throw new MucException(msg.get("E0472"), mucInfo.row, mucInfo.col);
+
+                                    msub.MWRIT2(new MmlDatum((byte)n));
+                                }
+                            }
+
+                            return EnmFCOMPNextRtn.fcomp1;
+                        }
                     }
                 }
 
@@ -3055,7 +3101,7 @@ namespace mucomDotNET.Compiler
             work.VOLUME = n;
             work.VOLINT = n;
 
-            ChannelType tp = CHCHK();
+            tp = CHCHK();
             List<object> args = new List<object>();
             args.Add(n);
             LinePos lp = new LinePos(

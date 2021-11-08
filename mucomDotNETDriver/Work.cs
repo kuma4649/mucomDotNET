@@ -48,7 +48,6 @@ namespace mucomDotNET.Driver
         public int[] rhythmOR { get; internal set; } = new int[4];
         public bool abnormalEnd { get; internal set; } = false;
         public int currentTimer { get; internal set; }
-
         public OPNATimer timerOPNA1 = null;
         public OPNATimer timerOPNA2 = null;
         public OPNATimer timerOPNB1 = null;

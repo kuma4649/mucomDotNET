@@ -2,7 +2,7 @@
   "profiles": {
     "Player": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\Users\\kuma\\Desktop\\PCMTEST2\\INIT.mub\""
+      "commandLineArgs": "\"C:\\Users\\kuma\\Desktop\\VmodeTEST\\test.mub\""
     }
   }
 }

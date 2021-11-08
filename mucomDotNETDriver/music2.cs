@@ -242,7 +242,7 @@ namespace mucomDotNET.Driver
                 ,CH3SP         // 0xFF 0xF8 - 効果音モード系制御コマンド
                 ,PORTAON       // 0xFF 0xF9 - ポルタメント n1,n2,n3  (st ed totalclock)
                 ,ENVPSTex      // 0xFF 0xFA - ソフトエンベロープ 'E' n1,n2,n3,n4,n5,n6
-                ,NTMEAN        // 0xFF 0xFB
+                ,FMVolMode     // 0xFF 0xFB - FMボリュームモード切替
                 ,NTMEAN        // 0xFF 0xFC
                 ,NTMEAN        // 0xFF 0xFD
                 ,NTMEAN        // 0xFF 0xFE
@@ -1008,7 +1008,15 @@ namespace mucomDotNET.Driver
                 return;
             }
 
-            byte e = work.soundWork.FMVDAT[c];// GET VOLUME DATA
+            byte e;
+            if (work.isDotNET)
+            {
+                e = work.cd.currentFMVolTable[c];// GET VOLUME DATA
+            }
+            else
+            {
+                e = work.soundWork.FMVDAT[c];// GET VOLUME DATA
+            }
             byte d = (byte)(0x40 + work.pg.channelNumber);// GET PORT No.
 
             if (work.pg.algo >= 8) return;//KUMA: オリジナルはチェック無し
@@ -1080,7 +1088,8 @@ namespace mucomDotNET.Driver
         public void STV2opm(byte c)
         {
 
-            byte e = work.soundWork.FMVDAT[c];// GET VOLUME DATA
+            byte e;
+            e = work.cd.currentFMVolTable[c];// GET VOLUME DATA
             byte d = (byte)(0x60 + work.pg.channelNumber);// GET PORT No.
 
             if (work.pg.algo >= 8) return;//KUMA: オリジナルはチェック無し
@@ -5146,6 +5155,26 @@ namespace mucomDotNET.Driver
                 STVOL();
             }
         }
+
+        private void FMVolMode()
+        {
+            work.cd.FMVolMode = (byte)work.pg.mData[work.hl++].dat;
+
+            switch (work.cd.FMVolMode)
+            {
+                case 0:
+                    work.cd.currentFMVolTable = work.soundWork.FMVDAT;
+                    break;
+                case 1:
+                    for (int i = 0; i < 20; i++)
+                    {
+                        work.cd.FMVolUserTable[19 - i] = (byte)work.pg.mData[work.hl++].dat;
+                    }
+                    work.cd.currentFMVolTable = work.cd.FMVolUserTable;
+                    break;
+            }
+        }
+
 
     }
 }

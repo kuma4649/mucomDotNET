@@ -273,6 +273,9 @@ namespace mucomDotNET.Driver
                         CHDAT[chipIndex][10].PGDAT[i].channelNumber = 2;
                     }
                 }
+
+                for (int i = 0; i < CHDAT[chipIndex].Count; i++)
+                    CHDAT[chipIndex][i].currentFMVolTable = this.FMVDAT;
             }
 
             for (int i = 0; i < 8; i++)
@@ -399,6 +402,10 @@ namespace mucomDotNET.Driver
         public int keyOnCh { get; internal set; }
         public int currentPageNo { get; internal set; }
         public int ch3KeyOn { get; internal set; }
+
+        public byte FMVolMode { get; internal set; } = 0;
+        public byte[] FMVolUserTable { get; internal set; } = new byte[20];
+        public byte[] currentFMVolTable { get; internal set; }
     }
 
     public class PGDAT

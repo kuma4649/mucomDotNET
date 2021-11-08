@@ -2,7 +2,7 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
-      "commandLineArgs": "-LOGLEVEL=TRACE \"C:\\Users\\kuma\\Desktop\\PCMTEST2\\INIT.muc\""
+      "commandLineArgs": "-LOGLEVEL=TRACE \"C:\\Users\\kuma\\Desktop\\VmodeTEST\\test.muc\""
     }
   }
 }
