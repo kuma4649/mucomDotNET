@@ -1011,12 +1011,14 @@ namespace mucomDotNET.Driver
             byte e;
             if (work.isDotNET)
             {
-                e = work.cd.currentFMVolTable[c];// GET VOLUME DATA
+                if (work.cd.FMVolMode == 2)
+                    e = (byte)(127 - Math.Min(Math.Max(work.pg.volume, 0), 127));
+                else
+                    e = work.cd.currentFMVolTable[c];// GET VOLUME DATA
             }
             else
-            {
                 e = work.soundWork.FMVDAT[c];// GET VOLUME DATA
-            }
+
             byte d = (byte)(0x40 + work.pg.channelNumber);// GET PORT No.
 
             if (work.pg.algo >= 8) return;//KUMA: オリジナルはチェック無し
@@ -1089,7 +1091,11 @@ namespace mucomDotNET.Driver
         {
 
             byte e;
-            e = work.cd.currentFMVolTable[c];// GET VOLUME DATA
+            if (work.cd.FMVolMode == 2)
+                e = (byte)(127 - Math.Min(Math.Max(work.pg.volume, 0), 127));
+            else
+                e = work.cd.currentFMVolTable[c];// GET VOLUME DATA
+
             byte d = (byte)(0x60 + work.pg.channelNumber);// GET PORT No.
 
             if (work.pg.algo >= 8) return;//KUMA: オリジナルはチェック無し
@@ -2084,8 +2090,10 @@ namespace mucomDotNET.Driver
 
         public void STVOL()
         {
+            byte c;
+
             //STV1
-            byte c = (byte)(work.soundWork.TOTALV + work.pg.volume);// INPUT VOLUME
+            c = (byte)(work.soundWork.TOTALV + work.pg.volume);// INPUT VOLUME
             if (c >= 20)
             {
                 c = 0;
@@ -5171,6 +5179,8 @@ namespace mucomDotNET.Driver
                         work.cd.FMVolUserTable[19 - i] = (byte)work.pg.mData[work.hl++].dat;
                     }
                     work.cd.currentFMVolTable = work.cd.FMVolUserTable;
+                    break;
+                case 2:
                     break;
             }
         }

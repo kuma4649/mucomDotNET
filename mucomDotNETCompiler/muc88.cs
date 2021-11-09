@@ -3117,10 +3117,15 @@ namespace mucomDotNET.Compiler
             {
                 if (work.CHIP_CH != 6)
                 {
-                    n += work.TV_OFS;
-                    if (work.CHIP_CH < 3 || work.CHIP_CH > 6)
+                    if (
+                        mucInfo.DriverType != MUCInfo.enmDriverType.DotNet 
+                        || (mucInfo.DriverType == MUCInfo.enmDriverType.DotNet && work.FMVolMode != 2))
                     {
-                        n += 4;
+                        n += work.TV_OFS;
+                        if (work.CHIP_CH < 3 || work.CHIP_CH > 6)
+                        {
+                            n += 4;
+                        }
                     }
 
                     msub.MWRITE(
@@ -3133,8 +3138,11 @@ namespace mucomDotNET.Compiler
             }
             else
             {
-                n += work.TV_OFS;
-                n += 4;
+                if (work.FMVolMode != 2)
+                {
+                    n += work.TV_OFS;
+                    n += 4;
+                }
 
                 msub.MWRITE(
                     new MmlDatum(enmMMLType.Volume, args, lp, 0xf1)
