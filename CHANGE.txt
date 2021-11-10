@@ -1,4 +1,9 @@
 更新履歴
+TAG150 2021/11/10
+  Compiler Driver
+    ・FM Volume モード設定コマンド(vm3)を追加
+    (op毎に0～127で指定できます)
+
 TAG149 2021/11/09 2nd
   Compiler Driver
     ・FM Volume モード設定コマンド(vm2)を追加

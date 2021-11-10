@@ -3011,6 +3011,7 @@ namespace mucomDotNET.Compiler
         private EnmFCOMPNextRtn SETVOL()
         {
             ChannelType tp;
+            char c;
 
             if (work.ChipIndex != 4 && work.CHIP_CH == 10)
             {
@@ -3032,7 +3033,7 @@ namespace mucomDotNET.Compiler
             {
                 if (mucInfo.DriverType == MUCInfo.enmDriverType.DotNet)
                 {
-                    char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr - 1 ? mucInfo.lin.Item2[mucInfo.srcCPtr - 1] : (char)0;
+                    c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr - 1 ? mucInfo.lin.Item2[mucInfo.srcCPtr - 1] : (char)0;
                     if (c == 'm')
                     {
                         if (work.CHIP_CH == 6)
@@ -3072,11 +3073,8 @@ namespace mucomDotNET.Compiler
                             {
                                 for (int i = 0; i < 20; i++)
                                 {
-                                    do
-                                    {
-                                        c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
-                                        mucInfo.srcCPtr++;
-                                    } while (c == ' ' || c == '\t');
+                                    skipSpaceAndTab();
+                                    c = getMoji();
                                     if (c != ',') throw new MucException(msg.get("E0472"), mucInfo.row, mucInfo.col);
                                     ptr = mucInfo.srcCPtr;
                                     n = msub.REDATA(mucInfo.lin, ref ptr);
@@ -3100,6 +3098,43 @@ namespace mucomDotNET.Compiler
             n = (byte)n;
             work.VOLUME = n;
             work.VOLINT = n;
+
+            skipSpaceAndTab();
+
+
+
+            //initialize
+            byte[] d = new byte[4] { (byte)(127 - n), 255, 255, 255 };
+            int ind = 0;
+
+            if (getMoji() == ',')
+            {
+                ind++;
+                //analyze
+                while (getMoji() == ',')
+                {
+                    ptr = ++mucInfo.srcCPtr;
+                    n = msub.REDATA(mucInfo.lin, ref ptr);
+                    if (mucInfo.Carry)
+                    {
+                        n = -1;
+                        mucInfo.srcCPtr = --ptr;
+                        if (getMoji() != ',')
+                        {
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        n = 127 - Math.Min(Math.Max(n, 0), 127);
+                        mucInfo.srcCPtr = ptr;
+                        skipSpaceAndTab();
+                        ptr = mucInfo.srcCPtr;
+                    }
+                    d[ind++] = (byte)n;
+                    mucInfo.srcCPtr = ptr;
+                }
+            }
 
             tp = CHCHK();
             List<object> args = new List<object>();
@@ -3128,9 +3163,21 @@ namespace mucomDotNET.Compiler
                         }
                     }
 
-                    msub.MWRITE(
+                    if (ind == 0)
+                    {
+                        msub.MWRITE(
                         new MmlDatum(enmMMLType.Volume, args, lp, 0xf1)
                         , new MmlDatum((byte)n));// COM OF 'v'
+                    }
+                    else
+                    {
+                        msub.MWRITE(
+                        new MmlDatum(enmMMLType.Volume, args, lp, 0xff)
+                        , new MmlDatum(0xfb));
+                        msub.MWRITE(new MmlDatum(0xff), new MmlDatum(d[0]));
+                        msub.MWRITE(new MmlDatum(d[1]), new MmlDatum(d[2]));
+                        msub.MWRIT2(new MmlDatum(d[3]));
+                    }
                     return EnmFCOMPNextRtn.fcomp1;
                 }
 
@@ -3144,9 +3191,22 @@ namespace mucomDotNET.Compiler
                     n += 4;
                 }
 
-                msub.MWRITE(
+                if (ind == 0)
+                {
+                    msub.MWRITE(
                     new MmlDatum(enmMMLType.Volume, args, lp, 0xf1)
                     , new MmlDatum((byte)n));// COM OF 'v'
+                }
+                else
+                {
+                    msub.MWRITE(
+                    new MmlDatum(enmMMLType.Volume, args, lp, 0xff)
+                    , new MmlDatum(0xfb));
+                    msub.MWRITE(new MmlDatum(0xff), new MmlDatum(d[0]));
+                    msub.MWRITE(new MmlDatum(d[1]), new MmlDatum(d[2]));
+                    msub.MWRIT2(new MmlDatum(d[3]));
+                }
+
                 return EnmFCOMPNextRtn.fcomp1;
 
             }

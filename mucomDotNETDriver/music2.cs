@@ -506,6 +506,7 @@ namespace mucomDotNET.Driver
                 pg.dataTopAddress = pageInfo.loopPoint;
                 pg.mData = pageInfo.data;
                 pg.channelNumber = work.soundWork.CHNUM;//ix 8
+                pg.TLDirectTable = new byte[4] { 255, 255, 255, 255 };
 
                 if (chipIndex != 4)
                 {
@@ -1013,6 +1014,8 @@ namespace mucomDotNET.Driver
             {
                 if (work.cd.FMVolMode == 2)
                     e = (byte)(127 - Math.Min(Math.Max(work.pg.volume, 0), 127));
+                else if (work.cd.FMVolMode == 3)
+                    e = 255;
                 else
                     e = work.cd.currentFMVolTable[c];// GET VOLUME DATA
             }
@@ -1075,7 +1078,17 @@ namespace mucomDotNET.Driver
                     if ((c & (1 << b)) != 0)
                     {
                         byte v = e;
-                        if (work.isDotNET) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[b], 0), 127);
+                        if (work.isDotNET)
+                        {
+                            if (e == 255)
+                            {
+                                v = (byte)Math.Min(Math.Max(work.pg.TLDirectTable[b] + work.pg.v_tl[b], 0), 127);
+                            }
+                            else
+                            {
+                                v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[b], 0), 127);
+                            }
+                        }
                         PSGOUT((byte)(d + b * 4), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
                     }
                 }
@@ -1093,6 +1106,8 @@ namespace mucomDotNET.Driver
             byte e;
             if (work.cd.FMVolMode == 2)
                 e = (byte)(127 - Math.Min(Math.Max(work.pg.volume, 0), 127));
+            else if (work.cd.FMVolMode == 3)
+                e = 255;
             else
                 e = work.cd.currentFMVolTable[c];// GET VOLUME DATA
 
@@ -1106,7 +1121,18 @@ namespace mucomDotNET.Driver
             {
                 if ((c & (1 << b)) != 0)
                 {
-                    byte v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[b], 0), 127);
+                    byte v = e; 
+                    if (work.isDotNET)
+                    {
+                        if (e == 255)
+                        {
+                            v = (byte)Math.Min(Math.Max(work.pg.TLDirectTable[b] + work.pg.v_tl[b], 0), 127);
+                        }
+                        else
+                        {
+                            v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[b], 0), 127);
+                        }
+                    }
                     PSGOUT((byte)(d + b * 8), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
                 }
             }
@@ -3363,7 +3389,18 @@ namespace mucomDotNET.Driver
                 return;
             }
 
-            work.pg.volume += (sbyte)work.pg.mData[work.hl++].dat;
+            if (work.cd.FMVolMode != 3)
+            {
+                work.pg.volume += (sbyte)work.pg.mData[work.hl++].dat;
+            }
+            else
+            {
+                byte n = (byte)(-(sbyte)work.pg.mData[work.hl++].dat);
+                for (int i = 0; i < 4; i++)
+                {
+                    work.pg.TLDirectTable[i] += n;
+                }
+            }
 
             if (work.soundWork.PCMFLG != 0)
             {
@@ -5166,8 +5203,18 @@ namespace mucomDotNET.Driver
 
         private void FMVolMode()
         {
-            work.cd.FMVolMode = (byte)work.pg.mData[work.hl++].dat;
+            byte b = (byte)work.pg.mData[work.hl++].dat;
+            
+            if (b == 0xff)
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    work.pg.TLDirectTable[i == 0 ? 3 : (i == 1 ? 1 : (i == 2 ? 2 : 0))] = (byte)work.pg.mData[work.hl++].dat;
+                }
+                return;
+            }
 
+            work.cd.FMVolMode = b;
             switch (work.cd.FMVolMode)
             {
                 case 0:
@@ -5181,6 +5228,8 @@ namespace mucomDotNET.Driver
                     work.cd.currentFMVolTable = work.cd.FMVolUserTable;
                     break;
                 case 2:
+                    break;
+                case 3:
                     break;
             }
         }

@@ -485,6 +485,8 @@ namespace mucomDotNET.Driver
         public byte backupHardEnv { get; internal set; } = 0;
         public byte backupHardEnvFine { get; internal set; } = 0;
         public byte backupHardEnvCoarse { get; internal set; } = 0;
+        public byte[] TLDirectTable { get; internal set; } = new byte[4] { 255, 255, 255, 255 };
+
         public byte[] v_tl = new byte[4] { 0, 0, 0, 0 };
 
         //portament処理 
