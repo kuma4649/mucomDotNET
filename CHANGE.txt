@@ -1,4 +1,8 @@
 更新履歴
+TAG151 2021/11/11
+  Compiler Driver
+    ・FM Volume モード設定コマンド(vm3)でもVの値を付加するよう修正
+
 TAG150 2021/11/10
   Compiler Driver
     ・FM Volume モード設定コマンド(vm3)を追加

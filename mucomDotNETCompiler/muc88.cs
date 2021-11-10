@@ -3174,9 +3174,9 @@ namespace mucomDotNET.Compiler
                         msub.MWRITE(
                         new MmlDatum(enmMMLType.Volume, args, lp, 0xff)
                         , new MmlDatum(0xfb));
-                        msub.MWRITE(new MmlDatum(0xff), new MmlDatum(d[0]));
-                        msub.MWRITE(new MmlDatum(d[1]), new MmlDatum(d[2]));
-                        msub.MWRIT2(new MmlDatum(d[3]));
+                        msub.MWRITE(new MmlDatum(0xff), new MmlDatum((byte)(d[0]+work.TV_OFS)));
+                        msub.MWRITE(new MmlDatum((byte)(d[1] + work.TV_OFS)), new MmlDatum((byte)(d[2] + work.TV_OFS)));
+                        msub.MWRIT2(new MmlDatum((byte)(d[3] + work.TV_OFS)));
                     }
                     return EnmFCOMPNextRtn.fcomp1;
                 }
@@ -3202,9 +3202,9 @@ namespace mucomDotNET.Compiler
                     msub.MWRITE(
                     new MmlDatum(enmMMLType.Volume, args, lp, 0xff)
                     , new MmlDatum(0xfb));
-                    msub.MWRITE(new MmlDatum(0xff), new MmlDatum(d[0]));
-                    msub.MWRITE(new MmlDatum(d[1]), new MmlDatum(d[2]));
-                    msub.MWRIT2(new MmlDatum(d[3]));
+                    msub.MWRITE(new MmlDatum(0xff), new MmlDatum((byte)(d[0] + work.TV_OFS)));
+                    msub.MWRITE(new MmlDatum((byte)(d[1] + work.TV_OFS)), new MmlDatum((byte)(d[2] + work.TV_OFS)));
+                    msub.MWRIT2(new MmlDatum((byte)(d[3] + work.TV_OFS)));
                 }
 
                 return EnmFCOMPNextRtn.fcomp1;
