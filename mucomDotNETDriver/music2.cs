@@ -488,6 +488,7 @@ namespace mucomDotNET.Driver
             work.soundWork.CHDAT[chipIndex][ch].PGDAT = new List<PGDAT>();
             work.soundWork.CHDAT[chipIndex][ch].keyOnCh = -1;//KUMA:初期化不要だが念のため
             work.soundWork.CHDAT[chipIndex][ch].currentPageNo = 0;//KUMA:初期カレントは0ページ
+            work.soundWork.CHDAT[chipIndex][ch].currentFMVolTable = work.soundWork.FMVDAT;//KUMA:初期カレントは0ページ
 
             MupbInfo.ChipDefine.chipPart partInfo = work.header.mupb.chips[chipIndex].parts[ch];
 
@@ -1017,7 +1018,11 @@ namespace mucomDotNET.Driver
                 else if (work.cd.FMVolMode == 3)
                     e = 255;
                 else
-                    e = work.cd.currentFMVolTable[c];// GET VOLUME DATA
+                {
+                    //if (work.cd.currentFMVolTable == null)
+                    //    work.cd.currentFMVolTable = work.soundWork.FMVDAT;
+                     e = work.cd.currentFMVolTable[c];// GET VOLUME DATA
+                }
             }
             else
                 e = work.soundWork.FMVDAT[c];// GET VOLUME DATA
@@ -1109,7 +1114,10 @@ namespace mucomDotNET.Driver
             else if (work.cd.FMVolMode == 3)
                 e = 255;
             else
+            {
+                //if (work.cd.currentFMVolTable == null) work.cd.currentFMVolTable = work.soundWork.FMVDAT;
                 e = work.cd.currentFMVolTable[c];// GET VOLUME DATA
+            }
 
             byte d = (byte)(0x60 + work.pg.channelNumber);// GET PORT No.
 

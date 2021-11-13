@@ -2,7 +2,7 @@
   "profiles": {
     "Player": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\Users\\kuma\\Desktop\\VmodeTEST\\test.mub\""
+      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\自作\\mamonoro\\BlosomShower\\BlossomShower.mub\""
     }
   }
 }

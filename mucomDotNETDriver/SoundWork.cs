@@ -287,6 +287,8 @@ namespace mucomDotNET.Driver
                     CHDAT[4][i].PGDAT[j].volume = 10;
                     CHDAT[4][i].PGDAT[j].channelNumber = i;
                 }
+
+                CHDAT[4][i].currentFMVolTable = this.FMVDAT;
             }
 
 

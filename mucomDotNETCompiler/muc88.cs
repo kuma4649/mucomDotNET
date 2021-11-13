@@ -3131,7 +3131,7 @@ namespace mucomDotNET.Compiler
                         skipSpaceAndTab();
                         ptr = mucInfo.srcCPtr;
                     }
-                    d[ind++] = (byte)n;
+                    if (ind < d.Length) d[ind++] = (byte)n;
                     mucInfo.srcCPtr = ptr;
                 }
             }
