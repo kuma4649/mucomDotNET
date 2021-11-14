@@ -676,7 +676,10 @@ namespace mucomDotNET.Compiler
             dat[dataOffset + 2] = new MmlDatum((byte)(work.OTODAT >> 8));
             dat[dataOffset + 3] = new MmlDatum((byte)work.ENDADR);
             dat[dataOffset + 4] = new MmlDatum((byte)(work.ENDADR >> 8));
-            //dat[dataOffset + 5] = 0xff; //たぶん　テンポコマンド(タイマーB)設定時に更新される
+            if (dat[dataOffset + 5] == null)
+            {
+                dat[dataOffset + 5] = new MmlDatum(0);//テンポコマンド(タイマーB)を未設定時nullのままになってしまうので、とりあえず値をセット
+            }
 
             footsize = 0;
 
