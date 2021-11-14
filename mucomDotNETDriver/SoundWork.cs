@@ -275,7 +275,10 @@ namespace mucomDotNET.Driver
                 }
 
                 for (int i = 0; i < CHDAT[chipIndex].Count; i++)
+                {
+                    CHDAT[chipIndex][i].FMVolMode = 0;
                     CHDAT[chipIndex][i].currentFMVolTable = this.FMVDAT;
+                }
             }
 
             for (int i = 0; i < 8; i++)
@@ -288,6 +291,7 @@ namespace mucomDotNET.Driver
                     CHDAT[4][i].PGDAT[j].channelNumber = i;
                 }
 
+                CHDAT[4][i].FMVolMode = 0;
                 CHDAT[4][i].currentFMVolTable = this.FMVDAT;
             }
 

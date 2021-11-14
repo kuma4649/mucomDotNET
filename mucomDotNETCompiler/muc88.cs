@@ -4638,6 +4638,8 @@ namespace mucomDotNET.Compiler
             work.porDelta = 0;
             work.porOldNote = -1;
             work.porTime = 0;
+
+            work.FMVolMode = 0;
         }
 
         public void CMPEN1()

@@ -436,6 +436,8 @@ namespace mucomDotNET.Driver
             work.soundWork.CHDAT[chipIndex][ch].PGDAT[0].lengthCounter = 1;
             work.soundWork.CHDAT[chipIndex][ch].PGDAT[0].volume = 0;
             work.soundWork.CHDAT[chipIndex][ch].PGDAT[0].musicEnd = false;
+            work.soundWork.CHDAT[chipIndex][ch].FMVolMode = 0;
+            work.soundWork.CHDAT[chipIndex][ch].currentFMVolTable = work.soundWork.FMVDAT;
 
             // ---	POINTER ﾉ ｻｲｾｯﾃｲ	---
             uint stPtr =  Cmn.getLE16(work.mData, work.soundWork.TB_TOP);
@@ -488,7 +490,8 @@ namespace mucomDotNET.Driver
             work.soundWork.CHDAT[chipIndex][ch].PGDAT = new List<PGDAT>();
             work.soundWork.CHDAT[chipIndex][ch].keyOnCh = -1;//KUMA:初期化不要だが念のため
             work.soundWork.CHDAT[chipIndex][ch].currentPageNo = 0;//KUMA:初期カレントは0ページ
-            work.soundWork.CHDAT[chipIndex][ch].currentFMVolTable = work.soundWork.FMVDAT;//KUMA:初期カレントは0ページ
+            work.soundWork.CHDAT[chipIndex][ch].FMVolMode = 0;
+            work.soundWork.CHDAT[chipIndex][ch].currentFMVolTable = work.soundWork.FMVDAT;
 
             MupbInfo.ChipDefine.chipPart partInfo = work.header.mupb.chips[chipIndex].parts[ch];
 
@@ -1101,7 +1104,11 @@ namespace mucomDotNET.Driver
 
             //パラメータ表示向け
             List<object> args = new List<object>();
-            args.Add(work.pg.volume - 4);
+            if (work.isDotNET && (work.cd.FMVolMode == 2 || work.cd.FMVolMode == 3))
+                args.Add(work.pg.volume);
+            else
+                args.Add(work.pg.volume - 4);
+
             DummyOUT(enmMMLType.Volume, args);
         }
 

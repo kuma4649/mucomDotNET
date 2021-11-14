@@ -1,4 +1,10 @@
 更新履歴
+TAG153 2021/11/14
+  Compiler
+    ・次のチャンネルのコンパイルに移るとき、FM Volume モード設定の初期化が行われていなかったのを修正
+  Driver
+    ・外部向けVolume値の出力がFM Volume モードの反映が出来ていなかったのを修正
+
 TAG152 2021/11/13
   Compiler Driver
     ・FM Volume モード設定の初期化が不十分だったのを修正
