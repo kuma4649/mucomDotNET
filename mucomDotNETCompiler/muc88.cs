@@ -3036,7 +3036,7 @@ namespace mucomDotNET.Compiler
                     c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr - 1 ? mucInfo.lin.Item2[mucInfo.srcCPtr - 1] : (char)0;
                     if (c == 'm')
                     {
-                        if (work.CHIP_CH == 6)
+                        if (work.ChipIndex != 4 && work.CHIP_CH == 6)
                         {
                             ptr = mucInfo.srcCPtr;
                             n = msub.REDATA(mucInfo.lin, ref ptr);
