@@ -1865,8 +1865,11 @@ namespace mucomDotNET.Driver
                 PCMOUT(0x10, 0x80);// INIT
                 PCMOUT(0x02, (byte)work.soundWork.STTADR[work.soundWork.currentChip]);// START ADR
                 PCMOUT(0x03, (byte)(work.soundWork.STTADR[work.soundWork.currentChip] >> 8));
-                PCMOUT(0x04, (byte)work.soundWork.ENDADR[work.soundWork.currentChip]);// END ADR
-                PCMOUT(0x05, (byte)(work.soundWork.ENDADR[work.soundWork.currentChip] >> 8));
+                int eAdr = work.soundWork.ENDADR[work.soundWork.currentChip];
+                if (work.soundWork.currentChip == 0)
+                    eAdr -= work.soundWork.STTADR[work.soundWork.currentChip];
+                PCMOUT(0x04, (byte)eAdr);// END ADR
+                PCMOUT(0x05, (byte)(eAdr >> 8));
                 work.pg.lfoContFlg = false;// RESET LFO CONTINE FLAG
                 if ((work.pg.softEnvelopeFlag & 0x80) != 0)
                 {
