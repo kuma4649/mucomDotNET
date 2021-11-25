@@ -1,4 +1,11 @@
 更新履歴
+TAG157 2021/11/26
+  Compiler
+    ・実はCompilerのバグだったため再度修正。
+    (Thanks! ぺんぺさん)
+  Driver
+    ・mucom88のmubを再生時、ADPCMが正常に発音されないバグを修正。
+
 TAG156 2021/11/25
   Driver
     ・OPNA１枚目のADPCMをmmlソース内で指定した際に2番目以降の音声が想定以上に再生されてしまうバグを修正

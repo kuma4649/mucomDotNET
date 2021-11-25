@@ -1856,20 +1856,21 @@ namespace mucomDotNET.Driver
 
             if (work.soundWork.READY == 0) return;
 
+            PCMOUT(0x0b, 0x00);
+            PCMOUT(0x01, 0x00);
+            PCMOUT(0x00, 0x21);
+            PCMOUT(0x10, 0x08);
+            PCMOUT(0x10, 0x80);// INIT
+            PCMOUT(0x02, (byte)work.soundWork.STTADR[work.soundWork.currentChip]);// START ADR
+            PCMOUT(0x03, (byte)(work.soundWork.STTADR[work.soundWork.currentChip] >> 8));
+            int eAdr = work.soundWork.ENDADR[work.soundWork.currentChip];
+            PCMOUT(0x04, (byte)eAdr);// END ADR
+            PCMOUT(0x05, (byte)(eAdr >> 8));
+
             if (work.isDotNET && work.pg.keyoffflg)
             {
-                PCMOUT(0x0b, 0x00);
-                PCMOUT(0x01, 0x00);
-                PCMOUT(0x00, 0x21);
-                PCMOUT(0x10, 0x08);
-                PCMOUT(0x10, 0x80);// INIT
-                PCMOUT(0x02, (byte)work.soundWork.STTADR[work.soundWork.currentChip]);// START ADR
-                PCMOUT(0x03, (byte)(work.soundWork.STTADR[work.soundWork.currentChip] >> 8));
-                int eAdr = work.soundWork.ENDADR[work.soundWork.currentChip];
-                if (work.soundWork.currentChip == 0)
-                    eAdr -= work.soundWork.STTADR[work.soundWork.currentChip];
-                PCMOUT(0x04, (byte)eAdr);// END ADR
-                PCMOUT(0x05, (byte)(eAdr >> 8));
+                //if (work.soundWork.currentChip == 0)
+                //    eAdr -= work.soundWork.STTADR[work.soundWork.currentChip];
                 work.pg.lfoContFlg = false;// RESET LFO CONTINE FLAG
                 if ((work.pg.softEnvelopeFlag & 0x80) != 0)
                 {

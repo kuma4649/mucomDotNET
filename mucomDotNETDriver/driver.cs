@@ -369,9 +369,9 @@ namespace mucomDotNET.Driver
                     pcmType[id] = "";
                     for (int i = 0; i < maxpcm; i++)
                     {
-                        adr = pcm[id][inftable + 28] | (pcm[id][inftable + 29] * 0x100);
-                        whl = pcm[id][inftable + 30] | (pcm[id][inftable + 31] * 0x100);
-                        eadr = adr + (whl >> 2);
+                        adr = pcm[id][inftable + 28] | (pcm[id][inftable + 29] * 0x100);//>>2済み開始アドレス
+                        whl = pcm[id][inftable + 30] | (pcm[id][inftable + 31] * 0x100);//生レングス
+                        eadr = adr + (whl >> 2);//!
                         if (pcm[id][i * 32] != 0)
                         {
                             ushort[] item2 = new ushort[4];

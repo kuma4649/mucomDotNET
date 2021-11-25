@@ -2,7 +2,7 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
-      "commandLineArgs": "-LOGLEVEL=TRACE \"\"C:\\Users\\kuma\\Desktop\\pcmtest2\\test.muc\""
+      "commandLineArgs": "-LOGLEVEL=TRACE \"\""
     }
   }
 }
