@@ -15,7 +15,13 @@ namespace mucomDotNET.Common
 
         public myEncoding()
         {
-            sjis = Encoding.GetEncoding("shift_jis");
+            try
+            {
+                sjis = Encoding.GetEncoding("shift_jis");
+            }catch
+            {
+                sjis = Encoding.UTF8;
+            }
         }
 
         public static iEncoding Default => defaultEncoding.Value;

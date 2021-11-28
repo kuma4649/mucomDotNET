@@ -1,4 +1,8 @@
 更新履歴
+TAG158 2021/11/28
+  Player,ToVGM,ToWav:各音源チップに不要なデータを送信してしまうバグを修正
+    (Thanks! ぺんぺさん)
+
 TAG157 2021/11/26
   Compiler
     ・実はCompilerのバグだったため再度修正。

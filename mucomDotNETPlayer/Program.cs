@@ -177,7 +177,7 @@ namespace mucomDotNET.Player
                         SamplingRate = SamplingRate,
                         Clock = opmMasterClock,
                         Volume = 0,
-                        Option = new object[] { GetApplicationFolder() }
+                        Option = null
                     };
                     lstChips.Add(chip);
                 }
@@ -638,16 +638,17 @@ namespace mucomDotNET.Player
                 MmlDatum md = (MmlDatum)dat.addtionalData;
                 if (md.linePos != null)
                 {
-                    Log.WriteLine(LogLevel.TRACE, string.Format("! OPNA i{0} r{1} c{2}"
-                        , chipId
-                        , md.linePos.row
-                        , md.linePos.col
-                        ));
+                    //Log.WriteLine(LogLevel.TRACE, string.Format("! OPNA i{0} r{1} c{2}"
+                        //, chipId
+                        //, md.linePos.row
+                        //, md.linePos.col
+                        //));
                 }
             }
 
-            Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipA:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
-            
+            if (dat.address == -1) return;
+            //Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipA:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
+
             switch (device)
             {
                 case 0:
@@ -667,15 +668,16 @@ namespace mucomDotNET.Player
                 MmlDatum md = (MmlDatum)dat.addtionalData;
                 if (md.linePos != null)
                 {
-                    Log.WriteLine(LogLevel.TRACE, string.Format("! OPNB i{0} r{1} c{2}"
-                        , chipId
-                        , md.linePos.row
-                        , md.linePos.col
-                        ));
+                    //Log.WriteLine(LogLevel.TRACE, string.Format("! OPNB i{0} r{1} c{2}"
+                        //, chipId
+                        //, md.linePos.row
+                        //, md.linePos.col
+                        //));
                 }
             }
 
-            Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipB:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
+            if (dat.address == -1) return;
+            //Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipB:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
 
             switch (device)
             {
@@ -696,20 +698,21 @@ namespace mucomDotNET.Player
                 MmlDatum md = (MmlDatum)dat.addtionalData;
                 if (md.linePos != null)
                 {
-                    Log.WriteLine(LogLevel.TRACE, string.Format("! OPM i{0} r{1} c{2}"
-                        , chipId
-                        , md.linePos.row
-                        , md.linePos.col
-                        ));
+                    //Log.WriteLine(LogLevel.TRACE, string.Format("! OPM i{0} r{1} c{2}"
+                    //    , chipId
+                    //    , md.linePos.row
+                    //    , md.linePos.col
+                    //    ));
                 }
             }
 
-            Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipOPM:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
+            if (dat.address == -1) return;
 
+            Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipOPM:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
             switch (device)
             {
                 case 0:
-                    mds.WriteYM2151((byte)chipId, (byte)dat.address, (byte)dat.data);
+                        mds.WriteYM2151((byte)chipId, (byte)dat.address, (byte)dat.data);
                     break;
                 case 1:
                 case 2:

@@ -2,7 +2,7 @@
   "profiles": {
     "Wav": {
       "commandName": "Project",
-      "commandLineArgs": "D:\\bootcamp\\FM音源\\data\\MUC\\testCall2opn.mub"
+      "commandLineArgs": "\"C:\\Users\\kuma\\Desktop\\opmtest\\opmtest.mub\""
     }
   }
 }

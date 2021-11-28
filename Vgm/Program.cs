@@ -209,6 +209,7 @@ namespace Vgm
                         ));
                 }
             }
+            if (dat.address == -1) return;
 
             vw.WriteYM2608(0, (byte)dat.port, (byte)dat.address, (byte)dat.data);
         }
@@ -263,6 +264,7 @@ namespace Vgm
                         ));
                 }
             }
+            if (dat.address == -1) return;
 
             Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipA:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
 
@@ -283,6 +285,7 @@ namespace Vgm
                         ));
                 }
             }
+            if (dat.address == -1) return;
 
             Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipB:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
 
@@ -315,6 +318,7 @@ namespace Vgm
                         ));
                 }
             }
+            if (dat.address == -1) return;
 
             Log.WriteLine(LogLevel.TRACE, string.Format("Out OPM Chip:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
 

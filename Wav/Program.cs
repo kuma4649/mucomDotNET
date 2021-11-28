@@ -258,6 +258,7 @@ namespace Wav
                         ));
                 }
             }
+            if (dat.address == -1) return;
             //Log.WriteLine(LogLevel.TRACE, string.Format("FM P{2} Out:Adr[{0:x02}] val[{1:x02}]", (int)dat.address, (int)dat.data,dat.port));
             mds.WriteYM2608(0, (byte)dat.port, (byte)dat.address, (byte)dat.data);
         }
@@ -337,6 +338,7 @@ namespace Wav
                 }
             }
 
+            if (dat.address == -1) return;
             Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipA:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
 
             mds.WriteYM2608((byte)chipId, (byte)dat.port, (byte)dat.address, (byte)dat.data);
@@ -357,6 +359,7 @@ namespace Wav
                 }
             }
 
+            if (dat.address == -1) return;
             Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipB:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
 
             mds.WriteYM2610((byte)chipId, (byte)dat.port, (byte)dat.address, (byte)dat.data);
@@ -389,6 +392,7 @@ namespace Wav
                 }
             }
 
+            if (dat.address == -1) return;
             Log.WriteLine(LogLevel.TRACE, string.Format("Out OPMChip:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
 
             mds.WriteYM2151((byte)chipId, (byte)dat.address, (byte)dat.data);
