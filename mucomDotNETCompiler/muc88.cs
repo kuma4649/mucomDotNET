@@ -3109,30 +3109,33 @@ namespace mucomDotNET.Compiler
 
             if (getMoji() == ',')
             {
-                ind++;
-                //analyze
-                while (getMoji() == ',')
+                if (work.ChipIndex == 4 || (work.ChipIndex != 4 && work.CHIP_CH != 6))
                 {
-                    ptr = ++mucInfo.srcCPtr;
-                    n = msub.REDATA(mucInfo.lin, ref ptr);
-                    if (mucInfo.Carry)
+                    ind++;
+                    //analyze
+                    while (getMoji() == ',')
                     {
-                        n = -1;
-                        mucInfo.srcCPtr = --ptr;
-                        if (getMoji() != ',')
+                        ptr = ++mucInfo.srcCPtr;
+                        n = msub.REDATA(mucInfo.lin, ref ptr);
+                        if (mucInfo.Carry)
                         {
-                            break;
+                            n = -1;
+                            mucInfo.srcCPtr = --ptr;
+                            if (getMoji() != ',')
+                            {
+                                break;
+                            }
                         }
-                    }
-                    else
-                    {
-                        n = 127 - Math.Min(Math.Max(n, 0), 127);
+                        else
+                        {
+                            n = 127 - Math.Min(Math.Max(n, 0), 127);
+                            mucInfo.srcCPtr = ptr;
+                            skipSpaceAndTab();
+                            ptr = mucInfo.srcCPtr;
+                        }
+                        if (ind < d.Length) d[ind++] = (byte)n;
                         mucInfo.srcCPtr = ptr;
-                        skipSpaceAndTab();
-                        ptr = mucInfo.srcCPtr;
                     }
-                    if (ind < d.Length) d[ind++] = (byte)n;
-                    mucInfo.srcCPtr = ptr;
                 }
             }
 

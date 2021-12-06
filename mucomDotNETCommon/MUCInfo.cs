@@ -109,7 +109,7 @@ namespace mucomDotNET.Common
             DotNet
         }
 
-        private enmDriverType _DriverType = enmDriverType.DotNet;
+        private enmDriverType _DriverType = enmDriverType.normal;
         //public bool needEMucom = false;
 
         public enmDriverType DriverType
