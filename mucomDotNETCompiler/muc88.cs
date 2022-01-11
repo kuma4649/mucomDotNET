@@ -882,15 +882,9 @@ namespace mucomDotNET.Compiler
                 throw new MucException(string.Format(msg.get("E0524"), v), mucInfo.row, mucInfo.col);
             }
 
+            skipSpaceAndTab();
             mucInfo.srcCPtr = ptr;
             char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
-
-            //4-6なのに,が無いとき -> エラー
-            if (c != ',' && rn > 3 && rn < 7)
-            {
-                //4～6の場合は値2が必須
-                throw new MucException(msg.get("E0525"), mucInfo.row, mucInfo.col);
-            }
 
             //1-3なのに,がある時 -> 警告扱い
             if (c == ',' && rn > 0 && rn < 4)
@@ -918,6 +912,9 @@ namespace mucomDotNET.Compiler
 
                 ////
                 //AMD98
+
+                //1-6の範囲内で且つwait値が指定されている場合はそれを使用する.省略時はlコマンドの値を使用する
+                int n2 = work.COUNT;
                 if (c == ',')//0x2c
                 {
                     //1-6の範囲内ならwait値を取得する
@@ -925,25 +922,21 @@ namespace mucomDotNET.Compiler
                         throw new MucException(msg.get("E9998"), mucInfo.row, mucInfo.col);
                     mucInfo.srcCPtr++;
                     ptr = mucInfo.srcCPtr;
-                    int n2 = msub.REDATA(mucInfo.lin, ref ptr);
+                    n2 = msub.REDATA(mucInfo.lin, ref ptr);
                     mucInfo.srcCPtr = ptr;
+                }
 
-                    //4-6の範囲内の場合のみwait値を出力する
-                    if (rn > 3 && rn < 7)
+                //4-6の範囲内の場合はwait値(レングス)を出力する
+                if (rn > 3 && rn < 7)
+                {
+                    //wait値が範囲外の時 ->エラー
+                    if (n2 < 1 || n2 > 255 || (byte)n2 < 1)
                     {
-
-                        //wait値が範囲外の時 ->エラー
-                        //if (n2 < 1 || n2 > work.CLOCK || (byte)n2 < 1)
-                        if (n2 < 1 || n2 > 255 || (byte)n2 < 1)
-                        {
-                            //throw new MucException(string.Format(msg.get("E0526"), work.CLOCK, v), mucInfo.row, mucInfo.col);
-                            throw new MucException(string.Format(msg.get("E0526"), 255, v), mucInfo.row, mucInfo.col);
-                        }
-
-                        if (tp == ChannelType.SSG) return EnmFCOMPNextRtn.fcomp1;//KUMA:互換の為。。。(SSGパートではnoise周波数設定コマンドとして動作)
-
-                        msub.MWRIT2(new MmlDatum((byte)n2));// ２こめ
+                        throw new MucException(string.Format(msg.get("E0526"), 255, v), mucInfo.row, mucInfo.col);
                     }
+                    if (tp == ChannelType.SSG) return EnmFCOMPNextRtn.fcomp1;//KUMA:互換の為。。。(SSGパートではnoise周波数設定コマンドとして動作)
+
+                    msub.MWRIT2(new MmlDatum((byte)n2));// ２こめ
                 }
 
                 ////
