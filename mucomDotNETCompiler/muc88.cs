@@ -1232,6 +1232,7 @@ namespace mucomDotNET.Compiler
         // *	!	*
         private EnmFCOMPNextRtn COMOVR()
         {
+            work.CompEndCmdFlag = true;
             return EnmFCOMPNextRtn.comovr;
         }
 
@@ -4483,6 +4484,21 @@ namespace mucomDotNET.Compiler
             mucInfo.bufDst.Set(work.MDATA++, new MmlDatum(0));   // SET END MARK = 0
 
 
+            if (work.CompEndCmdFlag)
+            {
+                if (!mucInfo.isExtendFormat)
+                {
+                    //Jump先となるアドレスを0クリアする
+                    int HL = work.DATTBL + work.CHIP_CH * 4 + 2;
+                    mucInfo.bufDst.Set(HL, new MmlDatum(0));
+                    HL++;
+                    mucInfo.bufDst.Set(HL, new MmlDatum(0));
+                }
+                else
+                {
+                    work.loopPoint[work.ChipIndex][work.CHIP_CH][work.pageNow] = -1;
+                }
+            }
 
 
             //KUMA:Result表示用のbufCountをセット
@@ -4636,6 +4652,7 @@ namespace mucomDotNET.Compiler
             work.porTime = 0;
 
             work.FMVolMode = 0;
+            work.CompEndCmdFlag = false;
         }
 
         public void CMPEN1()

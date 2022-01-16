@@ -2,7 +2,7 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
-      "commandLineArgs": "-LOGLEVEL=TRACE \"D:\\bootcamp\\FM音源\\data\\MUC\\mucom88win_yk2mml181220\\MISTY_BLUE_MML\\disco1.muc\""
+      "commandLineArgs": "-LOGLEVEL=TRACE \"D:\\bootcamp\\FM音源\\data\\test\\aaaTemplate.muc\""
     }
   }
 }
