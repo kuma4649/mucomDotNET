@@ -33,6 +33,7 @@ namespace mucomDotNET.Driver
         private uint mupbDataPtr;
         public bool CarrierCorrection = false;
         public enmOPMClockMode OPMClockMode= enmOPMClockMode.normal;
+        public bool SSGExtend = false;
 
         public enum enmOPMClockMode
         {
@@ -43,6 +44,7 @@ namespace mucomDotNET.Driver
         {
             CarrierCorrection = false;
             OPMClockMode = enmOPMClockMode.normal;
+            SSGExtend = false;
 
             this.enc = enc;
 
@@ -348,6 +350,19 @@ namespace mucomDotNET.Driver
                         if (val == "x68000" || val == "x68k" || val == "x68" || val == "x" || val == "4000000" || val == "x680x0")
                         {
                             OPMClockMode = enmOPMClockMode.X68000;
+                        }
+                    }
+                }
+                else if (tag.Item1.ToLower().Trim() == "ssgextend")
+                {
+                    if (!string.IsNullOrEmpty(tag.Item2))
+                    {
+                        string val = tag.Item2.ToLower().Trim();
+
+                        SSGExtend = false;
+                        if (val == "on" || val == "yes" || val == "y" || val == "1" || val == "true" || val == "t")
+                        {
+                            SSGExtend = true;
                         }
                     }
                 }

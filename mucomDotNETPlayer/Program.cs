@@ -207,6 +207,14 @@ namespace mucomDotNET.Player
                     }
                     );
 
+                if (mh.SSGExtend)
+                {
+                    mds.ChangeYM2608_PSGMode(0, 1);
+                    mds.ChangeYM2608_PSGMode(1, 1);
+                    mds.ChangeYM2610_PSGMode(0, 1);
+                    mds.ChangeYM2610_PSGMode(1, 1);
+                }
+
                 List<Tuple<string, string>> tags = ((Driver.Driver)drv).GetTags();
                 if (tags != null)
                 {

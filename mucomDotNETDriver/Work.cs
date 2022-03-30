@@ -61,6 +61,7 @@ namespace mucomDotNET.Driver
         public SoundWork soundWork = null;
         public byte[] fmVoiceAtMusData = null;
         public bool isDotNET = false;
+        public bool SSGExtend = false;
 
         public Work()
         {

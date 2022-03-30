@@ -156,6 +156,7 @@ namespace mucomDotNET.Driver
             if (pcm[5] != null && pcmType[5] == "") { TransformOPNAPCMtoOPNBPCM(5); pcmStartPos[5] = 0; }
 
             work.isDotNET = IsDotNETFromTAG();
+            work.SSGExtend = SSGExtendFromTAG();
 
             WriteOPNAP = lstChipWrite[0];
             WriteOPNAS = lstChipWrite[1];
@@ -267,6 +268,24 @@ namespace mucomDotNET.Driver
                 if (tag.Item1== "driver")
                 {
                     if(tag.Item2.ToLower()== "mucomdotnet")
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool SSGExtendFromTAG()
+        {
+            if (tags == null) return false;
+            foreach (Tuple<string, string> tag in tags)
+            {
+                if (tag.Item1 == "ssgextend")
+                {
+                    string ssgextval = tag.Item2.ToLower();
+                    if (ssgextval == "on" || ssgextval == "yes" || ssgextval == "y" || ssgextval == "1" || ssgextval == "true" || ssgextval == "t")
                     {
                         return true;
                     }

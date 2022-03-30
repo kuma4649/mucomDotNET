@@ -319,8 +319,19 @@ namespace mucomDotNET.Compiler
                             mucInfo.opmclockmode = MUCInfo.enmOpmClockMode.X68000;
                         }
                         break;
+                    case "ssgextend":
+                        string ssgextval = tag.Item2.ToLower().Trim();
+
+                        mucInfo.SSGExtend = false;
+                        if (ssgextval == "on" || ssgextval == "yes" || ssgextval == "y" || ssgextval == "1" || ssgextval == "true" || ssgextval == "t")
+                        {
+                            mucInfo.SSGExtend = true;
+                        }
+                        break;
                 }
             }
+
+            if (mucInfo.SSGExtend && mucInfo.DriverType != MUCInfo.enmDriverType.DotNet) mucInfo.SSGExtend = false;
 
             return mucInfo;
         }

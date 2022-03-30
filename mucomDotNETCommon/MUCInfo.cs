@@ -144,6 +144,7 @@ namespace mucomDotNET.Common
         {
             normal,X68000
         }
+        public bool SSGExtend { get; set; } = false;
 
         public void Clear()
         {
@@ -201,6 +202,7 @@ namespace mucomDotNET.Common
             isExtendFormat = false;
             carriercorrection = false;
             opmclockmode = enmOpmClockMode.normal;
+            SSGExtend = false;
         }
 
     }

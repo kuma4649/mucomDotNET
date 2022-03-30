@@ -17,6 +17,7 @@ namespace mucomDotNET.Driver
         public Action[] LFOTBL = null;
         // **   PSG COMMAND TABLE**
         public Action[] PSGCOM = null;
+        public Action[] PSGCOM2 = null;//kuma:DotNET専用テーブル
 
         private Work work;
         private Action<ChipDatum> WriteOPNAPRegister = null;
@@ -288,6 +289,26 @@ namespace mucomDotNET.Driver
                 ,RSKIP // 0x
                 ,SECPRC// 0xFF - to sec com
             };
+
+            PSGCOM2 = new Action[] {
+                STEREO_AMD98            // 0xFF 0xF0 - 'p' パン
+                ,HRDENV	       // 0xFF 0xF1 - HARD ENVE SET 's'  -> 'S'(kuma)
+                ,ENVPOD        // 0xFF 0xF2 - HARD ENVE PERIOD 'm'
+                ,REVERVE       // 0xFF 0xF3 - ﾘﾊﾞｰﾌﾞ
+                ,REVMOD	       // 0xFF 0xF4 - ﾘﾊﾞｰﾌﾞﾓｰﾄﾞ
+                ,REVSW	       // 0xFF 0xF5 - ﾘﾊﾞｰﾌﾞ ｽｲｯﾁ
+                ,NOP           // 0xFF 0xF6
+                ,MW_REG        // 0xFF 0xF7 - multi Write Register n1,n2,n3,n4
+                ,CH3SP         // 0xFF 0xF8 - 効果音モード系制御コマンド
+                ,PORTAON       // 0xFF 0xF9 - ポルタメント n1,n2,n3  (st ed totalclock)
+                ,ENVPSTex      // 0xFF 0xFA - ソフトエンベロープ 'E' n1,n2,n3,n4,n5,n6
+                ,NOP           // 0xFF 0xFB
+                ,NTMEAN        // 0xFF 0xFC
+                ,NTMEAN        // 0xFF 0xFD
+                ,NTMEAN        // 0xFF 0xFE
+                ,NOP           // 0xFF 0xFF
+            };
+
         }
 
         public void SetSoundWork()
@@ -917,6 +938,7 @@ namespace mucomDotNET.Driver
 
         public void SSGENT()
         {
+            if(work.SSGExtend) PANNING();
             SSGSUB();
             if (work.isDotNET)
             {
@@ -2850,7 +2872,7 @@ namespace mucomDotNET.Driver
 
             DummyOUT();
 
-            if (work.soundWork.currentChip != 4)
+            if (work.soundWork.currentChip != 4 && work.soundWork.SSGF1==0)
             {
                 //既存処理
                 c = (byte)(((a >> 2) & 0x3f) | (a << 6));//右ローテート2回(左6回のほうがC#的にはシンプル)
@@ -2861,6 +2883,10 @@ namespace mucomDotNET.Driver
 
                 if (CheckCh3SpecialMode() || work.cd.currentPageNo == work.pg.pageNo)
                     PSGOUT(a, d);
+            }
+            else if (work.soundWork.SSGF1 != 0)
+            {
+                //pan & phrst は volume出力時に共に更新されるのでここで音源に送信する必要は無い
             }
             else
             {
@@ -2899,14 +2925,21 @@ namespace mucomDotNET.Driver
 
             if (work.soundWork.currentChip != 4)
             {
-                c = (byte)(a << 6);
-                d = work.soundWork.PALDAT[work.soundWork.FMPORT + work.pg.channelNumber * 10 + work.pg.pageNo];
-                d = (byte)((d & 0b0011_1111) | c);
-                work.soundWork.PALDAT[work.soundWork.FMPORT + work.pg.channelNumber * 10 + work.pg.pageNo] = d;
-                a = (byte)(0x0B4 + work.pg.channelNumber);
+                if (work.soundWork.SSGF1 != 0)
+                {
+                    //pan & phrst は volume出力時に共に更新されるのでここで音源に送信する必要は無い
+                }
+                else
+                {
+                    c = (byte)(a << 6);
+                    d = work.soundWork.PALDAT[work.soundWork.FMPORT + work.pg.channelNumber * 10 + work.pg.pageNo];
+                    d = (byte)((d & 0b0011_1111) | c);
+                    work.soundWork.PALDAT[work.soundWork.FMPORT + work.pg.channelNumber * 10 + work.pg.pageNo] = d;
+                    a = (byte)(0x0B4 + work.pg.channelNumber);
 
-                if (CheckCh3SpecialMode() || work.cd.currentPageNo == work.pg.pageNo)
-                    PSGOUT(a, d);
+                    if (CheckCh3SpecialMode() || work.cd.currentPageNo == work.pg.pageNo)
+                        PSGOUT(a, d);
+                }
             }
             else
             {
@@ -3234,7 +3267,11 @@ namespace mucomDotNET.Driver
 
             if (work.soundWork.currentChip != 4)
             {
-                if (work.soundWork.PCMFLG == 0)
+                if (work.soundWork.SSGF1 != 0)
+                {
+                    return;
+                }
+                else if (work.soundWork.PCMFLG == 0)
                 {
                     c = (byte)(((a >> 2) & 0x3f) | (a << 6));//右ローテート2回(左6回のほうがC#的にはシンプル)
                     d = work.soundWork.PALDAT[work.soundWork.FMPORT + work.pg.channelNumber * 10 + work.pg.pageNo];
@@ -3257,7 +3294,7 @@ namespace mucomDotNET.Driver
                 if (work.cd.currentPageNo == work.pg.pageNo)
                 {
                     PSGOUT(a, c);
-                    Console.WriteLine("{0:x}", c&0xc0);
+                    //Console.WriteLine("{0:x}", c&0xc0);
                 }
 
                 return;
@@ -3507,7 +3544,10 @@ namespace mucomDotNET.Driver
             byte a = (byte)work.pg.mData[work.hl++].dat;
             a &= 0xf;// A=COMMAND No.(0-F)
 
-            FMCOM2[a]();
+            if (work.soundWork.SSGF1 == 0 || (work.soundWork.SSGF1 != 0 && !work.isDotNET))
+                FMCOM2[a]();
+            else
+                PSGCOM2[a]();//kuma: DotNET専用テーブルです
         }
 
         public void NTMEAN() { }
@@ -4553,6 +4593,7 @@ namespace mucomDotNET.Driver
             if (work.soundWork.KEY_FLAG != 0xff)
             {
                 byte d = (byte)work.pg.volReg;
+                if (work.SSGExtend) e |= (byte)(work.pg.panValue << 6);
                 if (work.pg.pageNo == work.cd.currentPageNo) PSGOUT(d, e);
             }
             return;
@@ -5084,6 +5125,7 @@ namespace mucomDotNET.Driver
                 if (work.soundWork.KEY_FLAG != 0xff)
                 {
                     byte d = (byte)work.pg.volReg;
+                    if(work.SSGExtend) e |= (byte)(work.pg.panValue << 6);
                     if (work.pg.pageNo == work.cd.currentPageNo) PSGOUT(d, e);
                 }
             }

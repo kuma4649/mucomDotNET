@@ -845,7 +845,7 @@ namespace mucomDotNET.Compiler
         private EnmFCOMPNextRtn SETLR()
         {
             ChannelType tp = CHCHK();
-            if (tp == ChannelType.SSG)
+            if (tp == ChannelType.SSG && !mucInfo.SSGExtend)
             {
                 WriteWarning(msg.get("W0407"), mucInfo.row, mucInfo.col);
             }
@@ -906,10 +906,19 @@ namespace mucomDotNET.Compiler
                     , work.currentChipName
                     , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
 
-                msub.MWRITE(
-                    new MmlDatum(enmMMLType.Pan, args, lp, 0xf8)
-                    , new MmlDatum((byte)n));// COM OF 'p'
-
+                if (tp == ChannelType.SSG && mucInfo.SSGExtend)//kuma: SSGでパンが使用できるのは拡張モードが有効な場合のみ
+                {
+                    msub.MWRITE(
+                        new MmlDatum(enmMMLType.Pan, args, lp, 0xff)
+                        , new MmlDatum(0xf0));//kuma: SSGパートの場合は 0xff 0xf0 n を書き込む
+                    msub.MWRIT2(new MmlDatum((byte)n));
+                }
+                else
+                {
+                    msub.MWRITE(
+                        new MmlDatum(enmMMLType.Pan, args, lp, 0xf8)
+                        , new MmlDatum((byte)n));// COM OF 'p' //kuma: SSGパート以外の場合は 0xf8 n を書き込む
+                }
                 ////
                 //AMD98
 
@@ -934,7 +943,7 @@ namespace mucomDotNET.Compiler
                     {
                         throw new MucException(string.Format(msg.get("E0526"), 255, v), mucInfo.row, mucInfo.col);
                     }
-                    if (tp == ChannelType.SSG) return EnmFCOMPNextRtn.fcomp1;//KUMA:互換の為。。。(SSGパートではnoise周波数設定コマンドとして動作)
+                    if (tp == ChannelType.SSG && !mucInfo.SSGExtend) return EnmFCOMPNextRtn.fcomp1;//KUMA:互換の為。。。(SSGパートではnoise周波数設定コマンドとして動作)
 
                     msub.MWRIT2(new MmlDatum((byte)n2));// ２こめ
                 }
