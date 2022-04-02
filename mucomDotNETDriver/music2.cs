@@ -199,6 +199,25 @@ namespace mucomDotNET.Driver
             }
         }
 
+        public void SetMuteFlg(int chip, int ch, int page, bool flg)
+        {
+            if (chip < 0 || chip >= work.soundWork.CHDAT.Count) return;
+            if (ch < 0 || ch >= work.soundWork.CHDAT[chip].Count) return;
+            if (page < 0 || page >= work.soundWork.CHDAT[chip][ch].PGDAT.Count) return;
+            work.soundWork.CHDAT[chip][ch].PGDAT[page].silentFlg = flg;
+        }
+
+        public void SetAllMuteFlg(bool flg)
+        {
+            for (int c = 0; c < 4; c++)
+            {
+                for (int i = 0; i < work.soundWork.CHDAT[c].Count; i++)
+                {
+                    for (int j = 0; j < work.soundWork.CHDAT[c][i].PGDAT.Count; j++)
+                        work.soundWork.CHDAT[c][i].PGDAT[j].silentFlg = flg;
+                }
+            }
+        }
 
         public void initMusic2()
         {
@@ -291,24 +310,55 @@ namespace mucomDotNET.Driver
             };
 
             PSGCOM2 = new Action[] {
-                STEREO_AMD98            // 0xFF 0xF0 - 'p' パン
-                ,HRDENV	       // 0xFF 0xF1 - HARD ENVE SET 's'  -> 'S'(kuma)
-                ,ENVPOD        // 0xFF 0xF2 - HARD ENVE PERIOD 'm'
-                ,REVERVE       // 0xFF 0xF3 - ﾘﾊﾞｰﾌﾞ
-                ,REVMOD	       // 0xFF 0xF4 - ﾘﾊﾞｰﾌﾞﾓｰﾄﾞ
-                ,REVSW	       // 0xFF 0xF5 - ﾘﾊﾞｰﾌﾞ ｽｲｯﾁ
-                ,NOP           // 0xFF 0xF6
-                ,MW_REG        // 0xFF 0xF7 - multi Write Register n1,n2,n3,n4
-                ,CH3SP         // 0xFF 0xF8 - 効果音モード系制御コマンド
-                ,PORTAON       // 0xFF 0xF9 - ポルタメント n1,n2,n3  (st ed totalclock)
-                ,ENVPSTex      // 0xFF 0xFA - ソフトエンベロープ 'E' n1,n2,n3,n4,n5,n6
-                ,NOP           // 0xFF 0xFB
-                ,NTMEAN        // 0xFF 0xFC
-                ,NTMEAN        // 0xFF 0xFD
-                ,NTMEAN        // 0xFF 0xFE
-                ,NOP           // 0xFF 0xFF
+                STEREO_AMD98    // 0xFF 0xF0 - 'p' パン
+                ,HRDENV	        // 0xFF 0xF1 - HARD ENVE SET 's'  -> 'S'(kuma)
+                ,ENVPOD         // 0xFF 0xF2 - HARD ENVE PERIOD 'm'
+                ,REVERVE        // 0xFF 0xF3 - ﾘﾊﾞｰﾌﾞ
+                ,REVMOD	        // 0xFF 0xF4 - ﾘﾊﾞｰﾌﾞﾓｰﾄﾞ
+                ,REVSW	        // 0xFF 0xF5 - ﾘﾊﾞｰﾌﾞ ｽｲｯﾁ
+                ,SelectWaveForm // 0xFF 0xF6
+                ,MW_REG         // 0xFF 0xF7 - multi Write Register n1,n2,n3,n4
+                ,CH3SP          // 0xFF 0xF8 - 効果音モード系制御コマンド
+                ,PORTAON        // 0xFF 0xF9 - ポルタメント n1,n2,n3  (st ed totalclock)
+                ,ENVPSTex       // 0xFF 0xFA - ソフトエンベロープ 'E' n1,n2,n3,n4,n5,n6
+                ,NOP            // 0xFF 0xFB
+                ,NTMEAN         // 0xFF 0xFC
+                ,NTMEAN         // 0xFF 0xFD
+                ,NTMEAN         // 0xFF 0xFE
+                ,NOP            // 0xFF 0xFF
             };
 
+        }
+
+        private void SelectWaveForm()
+        {
+            byte a = (byte)work.pg.mData[work.hl++].dat;
+            if (a != 0xff)
+            {
+                //波形プリセット選択
+                work.pg.SSGWfNum = a;
+            }
+            else
+            {
+                //ユーザー波形選択
+                work.pg.SSGWfNum = 10 + (work.pg.channelNumber>>1);// >>1の理由は、SSGのchannelNumberは0,2,4となっている為
+                a = (byte)work.pg.mData[work.hl++].dat;
+            }
+
+            //SSG拡張モードでは無いときは送信しない
+            if (!work.SSGExtend) return;
+
+            //dutycycle更新
+
+            //WaveForm送信
+            if (work.pg.SSGWfNum > 9)
+            {
+                SendSSGWf(a);
+            }
+        }
+
+        private void SendSSGWf(byte wfNum)
+        {
         }
 
         public void SetSoundWork()
@@ -618,13 +668,17 @@ namespace mucomDotNET.Driver
                     dat = new ChipDatum(0, 1, 0x02);//LFO reset
                     WriteRegister(c, dat);
                 }
+
+                if (c == 4) continue;
+
+                // PSGﾊﾞｯﾌｧ ｲﾆｼｬﾗｲｽﾞ
+                for (int i = 0; i < work.soundWork.INITPM.Length; i++)
+                {
+                    work.soundWork.PREGBF[c][i] = work.soundWork.INITPM[i];
+                }
+
             }
 
-            // PSGﾊﾞｯﾌｧ ｲﾆｼｬﾗｲｽﾞ
-            for (int i = 0; i < work.soundWork.INITPM.Length; i++)
-            {
-                work.soundWork.PREGBF[i] = work.soundWork.INITPM[i];
-            }
 
         }
 
@@ -866,11 +920,11 @@ namespace mucomDotNET.Driver
                         work.pg = work.cd.PGDAT[j];//KUMA:カレントのページワーク切り替え
                         if (!work.pg.musicEnd)
                         {
-                            if (work.pg.muteFlg) work.soundWork.READY = 0x00; //KUMA: 0x08(bit3)=MUTE FLAG
+                            if (work.pg.muteFlg || work.pg.silentFlg) work.soundWork.READY = 0x00; //KUMA: 0x08(bit3)=MUTE FLAG 又は外部からmuteの指定がある場合
 
                             aryDrv[i].Item6();//KUMA:パートごとの処理をコール
 
-                            if (work.pg.muteFlg) work.soundWork.READY = 0xff;//KUMA: 0x08(bit3)=MUTE FLAG
+                            if (work.pg.muteFlg || work.pg.silentFlg) work.soundWork.READY = 0xff;//KUMA: 0x08(bit3)=MUTE FLAG
                         }
                         else
                         {
@@ -3705,7 +3759,7 @@ namespace mucomDotNET.Driver
         {
             byte c = work.pg.backupMIXPort;
             byte b = (byte)work.pg.channelNumber;
-            byte e = work.soundWork.PREGBF[5];
+            byte e = work.soundWork.PREGBF[work.soundWork.currentChip][5];
             b >>= 1;
             b++;
             byte d = b;
@@ -3731,7 +3785,7 @@ namespace mucomDotNET.Driver
             d = 7;
             e = a;
             PSGOUT(d, e);
-            work.soundWork.PREGBF[5] = e;
+            work.soundWork.PREGBF[work.soundWork.currentChip][5] = e;
         }
 
 
@@ -3753,7 +3807,7 @@ namespace mucomDotNET.Driver
         {
             byte e = (byte)work.pg.backupNoiseFrq;
             PSGOUT(6, e);
-            work.soundWork.PREGBF[4] = e;
+            work.soundWork.PREGBF[work.soundWork.currentChip][4] = e;
         }
 
         // **	SSG VOLUME UP & DOWN**
@@ -4518,6 +4572,18 @@ namespace mucomDotNET.Driver
                 PSGOUT(d, e);
                 d++;
                 e = (byte)(hl >> 8);
+
+                if (work.SSGExtend)
+                {
+                    if (work.pg.SSGWfNum != 0)
+                    {
+                        if (work.pg.SSGWfNum < 10)
+                            e |= (byte)(work.pg.SSGWfNum << 4);
+                        else
+                            e |= (byte)((work.pg.SSGWfNum - 10) << 4);
+                    }
+                }
+
                 PSGOUT(d, e);
                 return;
             }
@@ -4768,6 +4834,16 @@ namespace mucomDotNET.Driver
             byte d = (byte)work.pg.channelNumber;
             PSGOUT(d, e);
             e = (byte)(hl >> 8);
+            if (work.SSGExtend)
+            {
+                if (work.pg.SSGWfNum != 0)
+                {
+                    if (work.pg.SSGWfNum < 10)
+                        e |= (byte)(work.pg.SSGWfNum << 4);
+                    else
+                        e |= (byte)((work.pg.SSGWfNum - 10) << 4);
+                }
+            }
             d++;
             PSGOUT(d, e);
 

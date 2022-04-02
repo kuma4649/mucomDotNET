@@ -2,7 +2,7 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
-      "commandLineArgs": "-LOGLEVEL=TRACE \"D:\\bootcamp\\FM音源\\data\\test\\aaaTemplate.muc\""
+      "commandLineArgs": "-LOGLEVEL=TRACE \"C:\\Users\\kuma\\Desktop\\GRADIUS Stage1\\testGRADIUS Stage1.muc\""
     }
   }
 }

@@ -82,7 +82,7 @@ namespace mucomDotNET.Driver
             }
         };
 
-        public byte[] PREGBF = null;
+        public byte[][] PREGBF = null;
         public byte[] INITPM = null;
         public ushort[][] DETDAT = new ushort[4][] { null, null, null, null };
         public byte[][] DRMVOL = new byte[4][] { null, null, null, null };
@@ -296,7 +296,7 @@ namespace mucomDotNET.Driver
             }
 
 
-            PREGBF = new byte[9];
+            PREGBF = new byte[4][] { new byte[9], new byte[9], new byte[9], new byte[9] };
             INITPM = new byte[] { 0, 0, 0, 0, 0, 56, 0, 0, 0 };
             for (int i = 0; i < 4; i++)
             {
@@ -455,6 +455,7 @@ namespace mucomDotNET.Driver
         public bool lfoContFlg = false;//                   ; 5=LFO CONTINUE FLAG
         public bool tieFlg = false;//			            ; 4=TIE FLAG
         public bool muteFlg = false;//                      ; 3=MUTE FLAG
+        public bool silentFlg = false;//                    ; KUMA:外部から操作されるmuteフラグ
         public bool lfo1shotFlg = false;//                  ; 2=LFO 1SHOT FLAG
         public bool loopEndFlg = false;//			        ; 0=1LOOPEND FLAG
 
@@ -492,6 +493,7 @@ namespace mucomDotNET.Driver
         public byte backupHardEnvFine { get; internal set; } = 0;
         public byte backupHardEnvCoarse { get; internal set; } = 0;
         public byte[] TLDirectTable { get; internal set; } = new byte[4] { 255, 255, 255, 255 };
+        public int SSGWfNum { get; internal set; } = 0;
 
         public byte[] v_tl = new byte[4] { 0, 0, 0, 0 };
 

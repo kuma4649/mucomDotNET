@@ -13,6 +13,7 @@ namespace mucomDotNET.Compiler
         public Msub msub = null;
         public smon smon = null;
         public Muc88 muc88 = null;
+        public Dictionary<int, byte[]> ssgVoice = new Dictionary<int, byte[]>();
         //public ushort[] FNUMB = new ushort[] {
         //    0x26A,0x28F,0x2B6,0x2DF,0x30B,0x339,0x36A,0x39E,
         //    0x3D5,0x410,0x44E,0x48F
@@ -91,6 +92,12 @@ namespace mucomDotNET.Compiler
                 {
                     srcCPtr++;
                     fvfg = 'M';
+                }
+                else if (mucInfo.basSrc[i].Item2[srcCPtr] == 'W' || mucInfo.basSrc[i].Item2[srcCPtr] == 'w')
+                {
+                    srcCPtr++;
+                    SSGWaveDefine(ref i, ref srcCPtr);
+                    continue;
                 }
 
                 int n = msub.REDATA(mucInfo.basSrc[i], ref srcCPtr);
@@ -224,6 +231,46 @@ namespace mucomDotNET.Compiler
             if (!found) mucInfo.Carry = true;
             return;
 
+
+        }
+
+        private void SSGWaveDefine(ref int srcRow, ref int srcCPtr)
+        {
+            //定義番号を得る
+            int n = msub.REDATA(mucInfo.basSrc[srcRow], ref srcCPtr);
+            if (mucInfo.Carry || mucInfo.ErrSign)
+            {
+                muc88.WriteWarning(msg.get("Wxxxx"), srcRow, srcCPtr);
+            }
+
+            byte[] v = new byte[32];
+            for (int row = 0; row < 4; row++)
+            {
+
+                srcRow++;
+                if (mucInfo.basSrc.Count == srcRow)
+                {
+                    muc88.WriteWarning(msg.get("Wxxxx"), srcRow, srcCPtr);
+                    return;
+                }
+
+                srcCPtr = 1;
+                for (int col = 0; col < 8; col++)
+                {
+                    v[row * 8 + col] = (byte)msub.REDATA(mucInfo.basSrc[srcRow], ref srcCPtr);
+                    if (mucInfo.Carry || mucInfo.ErrSign)
+                    {
+                        muc88.WriteWarning(msg.get("Wxxxx"), srcRow, srcCPtr);
+                    }
+                    srcCPtr++;// SKIP','
+                }
+            }
+
+            if (ssgVoice.ContainsKey(n))
+            {
+                ssgVoice.Remove(n);
+            }
+            ssgVoice.Add(n, v);
 
         }
 

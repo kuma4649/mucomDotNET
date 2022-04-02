@@ -2,7 +2,7 @@
   "profiles": {
     "Player": {
       "commandName": "Project",
-      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\test\\aaaTemplate.mub\""
+      "commandLineArgs": "\"C:\\Users\\kuma\\Desktop\\GRADIUS Stage1\\testGRADIUS Stage1.mub\""
     }
   }
 }

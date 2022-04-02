@@ -223,6 +223,18 @@ namespace mucomDotNET.Driver
             music2.notSoundBoard2 = notSoundBoard2;
         }
 
+        public void SetMuteFlg(int chip, int ch, int page, bool flg)
+        {
+            if (music2 == null) return;
+            music2.SetMuteFlg(chip, ch, page, flg);
+        }
+
+        public void SetAllMuteFlg(bool flg)
+        {
+            if (music2 == null) return;
+            music2.SetAllMuteFlg(flg);
+        }
+
         private void TransformOPNAPCMtoOPNBPCM(int v)
         {
             List<List<byte>> pcmData = new List<List<byte>>();
@@ -887,7 +899,19 @@ namespace mucomDotNET.Driver
 
         public void SetDriverSwitch(params object[] param)
         {
-            //throw new NotImplementedException();
+            if(param[0] is string)
+            {
+                string cmd = (string)param[0];
+                if (cmd == "AllMute")
+                {
+                    SetAllMuteFlg((bool)param[1]);
+                }
+                else if (cmd == "SetMute")
+                {
+                    SetMuteFlg((int)param[1], (int)param[2], (int)param[3], (bool)param[4]);
+                }
+
+            }
         }
 
         public void WriteRegister(ChipDatum reg)

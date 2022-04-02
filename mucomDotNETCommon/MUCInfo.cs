@@ -145,6 +145,7 @@ namespace mucomDotNET.Common
             normal,X68000
         }
         public bool SSGExtend { get; set; } = false;
+        public List<byte> useSSGWavNum { get; set; } = new List<byte>();
 
         public void Clear()
         {

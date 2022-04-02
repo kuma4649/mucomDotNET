@@ -3508,10 +3508,16 @@ namespace mucomDotNET.Compiler
             char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr
                 ? mucInfo.lin.Item2[mucInfo.srcCPtr]
                 : (char)0;
+            char w = '\0';
             if (c == '\"')
             {
                 SETVN();//文字列による指定
                 return EnmFCOMPNextRtn.fcomp1;
+            }
+            if (c == 'I' || c == 'W')
+            {
+                w = c;
+                mucInfo.srcCPtr++;
             }
 
             //mucInfo.srcCPtr++;
@@ -3537,12 +3543,35 @@ namespace mucomDotNET.Compiler
             ChannelType tp = CHCHK();
             if (tp == ChannelType.SSG)
             {
-                //音色番号チェック
-                if (n < 0 || n > 15)
+                if (mucInfo.SSGExtend && w == 'I')
                 {
-                    throw new MucException(
-                        string.Format(msg.get("E0508"), n)
-                        , mucInfo.row, mucInfo.col);
+                    //波形プリセット番号チェック
+                    if (n < 0 || n > 9)
+                    {
+                        throw new MucException(
+                            string.Format(msg.get("Exxxx"), n)
+                            , mucInfo.row, mucInfo.col);
+                    }
+                }
+                else if (mucInfo.SSGExtend && w == 'W')
+                {
+                    //ユーザー定義波形番号チェック
+                    if (n < 0 || n > 255)
+                    {
+                        throw new MucException(
+                            string.Format(msg.get("Exxxx"), n)
+                            , mucInfo.row, mucInfo.col);
+                    }
+                }
+                else
+                {
+                    //音色番号チェック
+                    if (n < 0 || n > 15)
+                    {
+                        throw new MucException(
+                            string.Format(msg.get("E0508"), n)
+                            , mucInfo.row, mucInfo.col);
+                    }
                 }
             }
 
@@ -3556,7 +3585,7 @@ namespace mucomDotNET.Compiler
 
             if (tp == ChannelType.SSG)
             {
-                return STCL5(n);//SSG
+                return STCL5(n, w);//SSG
             }
             if (tp == ChannelType.FM)
             {
@@ -3709,7 +3738,7 @@ namespace mucomDotNET.Compiler
                 , mucInfo.row, mucInfo.col);
         }
 
-        public EnmFCOMPNextRtn STCL5(int num)
+        public EnmFCOMPNextRtn STCL5(int num,char wav)
         {
 
             List<object> args = new List<object>();
@@ -3726,11 +3755,33 @@ namespace mucomDotNET.Compiler
                 , Cmn.GetChipNumber(work.ChipIndex)
                 , work.CHIP_CH * work.MAXPG + work.pageNow);
 
+            if (mucInfo.SSGExtend && wav != '\0')
+            {
+                msub.MWRITE(
+                    new MmlDatum(enmMMLType.Instrument, args, lp, 0xff)
+                    , new MmlDatum((byte)0xf6));
+                if (wav == 'I')
+                    msub.MWRIT2(new MmlDatum(num));
+                else if (wav == 'W')
+                {
+                    msub.MWRIT2(new MmlDatum(0xff));
+                    msub.MWRIT2(new MmlDatum(num));
+                    if (!mucInfo.useSSGWavNum.Contains((byte)num))
+                        mucInfo.useSSGWavNum.Add((byte)num);
+                }
+                return EnmFCOMPNextRtn.fcomp1;
+            }
+
             msub.MWRITE(
                 new MmlDatum(enmMMLType.Instrument, args, lp, 0xf0)
                 , new MmlDatum((byte)num));
 
             if (work.PSGMD != 0)
+            {
+                return EnmFCOMPNextRtn.fcomp1;
+            }
+
+            if(mucInfo.SSGExtend && wav != '\0')
             {
                 return EnmFCOMPNextRtn.fcomp1;
             }
