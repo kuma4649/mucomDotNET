@@ -11,7 +11,7 @@ namespace mucomDotNET.Compiler
     public class Compiler : iCompiler
     {
         private byte[] srcBuf = null;
-        private MUCInfo mucInfo = new MUCInfo();
+        private MUCInfo mucInfo = null;
         private work work = null;
         private Muc88 muc88 = null;
         private Msub msub = null;
@@ -42,6 +42,7 @@ namespace mucomDotNET.Compiler
 
         public void Init()
         {
+            mucInfo = new MUCInfo();
             work = new work();
             muc88 = new Muc88(work, mucInfo, enc);
             msub = new Msub(work, mucInfo, enc);
@@ -779,7 +780,6 @@ namespace mucomDotNET.Compiler
 
             dat.Clear();
 
-
             //固定長ヘッダー情報　作成
 
             dat.Add(new MmlDatum(0x6d));// m
@@ -815,7 +815,10 @@ namespace mucomDotNET.Compiler
 
             int instSets = 0;
             for (int i = 0; i < work.MAXChips; i++) instSets += work.OTONUM[i];
-            dat.Add(new MmlDatum(instSets > 0 ? 1 : 0));// 使用するInstrumentセットの総数(0～)
+            if (mucInfo.ssgVoice.Count > 0) instSets = 2;
+            else instSets = instSets > 0 ? 1 : 0;
+
+            dat.Add(new MmlDatum(instSets));// 使用するInstrumentセットの総数(0～)
             dat.Add(new MmlDatum(0x00));
 
             bool pcmuse = ((option & 2) == 0);
@@ -996,13 +999,21 @@ namespace mucomDotNET.Compiler
 
             //Instrument set division.
 
-            n = instSets > 0 ? 1 : 0;// 使用するInstrumentセットの総数(0～)
-            if (n > 0)
+            // 使用するInstrumentセットの総数(0～)
+            if (instSets > 0)//FM の音色を使用する場合は1(但しSSG波形を使用している場合は、FMを使用していなくとも定義する)
             {
                 dat.Add(new MmlDatum((byte)mucInfo.bufUseVoice.Count));
                 dat.Add(new MmlDatum((byte)(mucInfo.bufUseVoice.Count >> 8)));
                 dat.Add(new MmlDatum((byte)(mucInfo.bufUseVoice.Count >> 16)));
                 dat.Add(new MmlDatum((byte)(mucInfo.bufUseVoice.Count >> 24)));
+            }
+            if (instSets == 2)//SSG の波形を使用する場合は2
+            {
+                int ssgVoiceSize = mucInfo.ssgVoice.Count * 65;//65 : 64(dataSize) + 1(音色番号)
+                dat.Add(new MmlDatum((byte)ssgVoiceSize));
+                dat.Add(new MmlDatum((byte)(ssgVoiceSize >> 8)));
+                dat.Add(new MmlDatum((byte)(ssgVoiceSize >> 16)));
+                dat.Add(new MmlDatum((byte)(ssgVoiceSize >> 24)));
             }
 
 
@@ -1043,6 +1054,17 @@ namespace mucomDotNET.Compiler
                 for (int i = 0; i < mucInfo.bufUseVoice.Count; i++)
                 {
                     dat.Add(mucInfo.bufUseVoice.Get(i));
+                }
+            }
+            if (instSets == 2)
+            {
+                foreach(int key in mucInfo.ssgVoice.Keys)
+                {
+                    dat.Add(new MmlDatum((byte)key));
+                    foreach(byte d in mucInfo.ssgVoice[key])
+                    {
+                        dat.Add(new MmlDatum((byte)d));
+                    }
                 }
             }
 

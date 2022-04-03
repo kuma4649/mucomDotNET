@@ -3562,6 +3562,7 @@ namespace mucomDotNET.Compiler
                             string.Format(msg.get("Exxxx"), n)
                             , mucInfo.row, mucInfo.col);
                     }
+                    work.useSSGVoice.Add(n);
                 }
                 else
                 {
@@ -3766,8 +3767,8 @@ namespace mucomDotNET.Compiler
                 {
                     msub.MWRIT2(new MmlDatum(0xff));
                     msub.MWRIT2(new MmlDatum(num));
-                    if (!mucInfo.useSSGWavNum.Contains((byte)num))
-                        mucInfo.useSSGWavNum.Add((byte)num);
+                    //if (!mucInfo.useSSGWavNum.Contains((byte)num))
+                    //    mucInfo.useSSGWavNum.Add((byte)num);
                 }
                 return EnmFCOMPNextRtn.fcomp1;
             }
@@ -4731,6 +4732,7 @@ namespace mucomDotNET.Compiler
             //string h = Convert.ToString(0, 16);//START ADRは0固定
 
             VOICECONV1();
+            expand.SSGTEXT();
         }
 
         public void VOICECONV1()

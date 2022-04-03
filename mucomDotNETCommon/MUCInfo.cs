@@ -41,6 +41,11 @@ namespace mucomDotNET.Common
         /// </summary>
         public byte[] voiceData { get; set; }
         public byte[] pcmData { get; set; }
+
+        /// <summary>
+        /// SSG波形データ
+        /// </summary>
+        public Dictionary<int, byte[]> ssgVoice = new Dictionary<int, byte[]>();
         public List<Tuple<int, string>> basSrc { get; set; }
 
         public object document = null;

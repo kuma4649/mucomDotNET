@@ -13,7 +13,6 @@ namespace mucomDotNET.Compiler
         public Msub msub = null;
         public smon smon = null;
         public Muc88 muc88 = null;
-        public Dictionary<int, byte[]> ssgVoice = new Dictionary<int, byte[]>();
         //public ushort[] FNUMB = new ushort[] {
         //    0x26A,0x28F,0x2B6,0x2DF,0x30B,0x339,0x36A,0x39E,
         //    0x3D5,0x410,0x44E,0x48F
@@ -92,12 +91,6 @@ namespace mucomDotNET.Compiler
                 {
                     srcCPtr++;
                     fvfg = 'M';
-                }
-                else if (mucInfo.basSrc[i].Item2[srcCPtr] == 'W' || mucInfo.basSrc[i].Item2[srcCPtr] == 'w')
-                {
-                    srcCPtr++;
-                    SSGWaveDefine(ref i, ref srcCPtr);
-                    continue;
                 }
 
                 int n = msub.REDATA(mucInfo.basSrc[i], ref srcCPtr);
@@ -234,6 +227,28 @@ namespace mucomDotNET.Compiler
 
         }
 
+        public void SSGTEXT()
+        {
+            for (int i = 0; i < mucInfo.basSrc.Count; i++)
+            {
+                if (mucInfo.basSrc[i] == null) continue;
+                if (mucInfo.basSrc[i].Item2 == null) continue;
+                if (mucInfo.basSrc[i].Item2.Length < 4) continue;
+                if (mucInfo.basSrc[i].Item2[0] != ' ') continue;
+                if (mucInfo.basSrc[i].Item2[2] != '@') continue;
+
+                int srcCPtr = 3;
+                if (mucInfo.basSrc[i].Item2[srcCPtr] == 'W' || mucInfo.basSrc[i].Item2[srcCPtr] == 'w')
+                {
+                    srcCPtr++;
+                    SSGWaveDefine(ref i, ref srcCPtr);
+                }
+            }
+
+            work.useSSGVoice.Clear();
+            return;
+        }
+
         private void SSGWaveDefine(ref int srcRow, ref int srcCPtr)
         {
             //定義番号を得る
@@ -242,8 +257,9 @@ namespace mucomDotNET.Compiler
             {
                 muc88.WriteWarning(msg.get("Wxxxx"), srcRow, srcCPtr);
             }
+            if (!work.useSSGVoice.Contains(n)) return;
 
-            byte[] v = new byte[32];
+            byte[] v = new byte[64];
             for (int row = 0; row < 4; row++)
             {
 
@@ -255,9 +271,9 @@ namespace mucomDotNET.Compiler
                 }
 
                 srcCPtr = 1;
-                for (int col = 0; col < 8; col++)
+                for (int col = 0; col < 16; col++)
                 {
-                    v[row * 8 + col] = (byte)msub.REDATA(mucInfo.basSrc[srcRow], ref srcCPtr);
+                    v[row * 16 + col] = (byte)msub.REDATA(mucInfo.basSrc[srcRow], ref srcCPtr);
                     if (mucInfo.Carry || mucInfo.ErrSign)
                     {
                         muc88.WriteWarning(msg.get("Wxxxx"), srcRow, srcCPtr);
@@ -266,11 +282,11 @@ namespace mucomDotNET.Compiler
                 }
             }
 
-            if (ssgVoice.ContainsKey(n))
+            if (mucInfo.ssgVoice.ContainsKey(n))
             {
-                ssgVoice.Remove(n);
+                mucInfo.ssgVoice.Remove(n);
             }
-            ssgVoice.Add(n, v);
+            mucInfo.ssgVoice.Add(n, v);
 
         }
 

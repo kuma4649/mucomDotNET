@@ -359,6 +359,14 @@ namespace mucomDotNET.Driver
 
         private void SendSSGWf(byte wfNum)
         {
+            if (!work.ssgVoiceAtMusData.ContainsKey(wfNum)) return;
+            byte[] dat = work.ssgVoiceAtMusData[wfNum];
+            byte vch = (byte)(work.pg.channelNumber >> 1);
+            for (int n = 0; n < dat.Length; n++)
+            {
+                byte d = (byte)((n == 0 ? 0x80 : 0x00) | ((vch & 3) << 4) | (dat[n] & 0xf));
+                PSGOUT(0x0e, d);
+            }
         }
 
         public void SetSoundWork()
@@ -481,6 +489,22 @@ namespace mucomDotNET.Driver
             if (work.header.mupb.instruments != null && work.header.mupb.instruments.Length > 0 && work.header.mupb.instruments[0].data != null)
             {
                 work.fmVoiceAtMusData = work.header.mupb.instruments[0].data;
+
+                //SSG波形データの読み込み
+                work.ssgVoiceAtMusData = null;
+                if (work.header.mupb.instruments.Length == 2)
+                {
+                    work.ssgVoiceAtMusData = new Dictionary<int, byte[]>();
+                    byte[] buf = work.header.mupb.instruments[1].data;
+                    for (int i = 0; i < buf.Length / 65; i++)
+                    {
+                        byte n = buf[i * 65 + 0];
+                        byte[] dat = new byte[64];
+                        for (int j = 0; j < 64; j++) dat[j] = buf[i * 65 + j + 1];
+                        work.ssgVoiceAtMusData.Add(n, dat);
+                    }
+                }
+
             }
 
             work.mData = null;
@@ -4577,10 +4601,7 @@ namespace mucomDotNET.Driver
                 {
                     if (work.pg.SSGWfNum != 0)
                     {
-                        if (work.pg.SSGWfNum < 10)
-                            e |= (byte)(work.pg.SSGWfNum << 4);
-                        else
-                            e |= (byte)((work.pg.SSGWfNum - 10) << 4);
+                        e |= (byte)(work.pg.SSGWfNum << 4);
                     }
                 }
 
@@ -4838,10 +4859,7 @@ namespace mucomDotNET.Driver
             {
                 if (work.pg.SSGWfNum != 0)
                 {
-                    if (work.pg.SSGWfNum < 10)
-                        e |= (byte)(work.pg.SSGWfNum << 4);
-                    else
-                        e |= (byte)((work.pg.SSGWfNum - 10) << 4);
+                    e |= (byte)(work.pg.SSGWfNum << 4);
                 }
             }
             d++;
