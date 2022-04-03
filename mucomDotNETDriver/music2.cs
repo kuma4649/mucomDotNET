@@ -362,11 +362,9 @@ namespace mucomDotNET.Driver
             if (!work.ssgVoiceAtMusData.ContainsKey(wfNum)) return;
             byte[] dat = work.ssgVoiceAtMusData[wfNum];
             byte vch = (byte)(work.pg.channelNumber >> 1);
+            PSGOUT(0x0d, (byte)(0x80 | ((vch & 3) << 4) | (work.pg.hardEnvelopValue & 0xf)));
             for (int n = 0; n < dat.Length; n++)
-            {
-                byte d = (byte)((n == 0 ? 0x80 : 0x00) | ((vch & 3) << 4) | (dat[n] & 0xf));
-                PSGOUT(0x0e, d);
-            }
+                PSGOUT(0x0e, dat[n]);
         }
 
         public void SetSoundWork()

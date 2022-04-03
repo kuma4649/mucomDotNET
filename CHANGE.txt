@@ -1,4 +1,8 @@
 更新履歴
+TAG165 2022/04/04(注意)
+  Compiler Driver
+    SSGExtendタグ:波形を4bit->8bitへ仕様変更
+
 TAG164 2022/04/03
   Compiler Driver
     SSGExtendタグ:波形をエディットできるようになった.
