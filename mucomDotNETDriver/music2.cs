@@ -359,12 +359,13 @@ namespace mucomDotNET.Driver
 
         private void SendSSGWf(byte wfNum)
         {
+            if (work.ssgVoiceAtMusData == null) return;
             if (!work.ssgVoiceAtMusData.ContainsKey(wfNum)) return;
             byte[] dat = work.ssgVoiceAtMusData[wfNum];
             byte vch = (byte)(work.pg.channelNumber >> 1);
             PSGOUT(0x0d, (byte)(0x80 | ((vch & 3) << 4) | (work.pg.hardEnvelopValue & 0xf)));
             for (int n = 0; n < dat.Length; n++)
-                PSGOUT(0x0e, dat[n]);
+                PSGOUT(0x0e, (byte)(dat[n]+0x80));
         }
 
         public void SetSoundWork()

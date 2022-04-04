@@ -2,7 +2,7 @@
   "profiles": {
     "Player": {
       "commandName": "Project",
-      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\test\\aaaTemplate.mub\""
+      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\test\\dddTemplate.mub\""
     }
   }
 }

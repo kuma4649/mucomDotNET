@@ -11,7 +11,7 @@ namespace mucomDotNET.Compiler
     public class Compiler : iCompiler
     {
         private byte[] srcBuf = null;
-        private MUCInfo mucInfo = null;
+        private MUCInfo mucInfo = new MUCInfo();
         private work work = null;
         private Muc88 muc88 = null;
         private Msub msub = null;
@@ -42,7 +42,7 @@ namespace mucomDotNET.Compiler
 
         public void Init()
         {
-            mucInfo = new MUCInfo();
+            //mucInfo = new MUCInfo();
             work = new work();
             muc88 = new Muc88(work, mucInfo, enc);
             msub = new Msub(work, mucInfo, enc);

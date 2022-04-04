@@ -4364,6 +4364,8 @@ namespace mucomDotNET.Compiler
 
         public bool CheckExtendFormat()
         {
+            if (mucInfo.SSGExtend) return true;
+
             int srcLinPtr = -1;
             int srcCPtr;
             Tuple<int, string> lin;
