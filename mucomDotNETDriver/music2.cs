@@ -2664,6 +2664,11 @@ namespace mucomDotNET.Driver
         {
             work.pg.quantize = work.pg.mData[work.hl++].dat;
             work.pg.enblKeyOff = (work.pg.quantize != 255);
+
+            List<object> args = new List<object>();
+            args.Add(work.pg.quantize);
+            DummyOUT(enmMMLType.Gatetime, args);
+
         }
 
         // **	SOFT LFO SET(RESET) **

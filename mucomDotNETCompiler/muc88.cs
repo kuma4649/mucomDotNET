@@ -1652,6 +1652,7 @@ namespace mucomDotNET.Compiler
             int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0431"));
             mucInfo.srcCPtr = ptr;
             work.quantize = n;
+
             msub.MWRITE(new MmlDatum(0xf3), new MmlDatum((byte)n));// COM OF 'q'
 
             return EnmFCOMPNextRtn.fcomp1;
