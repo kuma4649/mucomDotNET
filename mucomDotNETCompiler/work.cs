@@ -92,7 +92,8 @@ namespace mucomDotNET.Compiler
         public bool isEnd { get; internal set; } = false;
         public int FMVolMode { get; internal set; } = 0;
         public bool CompEndCmdFlag { get; internal set; } = false;
-        public HashSet<int> useSSGVoice { get; internal set; } = new HashSet<int>();
+        public HashSet<int> useSSGVoice { get; set; } = new HashSet<int>();
+        public HashSet<int> usedFMVoiceNumber { get; set; } = new HashSet<int>();
 
         public int MU_NUM = 0;// 0xC200 b ｺﾝﾊﾟｲﾙﾁｭｳ ﾉ MUSICﾅﾝﾊﾞｰ
         public int OTODAT = 1;// 0xc201 w FMｵﾝｼｮｸ ｶﾞ ｶｸﾉｳｻﾚﾙ ｱﾄﾞﾚｽﾄｯﾌﾟ ｶﾞ ﾊｲｯﾃｲﾙ

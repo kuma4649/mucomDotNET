@@ -2698,10 +2698,10 @@ namespace mucomDotNET.Driver
             DummyOUT(enmMMLType.LfoSwitch, args);
 
             args = new List<object>();
-            args.Add(work.pg.lfoDelay);
-            args.Add(work.pg.lfoCounter);
-            args.Add(work.pg.lfoDelta);
-            args.Add(work.pg.lfoPeak);
+            args.Add(work.pg.lfoDelay);//8bit unsigned
+            args.Add(work.pg.lfoCounter);//8bit unsigned
+            args.Add(work.pg.lfoDelta);//16bit signed
+            args.Add(work.pg.lfoPeak);//8bit unsigned
             DummyOUT(enmMMLType.Lfo, args);
         }
 

@@ -824,18 +824,31 @@ namespace mucomDotNET.Compiler
                     , mucInfo.row, mucInfo.col);
             }
 
-            msub.MWRIT2(new MmlDatum(0xfc));
+            List<object> args = new List<object>();
+            LinePos lp = new LinePos(
+                mucInfo.document,
+                mucInfo.fnSrcOnlyFile
+                , mucInfo.row, mucInfo.col
+                , mucInfo.srcCPtr - mucInfo.col + 1
+                , work.currentPartType
+                , work.currentChipName
+                , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+
+            msub.MWRIT2(new MmlDatum(enmMMLType.HardLFO, args, lp, 0xfc));
 
             int ptr = mucInfo.srcCPtr;
             int n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0413"));
             msub.MWRIT2(new MmlDatum((byte)n));
+            args.Add(n);
 
             n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0413"));
             msub.MWRIT2(new MmlDatum((byte)n));
+            args.Add(n);
 
             n = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0413"));
             mucInfo.srcCPtr = ptr;
             msub.MWRIT2(new MmlDatum((byte)n));
+            args.Add(n);
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -3908,6 +3921,7 @@ namespace mucomDotNET.Compiler
 
         };
 
+
         // --	VOICE ｶﾞ ﾄｳﾛｸｽﾞﾐｶ?	--
 
         public int CCVC(int num, AutoExtendList<int> buf)
@@ -4799,6 +4813,8 @@ namespace mucomDotNET.Compiler
                 {
                     throw new MucException(msg.get("E0519"), -1, -1);
                 }
+
+                if (!work.usedFMVoiceNumber.Contains(vn)) work.usedFMVoiceNumber.Add(vn);
 
                 ////
                 //TLチェック処理

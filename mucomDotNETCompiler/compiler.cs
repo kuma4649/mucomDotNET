@@ -542,7 +542,11 @@ namespace mucomDotNET.Compiler
                 Log.WriteLine(LogLevel.INFO, "");
                 Log.WriteLine(LogLevel.INFO, string.Format("#mucom type    : {0}", mucInfo.DriverType));
                 Log.WriteLine(LogLevel.INFO, string.Format("#MUB Format    : {0}", isExtendFormat ? "Extend" : "Normal"));
-                Log.WriteLine(LogLevel.INFO, string.Format("#Used FM voice : {0} {1} {2} {3} {4}", work.OTONUM[0], work.OTONUM[1], work.OTONUM[2], work.OTONUM[3], work.OTONUM[4]));
+                Log.WriteLine(LogLevel.INFO, "#Used FM voice : ");
+                Log.WriteLine(LogLevel.INFO, string.Format("#      @ count : {0} ", work.usedFMVoiceNumber.Count));//, work.OTONUM[0], work.OTONUM[1], work.OTONUM[2], work.OTONUM[3], work.OTONUM[4]);
+                List<int> usedFMVoiceNumberList=work.usedFMVoiceNumber.ToList();
+                usedFMVoiceNumberList.Sort();
+                Log.WriteLine(LogLevel.INFO, string.Format("#      @ list  : {0} ", String.Join(" ", usedFMVoiceNumberList)));
                 Log.WriteLine(LogLevel.INFO, string.Format("#Data Buffer   : ${0:x05} - ${1:x05} (${2:x05})", start, start + length - 1, length));
                 Log.WriteLine(LogLevel.INFO, string.Format("#Max Count     : {0}", maxcount));
                 Log.WriteLine(LogLevel.INFO, string.Format("#MML Lines     : {0}", mucInfo.lines));
