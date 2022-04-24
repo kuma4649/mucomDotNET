@@ -3093,7 +3093,7 @@ namespace mucomDotNET.Compiler
                                     skipSpaceAndTab();
                                     c = getMoji();
                                     if (c != ',') throw new MucException(msg.get("E0472"), mucInfo.row, mucInfo.col);
-                                    ptr = mucInfo.srcCPtr;
+                                    ptr = ++mucInfo.srcCPtr;
                                     n = msub.REDATA(mucInfo.lin, ref ptr);
                                     n = Math.Min(Math.Max(n, 0), 127);
                                     mucInfo.srcCPtr = ptr;

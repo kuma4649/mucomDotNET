@@ -1207,6 +1207,7 @@ namespace mucomDotNET.Driver
                 args.Add(work.pg.volume);
             else
                 args.Add(work.pg.volume - 4);
+            args.Add(work.cd.FMVolMode);
 
             DummyOUT(enmMMLType.Volume, args);
         }
