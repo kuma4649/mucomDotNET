@@ -3331,7 +3331,7 @@ namespace mucomDotNET.Compiler
                 }
 
                 List<object> args = new List<object>();
-                args.Add(n);
+                args.Add(work.VOLUME);
                 LinePos lp = new LinePos(
                     mucInfo.document,
                     mucInfo.fnSrcOnlyFile

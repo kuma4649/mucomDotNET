@@ -3544,7 +3544,7 @@ namespace mucomDotNET.Driver
             if (work.soundWork.PCMFLG != 0)
             {
                 args = new List<object>();
-                args.Add(work.pg.volume);
+                args.Add(work.pg.volume-4);
                 DummyOUT(enmMMLType.Volume, args);
                 return;
             }
