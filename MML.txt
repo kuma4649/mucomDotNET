@@ -94,6 +94,17 @@ mucomDotNET
 
 
 タグ
+    #OPMPanReverse
+書式
+    #OPMPanReverse str
+値の範囲
+    str : On , Off
+内容
+　　OPMのパン値を左右反転するか指定します。
+    デフォルト値は「Off」で反転しません。
+
+
+タグ
     #SSGExtend
 書式
     #SSGExtend str

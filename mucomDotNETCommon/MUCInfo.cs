@@ -210,6 +210,7 @@ namespace mucomDotNET.Common
             carriercorrection = false;
             opmclockmode = enmOpmClockMode.normal;
             SSGExtend = false;
+            opmpanreverse = false;
         }
 
     }
