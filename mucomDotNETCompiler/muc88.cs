@@ -907,6 +907,15 @@ namespace mucomDotNET.Compiler
 
             if (tp != ChannelType.RHYTHM || !work.rhythmPanMode)
             {
+
+                if(work.ChipIndex == 4 && mucInfo.opmpanreverse)
+                {
+                    if ((n & 0x3) != 0)
+                    {
+                        n = ((n & 0xfc) | ((n & 1) << 1) | ((n & 2) >> 1));
+                    }
+                }
+
                 //
                 List<object> args = new List<object>();
                 args.Add(n);

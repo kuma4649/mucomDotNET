@@ -1,4 +1,8 @@
 更新履歴
+TAG171 2022/05/08
+  Compiler
+    OPMPanReverseタグ追加
+
 TAG170 2022/05/04
   Compiler&Driver
     外部プログラム向けのADPCMのボリューム値情報をChipに送信する値ではなく、mml中の値を設定するよう修正。

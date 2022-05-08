@@ -329,6 +329,15 @@ namespace mucomDotNET.Compiler
                             mucInfo.SSGExtend = true;
                         }
                         break;
+                    case "opmpanreverse":
+                        string opmpanval = tag.Item2.ToLower().Trim();
+
+                        mucInfo.opmpanreverse = false;
+                        if (opmpanval == "on" || opmpanval == "yes" || opmpanval == "y" || opmpanval == "1" || opmpanval == "true" || opmpanval == "t")
+                        {
+                            mucInfo.opmpanreverse = true;
+                        }
+                        break;
                 }
             }
 
