@@ -60,15 +60,31 @@ namespace mucomDotNET.Driver
                 CHK();//added
                 INT57();
                 ENBL();
+
                 for (int c = 0; c < 5; c++)
                 {
                     work.soundWork.currentChip = c;
+                    work.currentTimer = c;
                     TO_NML();
                 }
                 work.soundWork.currentChip = 0;
 
                 work.resetPlaySync = true;
                 work.Status = 1;
+                work.currentTimer = 0;
+
+                //一度だけタイマ割り込みをさせる(初めの発音が不安定になる現象対策)
+                while ((work.timerOPNA1.StatReg & 3) == 0)
+                {
+                    lock (work.SystemInterrupt)
+                    {
+                        work.timerOPNA1.timer();
+                        work.timerOPNA2.timer();
+                        work.timerOPNB1.timer();
+                        work.timerOPNB2.timer();
+                        work.timerOPM.timer();
+                    }
+                }
             }
         }
 
@@ -838,21 +854,13 @@ namespace mucomDotNET.Driver
 
         public void PL_SND()
         {
-            ChipDatum dat;
-            if (work.currentTimer != 4)
-            {
-                dat = new ChipDatum(0, 0x27, work.soundWork.PLSET1_VAL[work.currentTimer]);//  TIMER-OFF DATA
-                WriteRegister(work.currentTimer, dat);
-                dat = new ChipDatum(0, 0x27, work.soundWork.PLSET2_VAL[work.currentTimer]);//  TIMER-ON DATA
-                WriteRegister(work.currentTimer, dat);
-            }
-            else
-            {
-                dat = new ChipDatum(0, 0x14, work.soundWork.PLSET1_VAL[work.currentTimer]);//  TIMER-OFF DATA
-                WriteRegister(work.currentTimer, dat);
-                dat = new ChipDatum(0, 0x14, work.soundWork.PLSET2_VAL[work.currentTimer]);//  TIMER-ON DATA
-                WriteRegister(work.currentTimer, dat);
-            }
+            updateTimer();
+
+            //if (work.dummyCount > 0)
+            //{
+            //    work.dummyCount--;
+            //    return;
+            //}
 
             DRIVE();
             //FDOUT();
@@ -874,6 +882,25 @@ namespace mucomDotNET.Driver
             }
             if (n == 11 * 4 + 8)
                 work.Status = 0;
+        }
+
+        private void updateTimer()
+        {
+            ChipDatum dat;
+            if (work.currentTimer != 4)
+            {
+                dat = new ChipDatum(0, 0x27, work.soundWork.PLSET1_VAL[work.currentTimer]);//  TIMER-OFF DATA
+                WriteRegister(work.currentTimer, dat);
+                dat = new ChipDatum(0, 0x27, work.soundWork.PLSET2_VAL[work.currentTimer]);//  TIMER-ON DATA
+                WriteRegister(work.currentTimer, dat);
+            }
+            else
+            {
+                dat = new ChipDatum(0, 0x14, work.soundWork.PLSET1_VAL[work.currentTimer]);//  TIMER-OFF DATA
+                WriteRegister(work.currentTimer, dat);
+                dat = new ChipDatum(0, 0x14, work.soundWork.PLSET2_VAL[work.currentTimer]);//  TIMER-ON DATA
+                WriteRegister(work.currentTimer, dat);
+            }
         }
 
         // **	CALL FM		**

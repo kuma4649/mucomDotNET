@@ -716,7 +716,7 @@ namespace mucomDotNET.Player
 
             if (dat.address == -1) return;
 
-            Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipOPM:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
+            //Log.WriteLine(LogLevel.TRACE, string.Format("Out ChipOPM:{0} Port:{1} Adr:[{2:x02}] val[{3:x02}]", chipId, dat.port, (int)dat.address, (int)dat.data));
             switch (device)
             {
                 case 0:
