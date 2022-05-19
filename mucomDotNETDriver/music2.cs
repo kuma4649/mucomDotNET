@@ -209,11 +209,12 @@ namespace mucomDotNET.Driver
 
         public void SetAllMuteFlg(bool flg)
         {
-            for (int c = 0; c < 4; c++)
+            for (int c = 0; c < 5; c++)
             {
                 for (int i = 0; i < work.soundWork.CHDAT[c].Count; i++)
                 {
-                    for (int j = 0; j < work.soundWork.CHDAT[c][i].PGDAT.Count; j++)
+                    if (work.soundWork.CHDAT[c][i] == null) continue;
+                    for (int j = 0; j< work.soundWork.CHDAT[c][i].PGDAT.Count; j++)
                         work.soundWork.CHDAT[c][i].PGDAT[j].silentFlg = flg;
                 }
             }
