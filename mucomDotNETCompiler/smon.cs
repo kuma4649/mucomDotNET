@@ -42,14 +42,14 @@ namespace mucomDotNET.Compiler
             for (int row = 0; row < 4; row++)
             {
                 //MUL/DT
-                a = vbuf[row + 32] * 16 + vbuf[row + 28];
+                a = (vbuf[row + 32] & 0xf) * 16 + (vbuf[row + 28] & 0xf);
                 mucInfo.mmlVoiceDataWork.Set(row + 1, (byte)a);
 
                 //TL
                 mucInfo.mmlVoiceDataWork.Set(row + 5, (byte)vbuf[row + 20]);
 
                 //KS/AR
-                a = vbuf[row + 24] * 64 + vbuf[row];
+                a = (vbuf[row + 24] & 0x3) * 64 + (vbuf[row] & 0x1f);
                 mucInfo.mmlVoiceDataWork.Set(row + 9, (byte)a);
 
                 //DR
@@ -59,11 +59,11 @@ namespace mucomDotNET.Compiler
                 mucInfo.mmlVoiceDataWork.Set(row + 17, (byte)vbuf[row + 8]);
 
                 //SL/RR
-                a = vbuf[row + 16] * 16 + vbuf[row + 12];
+                a = (vbuf[row + 16] & 0xf) * 16 + (vbuf[row + 12] & 0xf);
                 mucInfo.mmlVoiceDataWork.Set(row + 21, (byte)a);
             }
 
-            a = vbuf[36] * 8 + vbuf[37];
+            a = (vbuf[36] & 0x7) * 8 + (vbuf[37] & 0x7);
             mucInfo.mmlVoiceDataWork.Set(25, (byte)a);
 
             ////OPEX() 要らないと思う
