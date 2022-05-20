@@ -1282,7 +1282,12 @@ namespace mucomDotNET.Driver
 
             //パラメータ表示向け
             List<object> args = new List<object>();
-            args.Add(work.pg.volume - 4);
+            if (work.isDotNET && (work.cd.FMVolMode == 2 || work.cd.FMVolMode == 3))
+                args.Add(work.pg.volume);
+            else
+                args.Add(work.pg.volume - 4);
+            args.Add(work.cd.FMVolMode);
+
             DummyOUT(enmMMLType.Volume, args);
         }
 

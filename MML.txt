@@ -201,14 +201,14 @@ mucomDotNET
 機能
     マルチチップ表記
 内容
-    mucomDotNETは以下の様にパート名が拡張されOPNAx2.OPNBx2の計4枚を同時使用することができます。
+    mucomDotNETは以下の様にパート名が拡張されOPNAx2.OPNBx2,OPMの計5枚を同時使用することができます。
 
     既存)
-     ABCDEFGHIJK
+     ABCDEFGHIJK   OPNAx1 (ABC:FM1/2/3 DEF:SSG1/2/3 G:Rhythm  HIJ:FM4/5/6 K:ADPCM)
 
     DotNET)
-     ABCDEFGHIJK   OPNAx1
-     LMNOPQRSTUV   OPNAx2 (LMN:FM1/2/3 OPQ:SSG1/2/3 R:Rhythm STU:FM4/5/6 V:ADPCM)
+     ABCDEFGHIJK   OPNAx1 (ABC:FM1/2/3 DEF:SSG1/2/3 G:Rhythm  HIJ:FM4/5/6 K:ADPCM)
+     LMNOPQRSTUV   OPNAx2 (LMN:FM1/2/3 OPQ:SSG1/2/3 R:Rhythm  STU:FM4/5/6 V:ADPCM)
      abcdefghijk   OPNBx1 (abc:FM1/2/3 def:SSG1/2/3 g:ADPCM-A hij:FM4/5/6 k:ADPCM-B)
      lmnopqrstuv   OPNBx2 (lmn:FM1/2/3 opq:SSG1/2/3 r:ADPCM-A stu:FM4/5/6 v:ADPCM-B)
      WXYZwxyz      OPM    (WXYZwxyz:FM1/2/3/4/5/6/7/8)     
