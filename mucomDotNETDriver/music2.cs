@@ -1069,6 +1069,11 @@ namespace mucomDotNET.Driver
             if ((work.soundWork.PCMFLG == 0 && fnum != work.pg.fnum)
                 || (work.soundWork.PCMFLG != 0 && fnum + deltn != work.pg.fnum + work.soundWork.DELT_N[work.soundWork.currentChip]))
             {
+
+                List<object> args = new List<object>();
+                args.Add(work.pg.lfoDeltaWork);
+                MakeDummyCrntMmlDatum(enmMMLType.LFODelta, args);
+
                 prcWriteFnum();
             }
 
@@ -3954,6 +3959,11 @@ namespace mucomDotNET.Driver
             //PLLFO1:
             work.pg.lfoPeakWork--;// P.L.C.-1
             int hl = work.pg.lfoDeltaWork;
+
+            List<object> args = new List<object>();
+            args.Add(hl);
+            MakeDummyCrntMmlDatum(enmMMLType.LFODelta, args);
+                
             PLS2(hl);
         }
 
@@ -4597,6 +4607,7 @@ namespace mucomDotNET.Driver
         public void prcWriteFnum()
         {
             int hl;
+
             if (work.soundWork.PCMFLG != 0)
             {
                 //hl = (int)work.soundWork.DELT_N[work.soundWork.currentChip];
