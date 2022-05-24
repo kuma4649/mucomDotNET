@@ -2,7 +2,7 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
-      "commandLineArgs": "-LOGLEVEL=TRACE \"C:\\Users\\kuma\\Desktop\\_test_psycomiku.muc\""
+      "commandLineArgs": "-LOGLEVEL=TRACE \"D:\\bootcamp\\FM音源\\data\\private\\MUC\\THE_SCHEME_MML\\THE_SCHEME_MML\\pcmt7.muc\""
     }
   }
 }

@@ -250,7 +250,7 @@ namespace mucomDotNET.Player
                 drv.MusicSTART(0);
 
                 Log.WriteLine(LogLevel.INFO, "終了する場合は何かキーを押してください");
-
+                int oldLoopCnt = 0;
                 while (true)
                 {
                     System.Threading.Thread.Sleep(1);
@@ -266,6 +266,12 @@ namespace mucomDotNET.Player
                             System.Threading.Thread.Sleep((int)(latency * 2.0));//実際の音声が発音しきるまでlatency*2の分だけ待つ
                         }
                         break;
+                    }
+                    int nowLoopCnt = drv.GetNowLoopCounter();
+                    if (oldLoopCnt != nowLoopCnt)
+                    {
+                        Log.writeLine(LogLevel.TRACE, string.Format("LoopCounter:[{0}]", nowLoopCnt));
+                        oldLoopCnt = nowLoopCnt;
                     }
                 }
 
