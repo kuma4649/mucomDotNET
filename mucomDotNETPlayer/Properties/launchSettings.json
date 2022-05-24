@@ -2,7 +2,7 @@
   "profiles": {
     "Player": {
       "commandName": "Project",
-      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\private\\MUC\\THE_SCHEME_MML\\THE_SCHEME_MML\\pcmt7.mub\""
+      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\\""
     }
   }
 }
