@@ -2,7 +2,15 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
+<<<<<<< HEAD
       "commandLineArgs": "-LOGLEVEL=TRACE \"C:\\Users\\kuma\\Desktop\\_test_psycomiku.muc\""
+=======
+<<<<<<< HEAD
+      "commandLineArgs": "-LOGLEVEL=TRACE \"\""
+=======
+      "commandLineArgs": "-LOGLEVEL=TRACE \"C:\\Users\\kuma\\Desktop\\_test_psycomiku.muc\""
+>>>>>>> parent of ca70120... TAG178 2022/05/24
+>>>>>>> parent of 6d9f2e5... A
     }
   }
 }
