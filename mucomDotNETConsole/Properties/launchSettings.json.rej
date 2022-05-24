@@ -1,0 +1,14 @@
+diff a/mucomDotNETConsole/Properties/launchSettings.json b/mucomDotNETConsole/Properties/launchSettings.json	(rejected hunks)
+@@ -2,7 +2,11 @@
+   "profiles": {
+     "Console": {
+       "commandName": "Project",
++<<<<<<< HEAD
+       "commandLineArgs": "-LOGLEVEL=TRACE \"\""
++=======
++      "commandLineArgs": "-LOGLEVEL=TRACE \"C:\\Users\\kuma\\Desktop\\_test_psycomiku.muc\""
++>>>>>>> parent of ca70120... TAG178 2022/05/24
+     }
+   }
+ }
+\ No newline at end of file

@@ -2,11 +2,7 @@
   "profiles": {
     "Player": {
       "commandName": "Project",
-<<<<<<< HEAD
       "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\\""
-=======
-      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\自作\\test\\test.mub\""
->>>>>>> parent of ca70120... TAG178 2022/05/24
     }
   }
 }
