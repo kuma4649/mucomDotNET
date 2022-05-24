@@ -987,7 +987,7 @@ namespace mucomDotNET.Driver
                             || work.pg.loopCounter >= work.maxLoopCount) m++;
 
                         //
-                        if ((work.pg.dataTopAddress != -1||!work.pg.musicEnd)
+                        if (work.pg.dataTopAddress != -1
                             //&& work.pg.loopEndFlg
                             && work.pg.loopCounter < nowLoopCounter)
                         {
