@@ -383,6 +383,54 @@ namespace mucomDotNET.Driver
                         RhythmMute[0] = (~RhythmMute[0]) & 0b0011_1111;
                     }
                 }
+                else if (tag.Item1.ToLower().Trim() == "opna2rhythmmute")
+                {
+                    if (!string.IsNullOrEmpty(tag.Item2))
+                    {
+                        string val = tag.Item2.ToLower().Trim();
+
+                        RhythmMute[1] = 0;
+                        if (val.IndexOf('b') > -1) RhythmMute[1] |= 1;
+                        if (val.IndexOf('s') > -1) RhythmMute[1] |= 2;
+                        if (val.IndexOf('c') > -1) RhythmMute[1] |= 4;
+                        if (val.IndexOf('h') > -1) RhythmMute[1] |= 8;
+                        if (val.IndexOf('t') > -1) RhythmMute[1] |= 16;
+                        if (val.IndexOf('r') > -1) RhythmMute[1] |= 32;
+                        RhythmMute[1] = (~RhythmMute[1]) & 0b0011_1111;
+                    }
+                }
+                else if (tag.Item1.ToLower().Trim() == "opnb1adpcmamute")
+                {
+                    if (!string.IsNullOrEmpty(tag.Item2))
+                    {
+                        string val = tag.Item2.ToLower().Trim();
+
+                        RhythmMute[2] = 0;
+                        if (val.IndexOf('1') > -1) RhythmMute[2] |= 1;
+                        if (val.IndexOf('2') > -1) RhythmMute[2] |= 2;
+                        if (val.IndexOf('3') > -1) RhythmMute[2] |= 4;
+                        if (val.IndexOf('4') > -1) RhythmMute[2] |= 8;
+                        if (val.IndexOf('5') > -1) RhythmMute[2] |= 16;
+                        if (val.IndexOf('6') > -1) RhythmMute[2] |= 32;
+                        RhythmMute[2] = (~RhythmMute[2]) & 0b0011_1111;
+                    }
+                }
+                else if (tag.Item1.ToLower().Trim() == "opnb2adpcmamute")
+                {
+                    if (!string.IsNullOrEmpty(tag.Item2))
+                    {
+                        string val = tag.Item2.ToLower().Trim();
+
+                        RhythmMute[3] = 0;
+                        if (val.IndexOf('1') > -1) RhythmMute[3] |= 1;
+                        if (val.IndexOf('2') > -1) RhythmMute[3] |= 2;
+                        if (val.IndexOf('3') > -1) RhythmMute[3] |= 4;
+                        if (val.IndexOf('4') > -1) RhythmMute[3] |= 8;
+                        if (val.IndexOf('5') > -1) RhythmMute[3] |= 16;
+                        if (val.IndexOf('6') > -1) RhythmMute[3] |= 32;
+                        RhythmMute[3] = (~RhythmMute[3]) & 0b0011_1111;
+                    }
+                }
 
             }
         }

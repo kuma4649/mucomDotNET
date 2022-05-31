@@ -347,7 +347,36 @@ namespace mucomDotNET.Compiler
                         if (rhythmmute.IndexOf('h') > -1) mucInfo.opna1rhythmmute |= 8;
                         if (rhythmmute.IndexOf('t') > -1) mucInfo.opna1rhythmmute |= 16;
                         if (rhythmmute.IndexOf('r') > -1) mucInfo.opna1rhythmmute |= 32;
-
+                        break;
+                    case "opna2rhythmmute":
+                        string rhythmmute2 = tag.Item2.ToLower().Trim();
+                        mucInfo.opna2rhythmmute = 0;
+                        if (rhythmmute2.IndexOf('b') > -1) mucInfo.opna2rhythmmute |= 1;
+                        if (rhythmmute2.IndexOf('s') > -1) mucInfo.opna2rhythmmute |= 2;
+                        if (rhythmmute2.IndexOf('c') > -1) mucInfo.opna2rhythmmute |= 4;
+                        if (rhythmmute2.IndexOf('h') > -1) mucInfo.opna2rhythmmute |= 8;
+                        if (rhythmmute2.IndexOf('t') > -1) mucInfo.opna2rhythmmute |= 16;
+                        if (rhythmmute2.IndexOf('r') > -1) mucInfo.opna2rhythmmute |= 32;
+                        break;
+                    case "opnb1adpcmamute":
+                        string adpcmamute1 = tag.Item2.ToLower().Trim();
+                        mucInfo.opnb1adpcmamute = 0;
+                        if (adpcmamute1.IndexOf('1') > -1) mucInfo.opnb1adpcmamute |= 1;
+                        if (adpcmamute1.IndexOf('2') > -1) mucInfo.opnb1adpcmamute |= 2;
+                        if (adpcmamute1.IndexOf('3') > -1) mucInfo.opnb1adpcmamute |= 4;
+                        if (adpcmamute1.IndexOf('4') > -1) mucInfo.opnb1adpcmamute |= 8;
+                        if (adpcmamute1.IndexOf('5') > -1) mucInfo.opnb1adpcmamute |= 16;
+                        if (adpcmamute1.IndexOf('6') > -1) mucInfo.opnb1adpcmamute |= 32;
+                        break;
+                    case "opnb2adpcmamute":
+                        string adpcmamute2 = tag.Item2.ToLower().Trim();
+                        mucInfo.opnb2adpcmamute = 0;
+                        if (adpcmamute2.IndexOf('1') > -1) mucInfo.opnb2adpcmamute |= 1;
+                        if (adpcmamute2.IndexOf('2') > -1) mucInfo.opnb2adpcmamute |= 2;
+                        if (adpcmamute2.IndexOf('3') > -1) mucInfo.opnb2adpcmamute |= 4;
+                        if (adpcmamute2.IndexOf('4') > -1) mucInfo.opnb2adpcmamute |= 8;
+                        if (adpcmamute2.IndexOf('5') > -1) mucInfo.opnb2adpcmamute |= 16;
+                        if (adpcmamute2.IndexOf('6') > -1) mucInfo.opnb2adpcmamute |= 32;
                         break;
                 }
             }

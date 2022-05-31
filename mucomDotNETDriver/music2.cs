@@ -2127,7 +2127,8 @@ namespace mucomDotNET.Driver
             }
             else
             {
-                work.rhythmOR[work.soundWork.currentChip] |= (work.pg.instrumentNumber & work.header.RhythmMute[work.soundWork.currentChip]);
+                work.rhythmOR[work.soundWork.currentChip] |= (work.pg.instrumentNumber &
+                    work.header.RhythmMute[work.soundWork.currentChip]);
 
                 //アドレス送信
                 if (work.soundWork.currentChip > 1)

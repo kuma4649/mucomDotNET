@@ -1,4 +1,10 @@
 更新履歴
+TAG180 2022/06/01
+  Compiler&Driver
+    OPNA2RhythmMuteタグを追加
+    OPNB1AdpcmAMuteタグを追加
+    OPNB2AdpcmAMuteタグを追加
+
 TAG179 2022/05/31
   Compiler&Driver
     OPNA1RhythmMuteタグを追加

@@ -153,6 +153,9 @@ namespace mucomDotNET.Common
         public List<byte> useSSGWavNum { get; set; } = new List<byte>();
         public bool opmpanreverse { get; set; } = false;
         public int opna1rhythmmute { get; set; } = 0;
+        public int opna2rhythmmute { get; set; } = 0;
+        public int opnb1adpcmamute { get; set; } = 0;
+        public int opnb2adpcmamute { get; set; } = 0;
 
         public void Clear()
         {

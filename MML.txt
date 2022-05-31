@@ -117,12 +117,14 @@ mucomDotNET
 
 タグ
     #OPNA1RhythmMute
+    #OPNA2RhythmMute
 書式
     #OPNA1RhythmMute str
+    #OPNA2RhythmMute str
 値の範囲
     str : B|S|C|H|T|R
 内容
-　　OPNA1枚目の指定したリズム音をミュートします。
+　　OPNA1枚目,2枚目の指定したリズム音をミュートします。
     デフォルト値は未指定で全てのリズム音はミュートしません。
     記号は以下のように各リズム音を示します。
       B : BD , S : SD , C : Cymbal , H : Hihat , T : Tom , R : Rimshot
@@ -130,6 +132,25 @@ mucomDotNET
 使用例
     #OPNA1RhythmMute SB
     スネアとバスドラムがミュートされます。
+
+
+タグ
+    #OPNB1AdpcmAMute
+    #OPNB2AdpcmAMute
+書式
+    #OPNB1AdpcmAMute str
+    #OPNB2AdpcmAMute str
+値の範囲
+    str : 1|2|3|4|5|6
+内容
+　　OPNB1枚目,2枚目の指定したadpcmAをミュートします。
+    デフォルト値は未指定で全てのadpcmAはミュートしません。
+    記号は以下のように各リズム音を示します。
+      1 : 1ch , 2 : 2ch , 3 : 3ch , 4 : 4ch , 5 : 5ch , 6 : 6ch
+    ミュートしたいadpcmAのch番号を列挙してください。
+使用例
+    #OPNB1AdpcmAMute 25
+    2chと5chがミュートされます。
 
 
 タグ
