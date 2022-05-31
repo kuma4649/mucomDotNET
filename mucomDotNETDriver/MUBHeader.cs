@@ -34,6 +34,7 @@ namespace mucomDotNET.Driver
         public bool CarrierCorrection = false;
         public enmOPMClockMode OPMClockMode= enmOPMClockMode.normal;
         public bool SSGExtend = false;
+        public int[] RhythmMute =new int[] { 0x3f, 0x3f, 0x3f, 0x3f };
 
         public enum enmOPMClockMode
         {
@@ -364,6 +365,22 @@ namespace mucomDotNET.Driver
                         {
                             SSGExtend = true;
                         }
+                    }
+                }
+                else if (tag.Item1.ToLower().Trim() == "opna1rhythmmute")
+                {
+                    if (!string.IsNullOrEmpty(tag.Item2))
+                    {
+                        string val = tag.Item2.ToLower().Trim();
+
+                        RhythmMute[0] = 0;
+                        if (val.IndexOf('b') > -1) RhythmMute[0] |= 1;
+                        if (val.IndexOf('s') > -1) RhythmMute[0] |= 2;
+                        if (val.IndexOf('c') > -1) RhythmMute[0] |= 4;
+                        if (val.IndexOf('h') > -1) RhythmMute[0] |= 8;
+                        if (val.IndexOf('t') > -1) RhythmMute[0] |= 16;
+                        if (val.IndexOf('r') > -1) RhythmMute[0] |= 32;
+                        RhythmMute[0] = (~RhythmMute[0]) & 0b0011_1111;
                     }
                 }
 

@@ -2,15 +2,7 @@
   "profiles": {
     "Player": {
       "commandName": "Project",
-<<<<<<< HEAD
-      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\自作\\test\\test.mub\""
-=======
-<<<<<<< HEAD
-      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\\""
-=======
-      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\自作\\test\\test.mub\""
->>>>>>> parent of ca70120... TAG178 2022/05/24
->>>>>>> parent of 6d9f2e5... A
+      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\自作\\muc\\testRhythmMute.mub\""
     }
   }
 }

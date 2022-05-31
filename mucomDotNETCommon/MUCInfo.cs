@@ -152,6 +152,7 @@ namespace mucomDotNET.Common
         public bool SSGExtend { get; set; } = false;
         public List<byte> useSSGWavNum { get; set; } = new List<byte>();
         public bool opmpanreverse { get; set; } = false;
+        public int opna1rhythmmute { get; set; } = 0;
 
         public void Clear()
         {

@@ -1,4 +1,8 @@
 更新履歴
+TAG179 2022/05/31
+  Compiler&Driver
+    OPNA1RhythmMuteタグを追加
+
 TAG178 2022/05/24
   Driver
     Lループカウントにバグがあったので修正

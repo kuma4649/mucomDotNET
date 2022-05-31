@@ -338,6 +338,17 @@ namespace mucomDotNET.Compiler
                             mucInfo.opmpanreverse = true;
                         }
                         break;
+                    case "opna1rhythmmute":
+                        string rhythmmute = tag.Item2.ToLower().Trim();
+                        mucInfo.opna1rhythmmute = 0;
+                        if (rhythmmute.IndexOf('b') > -1) mucInfo.opna1rhythmmute |= 1;
+                        if (rhythmmute.IndexOf('s') > -1) mucInfo.opna1rhythmmute |= 2;
+                        if (rhythmmute.IndexOf('c') > -1) mucInfo.opna1rhythmmute |= 4;
+                        if (rhythmmute.IndexOf('h') > -1) mucInfo.opna1rhythmmute |= 8;
+                        if (rhythmmute.IndexOf('t') > -1) mucInfo.opna1rhythmmute |= 16;
+                        if (rhythmmute.IndexOf('r') > -1) mucInfo.opna1rhythmmute |= 32;
+
+                        break;
                 }
             }
 

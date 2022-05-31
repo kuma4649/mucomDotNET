@@ -2123,11 +2123,11 @@ namespace mucomDotNET.Driver
             if (work.soundWork.READY == 0) return;
             if (work.header.mupb == null)
             {
-                PSGOUT(0x10, (byte)(work.soundWork.RHYTHM & 0b0011_1111));// KEY ON
+                PSGOUT(0x10, (byte)(work.soundWork.RHYTHM & work.header.RhythmMute[0]));// KEY ON
             }
             else
             {
-                work.rhythmOR[work.soundWork.currentChip] |= (work.pg.instrumentNumber & 0b0011_1111);
+                work.rhythmOR[work.soundWork.currentChip] |= (work.pg.instrumentNumber & work.header.RhythmMute[work.soundWork.currentChip]);
 
                 //アドレス送信
                 if (work.soundWork.currentChip > 1)
