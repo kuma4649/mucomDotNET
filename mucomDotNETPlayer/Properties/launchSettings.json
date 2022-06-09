@@ -2,7 +2,7 @@
   "profiles": {
     "Player": {
       "commandName": "Project",
-      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\自作\\muc\\testRhythmMute.mub\""
+      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\自作\\muc\\testPartReplace.mub\""
     }
   }
 }

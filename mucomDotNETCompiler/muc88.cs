@@ -774,6 +774,11 @@ namespace mucomDotNET.Compiler
         {
             mucInfo.srcCPtr++;
 
+            if (work.partReplaceSw)
+            {
+                return SetPartReplaceEnd();
+            }
+
             return EnmFCOMPNextRtn.fcomp1;
         }
 
@@ -1895,6 +1900,13 @@ namespace mucomDotNET.Compiler
         {
 
             mucInfo.srcCPtr++;
+
+            char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ?
+                     mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+            if (c == '|')// 0x2c
+            {
+                return SetPartReplaceStart();
+            }
 
             msub.MWRIT2(new MmlDatum(0xf5));// COM OF LOOPSTART
             work.POINTC += 10;
@@ -4199,6 +4211,8 @@ namespace mucomDotNET.Compiler
                 //    continue;
                 //}
 
+                int checkPos = mucInfo.srcCPtr;
+
                 bool isFirst = true;
 
                 //先ずパート文字を探す
@@ -4371,6 +4385,10 @@ namespace mucomDotNET.Compiler
                 //if (p != work.pageNow) continue;
 
                 Log.WriteLine(LogLevel.TRACE, string.Format(msg.get("I0402"), work.ChipIndex * work.MAXCH + work.CHIP_CH, work.pageNow));
+                
+                //パートの定義位置を調べる(単一パートの場合は常に 0 )
+                work.partPos = CheckPartPos(checkPos);
+                work.partReplaceSw = false;
 
                 EnmFMCOMPrtn ret = FMCOMP();// TO FM COMPILE
                 if (mucInfo.ErrSign) break;
@@ -4384,6 +4402,72 @@ namespace mucomDotNET.Compiler
                 // ﾘﾝｸﾎﾟｲﾝﾀ ｻｲｾｯﾄ
                 // ﾂｷﾞ ﾉ ｷﾞｮｳﾍ
             } while (true);
+        }
+
+        private int CheckPartPos(int mpos)
+        {
+            char c;
+            int partNum = 0;
+            int pageNum;
+            List<Tuple<int, int>> partList = new List<Tuple<int, int>>();
+            bool partMode = true;
+            bool pageFirst = true;
+
+            do
+            {
+                c = mpos < mucInfo.lin.Item2.Length
+                ? mucInfo.lin.Item2[mpos]
+                : (char)0;
+
+                if (partMode)
+                {
+                    //パート文字解析
+
+                    partNum = work.GetTrackNo(c);
+                    if (partNum < 0) break;
+                    partMode = false;
+                    mpos++;
+                }
+                else
+                {
+                    //ページ番号解析
+
+                    if (c < '0' || c > '9')
+                    {
+                        if ((c == 0 || c == ' ' || c == '\t') && pageFirst)
+                        {
+                            partList.Add(new Tuple<int, int>(partNum, 0));
+                            break;
+                        }
+                        else
+                        {
+                            int part = work.GetTrackNo(c);
+                            if (part < 0) break;
+
+                            if (pageFirst) 
+                                partList.Add(new Tuple<int, int>(partNum, 0));
+                            partMode = true;
+                            pageFirst = true;
+                        }
+                        continue;
+                    }
+
+                    pageNum = c - '0';
+                    partList.Add(new Tuple<int, int>(partNum, pageNum));
+                    pageFirst = false;
+                    mpos++;
+                }
+
+            } while (true);
+
+            int cnt = 0;
+            foreach(Tuple<int, int> part in partList)
+            {
+                if (part.Item1 == work.ChipIndex * work.MAXCH + work.CHIP_CH && part.Item2 == work.pageNow)
+                    return cnt;
+                cnt++;
+            }
+            return -1;
         }
 
         public bool CheckExtendFormat()
@@ -5340,6 +5424,80 @@ namespace mucomDotNET.Compiler
             Log.WriteLine(LogLevel.TRACE, act.Method.ToString());
 
             return act();
+        }
+
+
+
+        private EnmFCOMPNextRtn SetPartReplaceStart()
+        {
+            mucInfo.srcCPtr++;
+            work.partReplaceSw = true;
+
+            int p = work.partPos;
+            while (p > 0)
+            {
+                char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ?
+                         mucInfo.lin.Item2[mucInfo.srcCPtr++] : (char)0;
+
+                if (c == 0)
+                {
+                    mucInfo.srcCPtr++;
+                    work.partReplaceSw = false;
+                    return EnmFCOMPNextRtn.fcomp1;
+                }
+                if (c == '|')// 0x2c
+                {
+                    c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ?
+                             mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+                    if (c == ']')
+                    {
+                        mucInfo.srcCPtr++;
+                        work.partReplaceSw = false;
+                        return EnmFCOMPNextRtn.fcomp1;
+                    }
+                    p--;
+                }
+            }
+
+            return EnmFCOMPNextRtn.fcomp1;
+        }
+
+        private EnmFCOMPNextRtn SetPartReplaceEnd()
+        {
+            // もし|の場合は最後の|]または行端までスキップ
+            //ただし行端の場合はパートリプレイス処理続行
+            while (true)
+            {
+                char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ?
+                         mucInfo.lin.Item2[mucInfo.srcCPtr++] : (char)0;
+
+                if (c == 0)
+                {
+                    mucInfo.srcCPtr++;
+                    work.partReplaceSw = false;
+                    break;
+                }
+                if (c == ']')
+                {
+                    mucInfo.srcCPtr++;
+                    work.partReplaceSw = false;
+                    break;
+                }
+                if (c == '|')// 0x2c
+                {
+                    c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ?
+                             mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+                    if (c == ']')
+                    {
+                        mucInfo.srcCPtr++;
+                        work.partReplaceSw = false;
+                        break;
+                    }
+                }
+
+            }
+
+            return EnmFCOMPNextRtn.fcomp1;
         }
 
     }

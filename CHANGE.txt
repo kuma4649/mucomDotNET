@@ -1,4 +1,8 @@
 更新履歴
+TAG181 2022/06/09
+  Compiler
+    パート別リプレイス機能を追加
+
 TAG180 2022/06/01
   Compiler&Driver
     OPNA2RhythmMuteタグを追加

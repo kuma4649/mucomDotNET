@@ -372,7 +372,6 @@ namespace mucomDotNET.Driver
                     if (!string.IsNullOrEmpty(tag.Item2))
                     {
                         string val = tag.Item2.ToLower().Trim();
-
                         RhythmMute[0] = 0;
                         if (val.IndexOf('b') > -1) RhythmMute[0] |= 1;
                         if (val.IndexOf('s') > -1) RhythmMute[0] |= 2;
