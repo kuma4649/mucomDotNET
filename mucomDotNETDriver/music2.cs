@@ -1307,7 +1307,7 @@ namespace mucomDotNET.Driver
                 }
             }
 
-            //if (d == 0x42)// && d <= 0x1d)
+            //if (d == 0x27)// && d <= 0x1d)
             //{
             //    Console.WriteLine("{0:x} {1:x}", d, e);
             //}
@@ -2551,7 +2551,9 @@ namespace mucomDotNET.Driver
             } while (c != 0);
 
             e = work.fmVoiceAtMusData[hl];// GET FEEDBACK/ALGORIZM
-            e |= (byte)(work.pg.panValue << 6);// pan
+            a = (byte)(((work.pg.panValue & 1) << 1) 
+                | ((work.pg.panValue & 2) >> 1));//bit並び入れ替え
+            e |= (byte)(a << 6);// pan
 
             // GET ALGORIZM
             work.pg.algo = e & 0x07;// STORE ALGORIZM
