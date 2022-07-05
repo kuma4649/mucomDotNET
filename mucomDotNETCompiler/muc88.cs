@@ -4066,6 +4066,7 @@ namespace mucomDotNET.Compiler
             work.currentPartType = "FM";
 
             INIT();
+
             if (work.LINCFG != 0)
             {
                 return COMPI3();
@@ -4813,6 +4814,13 @@ namespace mucomDotNET.Compiler
             {
                 work.pcmInvert = true;
             }
+
+            if (mucInfo.DriverType != MUCInfo.enmDriverType.normal && mucInfo.DriverType != MUCInfo.enmDriverType.DotNet)
+            {
+                WriteWarning(string.Format(msg.get("W0417"), mucInfo.DriverType.ToString()), mucInfo.row, mucInfo.col);
+                mucInfo.DriverType = MUCInfo.enmDriverType.DotNet;
+            }
+
             work.quantize = 0;//KUMA: ポルタメントむけq値保存
             work.rhythmRelMode = false;
 
