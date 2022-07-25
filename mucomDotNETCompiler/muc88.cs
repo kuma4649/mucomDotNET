@@ -873,6 +873,48 @@ namespace mucomDotNET.Compiler
             // bit0～3 rythmType R:5 T:4 H:3 C:2 S:1 B:0
             // bit4～7 パン 1:右, 2:左, 3:中央 4:右オート 5:左オート 6:ランダム
             int v;
+            char c;
+
+            //SSGの場合はpeコマンドか判定
+            if (tp == ChannelType.SSG)
+            {
+                char mode = mucInfo.lin.Item2.Length > ptr + 1 ? mucInfo.lin.Item2[ptr + 1] : (char)0;
+                if (mode == 'e')
+                {
+                    ptr = ++mucInfo.srcCPtr;
+                    skipSpaceAndTab();
+
+                    int vL = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0414"));
+                    mucInfo.srcCPtr = ptr;
+                    skipSpaceAndTab();
+                    int vR = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0414"));
+                    mucInfo.srcCPtr = ptr;
+                    skipSpaceAndTab();
+                    vL = Math.Min(Math.Max(vL, 0), 8);//0-8の9パターン
+                    vR = Math.Min(Math.Max(vR, 0), 8);//0-8の9パターン
+                    v = vL * 9 + vR;
+
+                    if (tp == ChannelType.SSG && mucInfo.SSGExtend)//kuma: SSGでパンが使用できるのは拡張モードが有効な場合のみ
+                    {
+                        List<object> args = new List<object>();
+                        args.Add(v);
+                        LinePos lp = new LinePos(
+                            mucInfo.document,
+                            mucInfo.fnSrcOnlyFile
+                            , mucInfo.row, mucInfo.col
+                            , mucInfo.srcCPtr - mucInfo.col + 1
+                            , work.currentPartType
+                            , work.currentChipName
+                            , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+                        msub.MWRITE(
+                            new MmlDatum(enmMMLType.Pan, args, lp, 0xff)
+                            , new MmlDatum(0xfb));//kuma: SSGパートの場合は 0xff 0xf0 n を書き込む
+                        msub.MWRIT2(new MmlDatum((byte)v));
+                    }
+
+                    return EnmFCOMPNextRtn.fcomp1;
+                }
+            }
 
             //Rhythmの場合はpmコマンドか判定
             if (tp == ChannelType.RHYTHM)
@@ -902,7 +944,7 @@ namespace mucomDotNET.Compiler
 
             skipSpaceAndTab();
             mucInfo.srcCPtr = ptr;
-            char c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+            c = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
 
             //1-3なのに,がある時 -> 警告扱い
             if (c == ',' && rn > 0 && rn < 4)

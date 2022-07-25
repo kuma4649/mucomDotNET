@@ -1,4 +1,8 @@
 更新履歴
+TAG183 2022/07/26
+  Compiler&Driver
+    SSGExtend:拡張パン(peコマンド)を追加(MML.txt参照)
+
 TAG182 2022/06/12
   Driver
     OPMの音色設定時、パンが左右逆にセットされていたバグを修正

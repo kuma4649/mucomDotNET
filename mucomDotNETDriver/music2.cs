@@ -338,7 +338,7 @@ namespace mucomDotNET.Driver
                 ,CH3SP          // 0xFF 0xF8 - 効果音モード系制御コマンド
                 ,PORTAON        // 0xFF 0xF9 - ポルタメント n1,n2,n3  (st ed totalclock)
                 ,ENVPSTex       // 0xFF 0xFA - ソフトエンベロープ 'E' n1,n2,n3,n4,n5,n6
-                ,NOP            // 0xFF 0xFB
+                ,PANex          // 0xFF 0xFB - 拡張パン n(L*9+R)
                 ,NTMEAN         // 0xFF 0xFC
                 ,NTMEAN         // 0xFF 0xFD
                 ,NTMEAN         // 0xFF 0xFE
@@ -480,6 +480,7 @@ namespace mucomDotNET.Driver
         {
             work.mDataAdr = 0;
             work.soundWork.TIMER_B = 200;
+            work.soundWork.TIMER_A = 200 << 2;
             work.soundWork.TB_TOP = 0;
 
             int ch;// (CH1DATのこと)
@@ -799,7 +800,10 @@ namespace mucomDotNET.Driver
 
         public void ENBL()
         {
-            STTMB(work.soundWork.TIMER_B);// SET Timer-B
+            if(!work.soundWork.useTimerA)
+                STTMB(work.soundWork.TIMER_B);// SET Timer-B
+            else
+                STTMA(work.soundWork.TIMER_A);// SET Timer-A
 
             //割り込みベクタリセット不要
             //Z80.A = M_VECTR;
@@ -835,6 +839,41 @@ namespace mucomDotNET.Driver
             WriteRegister(4, dat);
 
             dat = new ChipDatum(0, 0x14, 0x7a);
+            WriteRegister(4, dat);
+
+            //割り込みレベルリセット不要
+            //Z80.A = 5;
+            //PC88.OUT(0xe4, Z80.A);
+        }
+        private void STTMA(int e)
+        {
+            ChipDatum dat;
+
+            for (int c = 0; c < 4; c++)
+            {
+                dat = new ChipDatum(0, 0x24, e >> 2);
+                WriteRegister(c, dat);
+
+                dat = new ChipDatum(0, 0x25, e & 0x3);
+                WriteRegister(c, dat);
+
+                dat = new ChipDatum(0, 0x27, 0x74);
+                WriteRegister(c, dat);
+
+                dat = new ChipDatum(0, 0x27, 0x75);
+                WriteRegister(c, dat);
+            }
+
+            dat = new ChipDatum(0, 0x10, e >> 2);
+            WriteRegister(4, dat);
+
+            dat = new ChipDatum(0, 0x11, e & 0x3);
+            WriteRegister(4, dat);
+
+            dat = new ChipDatum(0, 0x14, 0x74);
+            WriteRegister(4, dat);
+
+            dat = new ChipDatum(0, 0x14, 0x75);
             WriteRegister(4, dat);
 
             //割り込みレベルリセット不要
@@ -2907,16 +2946,40 @@ namespace mucomDotNET.Driver
         public void TO_NML()
         {
             int timer = work.currentTimer;
-            work.soundWork.PLSET1_VAL[work.soundWork.currentChip] = 0x38;
-            TNML2(0x3a);
+
+            if (!work.soundWork.useTimerA)
+            {
+                //timer-B
+                work.soundWork.PLSET1_VAL[work.soundWork.currentChip] = 0x38;
+                TNML2(0x3a);
+            }
+            else
+            {
+                //timer-A
+                work.soundWork.PLSET1_VAL[work.soundWork.currentChip] = 0x34;
+                TNML2(0x35);
+            }
+
             work.currentTimer = timer;
         }
 
         public void TO_EFC()
         {
             int timer = work.currentTimer;
-            work.soundWork.PLSET1_VAL[work.soundWork.currentChip] = 0x78;
-            TNML2(0x7a);
+
+            if (!work.soundWork.useTimerA)
+            {
+                //timer-B
+                work.soundWork.PLSET1_VAL[work.soundWork.currentChip] = 0x78;
+                TNML2(0x7a);
+            }
+            else
+            {
+                //timer-A
+                work.soundWork.PLSET1_VAL[work.soundWork.currentChip] = 0x74;
+                TNML2(0x75);
+            }
+
             work.currentTimer = timer;
         }
 
@@ -3075,6 +3138,30 @@ namespace mucomDotNET.Driver
                 if (work.cd.currentPageNo == work.pg.pageNo)
                     PSGOUT(a, c);
             }
+        }
+
+        public void PANex()
+        {
+
+            byte v = (byte)work.pg.mData[work.hl++].dat;
+            int l = v / 9;
+            int r = v % 9;
+            byte a = (byte)((l != 0 ? 2 : 0) | (r != 0 ? 1 : 0));
+            work.pg.panValue = a;
+            work.pg.panMode = a;
+
+            DummyOUT();
+
+            if (work.soundWork.SSGF1 == 0)
+                return;
+
+            work.pg.panEnable = 0;//パーン禁止(オートパン禁止)
+
+            l = (l != 0) ? (7 - (l - 1)) : 0;
+            r = (r != 0) ? (7 - (r - 1)) : 0;
+            v = (byte)(((work.pg.channelNumber & 0x3) << 6) | ((l & 0x7) << 3) | (r & 0x7));
+            if (work.cd.currentPageNo == work.pg.pageNo)
+                PSGOUT(0x0f, v);
         }
 
         public void STEREO_AMD98_RHYTHM()

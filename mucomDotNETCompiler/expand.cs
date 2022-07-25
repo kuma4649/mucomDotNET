@@ -8,6 +8,8 @@ namespace mucomDotNET.Compiler
 {
     public class expand
     {
+        public const string NumPattern = "0123456789+-.$abcdefABCDEF";
+
         private work work = null;
         private MUCInfo mucInfo;
         public Msub msub = null;
@@ -117,7 +119,10 @@ namespace mucomDotNET.Compiler
                             {
                                 muc88.WriteWarning(msg.get("W0409"), i, srcCPtr);
                             }
-                            srcCPtr++;// SKIP','
+                            if (skipSpaceAndTab(i, ref srcCPtr))
+                                muc88.WriteWarning(msg.get("W0800"), i, srcCPtr);//mucom88で読み込めない恐れあり
+                            if (NumPattern.IndexOf(getMoji(i, srcCPtr)) < 0)
+                                srcCPtr++;// SKIP','
                             mucInfo.mmlVoiceDataWork.Set(
                                 fmlib1++
                                 , v
@@ -167,7 +172,10 @@ namespace mucomDotNET.Compiler
                             {
                                 muc88.WriteWarning(msg.get("W0409"), i, srcCPtr);
                             }
-                            srcCPtr++;// SKIP','
+                            if (skipSpaceAndTab(i, ref srcCPtr))
+                                muc88.WriteWarning(msg.get("W0800"), i, srcCPtr);//mucom88で読み込めない恐れあり
+                            if (NumPattern.IndexOf(getMoji(i, srcCPtr)) < 0)
+                                srcCPtr++;// SKIP','
                             voi.Add((byte)v);
                         }
                     }
@@ -204,7 +212,12 @@ namespace mucomDotNET.Compiler
                             {
                                 muc88.WriteWarning(msg.get("W0409"), i, srcCPtr);
                             }
-                            srcCPtr++;// SKIP','
+
+                            if (skipSpaceAndTab(i, ref srcCPtr))
+                                muc88.WriteWarning(msg.get("W0800"), i, srcCPtr);//mucom88で読み込めない恐れあり
+                            if (NumPattern.IndexOf(getMoji(i, srcCPtr)) < 0)
+                                srcCPtr++;// SKIP','
+
                             mucInfo.mmlVoiceDataWork.Set(
                                 fmlib1++
                                 , v
@@ -255,7 +268,7 @@ namespace mucomDotNET.Compiler
             int n = msub.REDATA(mucInfo.basSrc[srcRow], ref srcCPtr);
             if (mucInfo.Carry || mucInfo.ErrSign)
             {
-                muc88.WriteWarning(msg.get("Wxxxx"), srcRow, srcCPtr);
+                muc88.WriteWarning(msg.get("Wxxxx"), srcRow, srcCPtr);//フォーマットが不正です。スペースやカンマをチェックせよ
             }
             if (!work.useSSGVoice.Contains(n)) return;
 
@@ -266,8 +279,9 @@ namespace mucomDotNET.Compiler
                 srcRow++;
                 if (mucInfo.basSrc.Count == srcRow)
                 {
-                    muc88.WriteWarning(msg.get("Wxxxx"), srcRow, srcCPtr);
-                    return;
+                    throw new MucException(
+                        msg.get("E0800")
+                        , srcRow, srcCPtr);//フォーマットが不正です。スペースやカンマをチェックせよ
                 }
 
                 srcCPtr = 1;
@@ -276,9 +290,15 @@ namespace mucomDotNET.Compiler
                     v[row * 16 + col] = (byte)msub.REDATA(mucInfo.basSrc[srcRow], ref srcCPtr);
                     if (mucInfo.Carry || mucInfo.ErrSign)
                     {
-                        muc88.WriteWarning(msg.get("Wxxxx"), srcRow, srcCPtr);
+                        throw new MucException(
+                            msg.get("E0800")
+                            , srcRow, srcCPtr);//フォーマットが不正です。スペースやカンマをチェックせよ
                     }
-                    srcCPtr++;// SKIP','
+
+                    if (skipSpaceAndTab(srcRow,ref srcCPtr))
+                        muc88.WriteWarning(msg.get("W0800"), srcRow, srcCPtr);//mucom88で読み込めない恐れあり
+                    if (NumPattern.IndexOf(getMoji(srcRow, srcCPtr)) < 0)
+                        srcCPtr++;// SKIP','
                 }
             }
 
@@ -288,6 +308,29 @@ namespace mucomDotNET.Compiler
             }
             mucInfo.ssgVoice.Add(n, v);
 
+        }
+
+        private bool skipSpaceAndTab(int srcRow, ref int srcCPtr)
+        {
+            bool ret = false;
+            char c = getMoji(srcRow, srcCPtr);
+
+            while (c == ' ' || c == 0x9)
+            {
+                srcCPtr++;
+                ret = true;
+                c = getMoji(srcRow, srcCPtr);
+            }
+
+            return ret;
+        }
+
+        private char getMoji(int srcRow,int srcCPtr)
+        {
+            char c = srcCPtr < mucInfo.basSrc[srcRow].Item2.Length
+                ? mucInfo.basSrc[srcRow].Item2[srcCPtr]
+                : (char)0;
+            return c;
         }
 
         // **	ﾎﾟﾙﾀﾒﾝﾄ ｹｲｻﾝ	**

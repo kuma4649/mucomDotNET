@@ -110,6 +110,9 @@ namespace mucomDotNET.Driver
         public uint TB_TOP { get; internal set; }
         public int NOTSB2 { get; internal set; }
 
+        public bool useTimerA { get; internal set; } = false;
+        public int TIMER_A { get; internal set; } = 10;
+
         public bool Ch3SpMode(int chip)
         {
             return (PLSET1_VAL[chip] & 0x40) != 0;
@@ -175,6 +178,7 @@ namespace mucomDotNET.Driver
         0x0E,// Bit0=OP 1 , Bit1=OP 2 ... etc
         0x0F
         };
+        
 
         internal void Init()
         {
