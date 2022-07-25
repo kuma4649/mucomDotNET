@@ -1,7 +1,11 @@
 更新履歴
-TAG183 2022/07/26
+TAG184 2022/07/26
   Compiler&Driver
     SSGExtend:拡張パン(peコマンド)を追加(MML.txt参照)
+
+TAG183 2022/07/04
+  Compiler
+    未対応のドライバーが指定されたとき強制的にDotNETに変更しコンパイルするよう修正
 
 TAG182 2022/06/12
   Driver
