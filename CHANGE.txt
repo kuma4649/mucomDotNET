@@ -1,4 +1,8 @@
 更新履歴
+TAG185 2022/07/27
+  Compiler
+    あまりにも警告が出るので音色定義の形式チェックをあまく修正した。
+
 TAG184 2022/07/26
   Compiler&Driver
     SSGExtend:拡張パン(peコマンド)を追加(MML.txt参照)

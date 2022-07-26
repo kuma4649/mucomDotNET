@@ -3115,6 +3115,10 @@ namespace mucomDotNET.Driver
                 if (work.soundWork.SSGF1 != 0)
                 {
                     //pan & phrst は volume出力時に共に更新されるのでここで音源に送信する必要は無い
+                    //が、拡張パンはリセットする
+                    byte v = (byte)((work.pg.channelNumber & 0x3) << 6);
+                    if (work.cd.currentPageNo == work.pg.pageNo)
+                        PSGOUT(0x0f, v);
                 }
                 else
                 {
@@ -3136,7 +3140,9 @@ namespace mucomDotNET.Driver
                 a = (byte)(0x20 + work.pg.channelNumber);
 
                 if (work.cd.currentPageNo == work.pg.pageNo)
+                {
                     PSGOUT(a, c);
+                }
             }
         }
 

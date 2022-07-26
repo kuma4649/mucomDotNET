@@ -120,7 +120,9 @@ namespace mucomDotNET.Compiler
                                 muc88.WriteWarning(msg.get("W0409"), i, srcCPtr);
                             }
                             if (skipSpaceAndTab(i, ref srcCPtr))
-                                muc88.WriteWarning(msg.get("W0800"), i, srcCPtr);//mucom88で読み込めない恐れあり
+                            {
+                                //muc88.WriteWarning(msg.get("W0800"), i, srcCPtr);//mucom88で読み込めない恐れあり
+                            }
                             if (NumPattern.IndexOf(getMoji(i, srcCPtr)) < 0)
                                 srcCPtr++;// SKIP','
                             mucInfo.mmlVoiceDataWork.Set(
@@ -173,7 +175,9 @@ namespace mucomDotNET.Compiler
                                 muc88.WriteWarning(msg.get("W0409"), i, srcCPtr);
                             }
                             if (skipSpaceAndTab(i, ref srcCPtr))
-                                muc88.WriteWarning(msg.get("W0800"), i, srcCPtr);//mucom88で読み込めない恐れあり
+                            {
+                                //muc88.WriteWarning(msg.get("W0800"), i, srcCPtr);//mucom88で読み込めない恐れあり
+                            }
                             if (NumPattern.IndexOf(getMoji(i, srcCPtr)) < 0)
                                 srcCPtr++;// SKIP','
                             voi.Add((byte)v);
@@ -214,7 +218,9 @@ namespace mucomDotNET.Compiler
                             }
 
                             if (skipSpaceAndTab(i, ref srcCPtr))
-                                muc88.WriteWarning(msg.get("W0800"), i, srcCPtr);//mucom88で読み込めない恐れあり
+                            {
+                                //muc88.WriteWarning(msg.get("W0800"), i, srcCPtr);//mucom88で読み込めない恐れあり
+                            }
                             if (NumPattern.IndexOf(getMoji(i, srcCPtr)) < 0)
                                 srcCPtr++;// SKIP','
 
@@ -295,8 +301,10 @@ namespace mucomDotNET.Compiler
                             , srcRow, srcCPtr);//フォーマットが不正です。スペースやカンマをチェックせよ
                     }
 
-                    if (skipSpaceAndTab(srcRow,ref srcCPtr))
-                        muc88.WriteWarning(msg.get("W0800"), srcRow, srcCPtr);//mucom88で読み込めない恐れあり
+                    if (skipSpaceAndTab(srcRow, ref srcCPtr))
+                    {
+                        //muc88.WriteWarning(msg.get("W0800"), srcRow, srcCPtr);//mucom88で読み込めない恐れあり
+                    }
                     if (NumPattern.IndexOf(getMoji(srcRow, srcCPtr)) < 0)
                         srcCPtr++;// SKIP','
                 }
