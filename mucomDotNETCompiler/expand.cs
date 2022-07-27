@@ -68,11 +68,14 @@ namespace mucomDotNET.Compiler
             this.mucInfo = mucInfo;
         }
 
+        private bool warningToneFormatFlag = false;
+
         public void FVTEXT(int vn)
         {
             int fvfg;
             int fmlib1 = 1;// 0x6001;
             bool found = false;
+            bool warningFlag ;
 
             for (int i = 0; i < mucInfo.basSrc.Count; i++)
             {
@@ -107,7 +110,6 @@ namespace mucomDotNET.Compiler
                 if (fvfg == '%')
                 {
                     // ---	%(25BYTEｼｷ) ﾉ ﾄｷ ﾉ ﾖﾐｺﾐ	---
-
                     for (int row = 0; row < 6; row++)
                     {
                         i++;
@@ -117,11 +119,13 @@ namespace mucomDotNET.Compiler
                             byte v = (byte)msub.REDATA(mucInfo.basSrc[i], ref srcCPtr);
                             if (mucInfo.Carry || mucInfo.ErrSign)
                             {
-                                muc88.WriteWarning(msg.get("W0409"), i, srcCPtr);
+                                if(!warningToneFormatFlag) muc88.WriteWarning(msg.get("W0409"), i, srcCPtr);
+                                warningToneFormatFlag = true;
                             }
                             if (skipSpaceAndTab(i, ref srcCPtr))
                             {
-                                //muc88.WriteWarning(msg.get("W0800"), i, srcCPtr);//mucom88で読み込めない恐れあり
+                                if (!warningToneFormatFlag) muc88.WriteWarning(msg.get("W0800"), i, srcCPtr);//mucom88で読み込めない恐れあり
+                                warningToneFormatFlag = true;
                             }
                             if (NumPattern.IndexOf(getMoji(i, srcCPtr)) < 0)
                                 srcCPtr++;// SKIP','
@@ -176,7 +180,8 @@ namespace mucomDotNET.Compiler
                             }
                             if (skipSpaceAndTab(i, ref srcCPtr))
                             {
-                                //muc88.WriteWarning(msg.get("W0800"), i, srcCPtr);//mucom88で読み込めない恐れあり
+                                if (!warningToneFormatFlag) muc88.WriteWarning(msg.get("W0800"), i, srcCPtr);//mucom88で読み込めない恐れあり
+                                warningToneFormatFlag = true;
                             }
                             if (NumPattern.IndexOf(getMoji(i, srcCPtr)) < 0)
                                 srcCPtr++;// SKIP','
@@ -219,7 +224,8 @@ namespace mucomDotNET.Compiler
 
                             if (skipSpaceAndTab(i, ref srcCPtr))
                             {
-                                //muc88.WriteWarning(msg.get("W0800"), i, srcCPtr);//mucom88で読み込めない恐れあり
+                                if (!warningToneFormatFlag) muc88.WriteWarning(msg.get("W0800"), i, srcCPtr);//mucom88で読み込めない恐れあり
+                                warningToneFormatFlag = true;
                             }
                             if (NumPattern.IndexOf(getMoji(i, srcCPtr)) < 0)
                                 srcCPtr++;// SKIP','
@@ -303,7 +309,8 @@ namespace mucomDotNET.Compiler
 
                     if (skipSpaceAndTab(srcRow, ref srcCPtr))
                     {
-                        //muc88.WriteWarning(msg.get("W0800"), srcRow, srcCPtr);//mucom88で読み込めない恐れあり
+                        if (!warningToneFormatFlag) muc88.WriteWarning(msg.get("W0800"), srcRow, srcCPtr);//mucom88で読み込めない恐れあり
+                        warningToneFormatFlag = true;
                     }
                     if (NumPattern.IndexOf(getMoji(srcRow, srcCPtr)) < 0)
                         srcCPtr++;// SKIP','
