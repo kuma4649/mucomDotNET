@@ -1207,71 +1207,7 @@ namespace mucomDotNET.Driver
 
             c = work.soundWork.CRYDAT[work.pg.algo];
 
-            if (CheckCh3SpecialMode())
-            {
-                if ((work.pg.useSlot & 1) != 0)
-                {
-                    if ((c & (1 << 0)) != 0)//slot1
-                    {
-                        byte v = e;
-                        if (work.isDotNET) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[0], 0), 127);
-                        PSGOUT((byte)(d + 0 * 4), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
-                    }
-                }
-
-                if ((work.pg.useSlot & 4) != 0)
-                {
-                    if ((c & (1 << 1)) != 0)//slot3
-                    {
-                        byte v = e;
-                        if (work.isDotNET) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[1], 0), 127);
-                        PSGOUT((byte)(d + 1 * 4), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
-                    }
-                }
-
-                if ((work.pg.useSlot & 2) != 0)
-                {
-                    if ((c & (1 << 2)) != 0)//slot2
-                    {
-                        byte v = e;
-                        if (work.isDotNET) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[2], 0), 127);
-                        PSGOUT((byte)(d + 2 * 4), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
-                    }
-                }
-
-                if ((work.pg.useSlot & 8) != 0)
-                {
-                    if ((c & (1 << 3)) != 0)//slot4
-                    {
-                        byte v = e;
-                        if (work.isDotNET) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[3], 0), 127);
-                        PSGOUT((byte)(d + 3 * 4), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
-                    }
-                }
-
-            }
-            else
-            {
-                for (int b = 0; b < 4; b++)
-                {
-                    if ((c & (1 << b)) != 0)
-                    {
-                        byte v = e;
-                        if (work.isDotNET)
-                        {
-                            if (e == 255)
-                            {
-                                v = (byte)Math.Min(Math.Max(work.pg.TLDirectTable[b] + work.pg.v_tl[b], 0), 127);
-                            }
-                            else
-                            {
-                                v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[b], 0), 127);
-                            }
-                        }
-                        PSGOUT((byte)(d + b * 4), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
-                    }
-                }
-            }
+            STV3(c, d, e);
 
             //パラメータ表示向け
             List<object> args = new List<object>();
@@ -1282,6 +1218,54 @@ namespace mucomDotNET.Driver
             args.Add(work.cd.FMVolMode);
 
             DummyOUT(enmMMLType.Volume, args);
+        }
+
+        public void STV3(byte c,byte d,byte e)
+        {
+            if (CheckCh3SpecialMode())
+            {
+                if ((work.pg.useSlot & 1) != 0)
+                {
+                    if ((c & (1 << 0)) != 0)//slot1
+                    {
+                        byte v = e;
+                        if (work.header.CarrierCorrection) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[0], 0), 127);
+                        PSGOUT((byte)(d + 0 * 4), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
+                    }
+                }
+                if ((work.pg.useSlot & 4) != 0)
+                {
+                    if ((c & (1 << 1)) != 0)//slot3
+                    {
+                        byte v = e;
+                        if (work.header.CarrierCorrection) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[1], 0), 127);
+                        PSGOUT((byte)(d + 1 * 4), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
+                    }
+                }
+                if ((work.pg.useSlot & 2) != 0)
+                {
+                    if ((c & (1 << 2)) != 0)//slot2
+                    {
+                        byte v = e;
+                        if (work.header.CarrierCorrection) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[2], 0), 127);
+                        PSGOUT((byte)(d + 2 * 4), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
+                    }
+                }
+                if ((work.pg.useSlot & 8) != 0)
+                {
+                    if ((c & (1 << 3)) != 0)//slot4
+                    {
+                        byte v = e;
+                        if (work.header.CarrierCorrection) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[3], 0), 127);
+                        PSGOUT((byte)(d + 3 * 4), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
+                    }
+                }
+            }
+            else
+            {
+                STV4(c, d, e, 4, work.header.CarrierCorrection);
+            }
+
         }
 
         public void STV2opm(byte c)
@@ -1304,25 +1288,7 @@ namespace mucomDotNET.Driver
 
             c = work.soundWork.CRYDAT[work.pg.algo];
 
-            for (int b = 0; b < 4; b++)
-            {
-                if ((c & (1 << b)) != 0)
-                {
-                    byte v = e; 
-                    if (work.isDotNET)
-                    {
-                        if (e == 255)
-                        {
-                            v = (byte)Math.Min(Math.Max(work.pg.TLDirectTable[b] + work.pg.v_tl[b], 0), 127);
-                        }
-                        else
-                        {
-                            v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[b], 0), 127);
-                        }
-                    }
-                    PSGOUT((byte)(d + b * 8), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
-                }
-            }
+            STV3opm(c, d, e);
 
             //パラメータ表示向け
             List<object> args = new List<object>();
@@ -1333,6 +1299,78 @@ namespace mucomDotNET.Driver
             args.Add(work.cd.FMVolMode);
 
             DummyOUT(enmMMLType.Volume, args);
+        }
+
+        public void STV3opm(byte c, byte d, byte e)
+        {
+            STV4(c, d, e, 8, work.header.CarrierCorrection);
+        }
+        public void STV4(byte c, byte d, byte e,byte m,bool caryCor)
+        { 
+            if ((work.pg.useSlot & 1) != 0)
+            {
+                if ((c & (1 << 0)) != 0)
+                {
+                    byte v = e;
+                    if (e == 255)
+                    {
+                        v = (byte)Math.Min(Math.Max(work.pg.TLDirectTable[0] + work.pg.v_tl[0], 0), 127);
+                    }
+                    else
+                    {
+                        if (caryCor) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[0], 0), 127);
+                    }
+                    PSGOUT((byte)(d + 0 * m), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
+                }
+            }
+            if ((work.pg.useSlot & 4) != 0)
+            {
+                if ((c & (1 << 1)) != 0)
+                {
+                    byte v = e;
+                    if (e == 255)
+                    {
+                        v = (byte)Math.Min(Math.Max(work.pg.TLDirectTable[1] + work.pg.v_tl[1], 0), 127);
+                    }
+                    else
+                    {
+                        if (caryCor) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[1], 0), 127);
+                    }
+                    PSGOUT((byte)(d + 1 * m), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
+                }
+            }
+            if ((work.pg.useSlot & 2) != 0)
+            {
+                if ((c & (1 << 2)) != 0)
+                {
+                    byte v = e;
+                    if (e == 255)
+                    {
+                        v = (byte)Math.Min(Math.Max(work.pg.TLDirectTable[2] + work.pg.v_tl[2], 0), 127);
+                    }
+                    else
+                    {
+                        if (caryCor) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[2], 0), 127);
+                    }
+                    PSGOUT((byte)(d + 2 * m), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
+                }
+            }
+            if ((work.pg.useSlot & 8) != 0)
+            {
+                if ((c & (1 << 3)) != 0)
+                {
+                    byte v = e;
+                    if (e == 255)
+                    {
+                        v = (byte)Math.Min(Math.Max(work.pg.TLDirectTable[3] + work.pg.v_tl[3], 0), 127);
+                    }
+                    else
+                    {
+                        if (caryCor) v = (byte)Math.Min(Math.Max(e + work.pg.v_tl[3], 0), 127);
+                    }
+                    PSGOUT((byte)(d + 3 * m), v);// ｷｬﾘｱ ﾅﾗ PSGOUT ﾍ
+                }
+            }
         }
 
         public void PSGOUT(byte d, byte e)
@@ -2009,8 +2047,45 @@ namespace mucomDotNET.Driver
             {
                 return;
             }
-            work.pg.fnum = work.pg.TLlfo;
+
+            //volumeの再設定
+            byte c = (byte)(Math.Min(work.soundWork.TOTALV + work.pg.volume, 20));// INPUT VOLUME
+            byte e;
+            if (work.isDotNET)
+            {
+                if (work.cd.FMVolMode == 2)
+                    e = (byte)(127 - Math.Min(Math.Max(work.pg.volume, 0), 127));
+                else if (work.cd.FMVolMode == 3)
+                    e = 255;
+                else
+                {
+                    //if (work.cd.currentFMVolTable == null)
+                    //    work.cd.currentFMVolTable = work.soundWork.FMVDAT;
+                    e = work.cd.currentFMVolTable[c];// GET VOLUME DATA
+                }
+            }
+            else
+                e = work.soundWork.FMVDAT[c];// GET VOLUME DATA
+
+            work.pg.fnum = work.pg.TLlfo + e;
             work.pg.bfnum2 = 0;
+            STVOL();
+
+            //volume以外のTL再設定
+            byte d;
+            byte m;
+            if (work.soundWork.currentChip != 4)
+            {
+                d = (byte)(0x40 + work.pg.channelNumber);// GET PORT No.
+                m = 4;
+            }
+            else {
+                d = (byte)(0x60 + work.pg.channelNumber);// GET PORT No.
+                m = 8;
+            }
+
+            STV4((byte)~work.soundWork.CRYDAT[work.pg.algo], d, 0, m, true);
+
         }
 
         // ***	ADPCM PLAY	***
@@ -2474,7 +2549,7 @@ namespace mucomDotNET.Driver
 
 
             //KUMA:tlの保存
-            if (work.isDotNET && work.header.CarrierCorrection)
+            //if (work.isDotNET && work.header.CarrierCorrection)
             {
                 work.pg.v_tl[0] = work.fmVoiceAtMusData[hl + 4 + 0];
                 work.pg.v_tl[1] = work.fmVoiceAtMusData[hl + 4 + 1];
@@ -2562,7 +2637,7 @@ namespace mucomDotNET.Driver
 
 
             //KUMA:tlの保存
-            if (work.header.CarrierCorrection)
+            //if (work.header.CarrierCorrection)
             {
                 work.pg.v_tl[0] = work.fmVoiceAtMusData[hl + 4 + 0];
                 work.pg.v_tl[1] = work.fmVoiceAtMusData[hl + 4 + 1];
@@ -4174,6 +4249,11 @@ namespace mucomDotNET.Driver
         {
             if (work.pg.tlLfoflg)
             {
+                if (work.soundWork.currentChip == 4)
+                {
+                    LFOP6opm(hl);
+                    return;
+                }
                 LFOP6(hl);
                 return;
             }
@@ -4268,29 +4348,33 @@ namespace mucomDotNET.Driver
             d += (byte)work.pg.channelNumber;
             byte e = (byte)hl;
 
-            if ((c & 0x01) != 0)
-            {
-                PSGOUT(d, e);
-                d += 4;
-            }
-            if ((c & 0x04) != 0)
-            {
-                PSGOUT(d, e);
-                d += 4;
-            }
-            if ((c & 0x02) != 0)
-            {
-                PSGOUT(d, e);
-                d += 4;
-            }
-            if ((c & 0x08) == 0)
-            {
-                return;
-            }
-            PSGOUT(d, e);
+            if ((c & 0x01) != 0) PSGOUT(d, e);
             d += 4;
+            if ((c & 0x04) != 0) PSGOUT(d, e);
+            d += 4;
+            if ((c & 0x02) != 0) PSGOUT(d, e);
+            d += 4;
+            if ((c & 0x08) == 0) return;
+            PSGOUT(d, e);
         }
 
+        public void LFOP6opm(int hl)
+        {
+            byte c = work.pg.TLlfoSlot;//.soundWork.LFOP6_VAL;
+
+            byte d = 0x60;
+            d += (byte)work.pg.channelNumber;
+            byte e = (byte)hl;
+
+            if ((c & 0x01) != 0) PSGOUT(d, e);
+            d += 8;
+            if ((c & 0x04) != 0) PSGOUT(d, e);
+            d += 8;
+            if ((c & 0x02) != 0) PSGOUT(d, e);
+            d += 8;
+            if ((c & 0x08) == 0) return;
+            PSGOUT(d, e);
+        }
 
 
         public void prcLFO()
