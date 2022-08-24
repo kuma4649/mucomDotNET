@@ -858,7 +858,8 @@ namespace mucomDotNET.Compiler
                 {
                     for (int k = 0; k < work.MAXPG; k++)
                     {
-                        if (work.bufCount[i][j][k] > 1) n++;
+                        //if (work.bufCount[i][j][k] > 1)
+                            n++;
                     }
                 }
             }
@@ -1024,7 +1025,9 @@ namespace mucomDotNET.Compiler
                 for (int j = 0; j < work.MAXCH; j++)
                 {
                     n = 0;
-                    for (int pg = 0; pg < work.MAXPG; pg++) if (work.bufCount[i][j][pg] > 1) n++;
+                    for (int pg = 0; pg < work.MAXPG; pg++) 
+                        //if (work.bufCount[i][j][pg] > 1) 
+                            n++;
                     dat.Add(new MmlDatum(n));//ページの数(0～)
                 }
             }
@@ -1035,7 +1038,7 @@ namespace mucomDotNET.Compiler
                 for (int j = 0; j < work.MAXCH;j++)
                     for (int pg = 0; pg < work.MAXPG; pg++)
                     {
-                        if (work.bufCount[i][j][pg] < 2) continue;
+                        //if (work.bufCount[i][j][pg] < 2) continue;
 
                         n = work.bufCount[i][j][pg];
                         dat.Add(new MmlDatum((byte)n));// ページの大きさ(0～)
@@ -1091,7 +1094,7 @@ namespace mucomDotNET.Compiler
                 for (int j = 0; j < work.MAXCH; j++)
                     for (int pg = 0; pg < work.MAXPG; pg++)
                     {
-                        if (work.bufCount[i][j][pg] < 2) continue;
+                        //if (work.bufCount[i][j][pg] < 2) continue;
                         for (int p = 0; p < work.bufCount[i][j][pg]; p++)
                         {
                             dat.Add(mucInfo.bufPage[i][j][pg].Get(p));
