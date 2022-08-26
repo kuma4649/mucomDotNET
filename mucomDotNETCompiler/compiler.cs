@@ -848,10 +848,11 @@ namespace mucomDotNET.Compiler
             dat.Add(new MmlDatum(0x05));// 可変長ヘッダー情報の数。
             dat.Add(new MmlDatum(work.MAXChips));// 使用する音源の数(0～)
 
-            dat.Add(new MmlDatum(work.MAXCH * work.MAXChips));// 使用するパートの総数(0～)
-            dat.Add(new MmlDatum(0x00));
+            int n = work.MAXCH * work.MAXChips;// 使用するパートの総数(0～)
+            dat.Add(new MmlDatum((byte)n));
+            dat.Add(new MmlDatum((byte)(n >> 8)));
 
-            int n = 0;
+            n = 0;
             for (int i = 0; i < work.MAXChips; i++)
             {
                 for (int j = 0; j < work.MAXCH; j++)
@@ -864,8 +865,8 @@ namespace mucomDotNET.Compiler
                 }
             }
 
-            dat.Add(new MmlDatum(n));// 使用するページの総数(0～)
-            dat.Add(new MmlDatum(0x00));
+            dat.Add(new MmlDatum((byte)n));// 使用するページの総数(0～)
+            dat.Add(new MmlDatum((byte)(n>>8)));
 
             int instSets = 0;
             for (int i = 0; i < work.MAXChips; i++) instSets += work.OTONUM[i];
