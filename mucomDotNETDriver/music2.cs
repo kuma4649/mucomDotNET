@@ -2695,7 +2695,8 @@ namespace mucomDotNET.Driver
             }
 
             work.pg.volume = work.pg.mData[work.hl++].dat;
-            STVOL();
+            if (work.cd.currentPageNo == work.pg.pageNo)
+                STVOL();
         }
 
         public void PCMVOL()
