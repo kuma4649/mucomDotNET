@@ -113,7 +113,7 @@ namespace mucomDotNET.Console
         {
             try
             {
-                if (Path.GetExtension(srcFile) == "")
+                if (Path.GetExtension(srcFile) == "" && !File.Exists(srcFile))
                     srcFile = Path.Combine(
                     Path.GetDirectoryName(Path.GetFullPath(srcFile))
                     , string.Format("{0}.muc", Path.GetFileNameWithoutExtension(srcFile))
