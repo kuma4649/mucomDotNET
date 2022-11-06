@@ -2,7 +2,7 @@
   "profiles": {
     "Player": {
       "commandName": "Project",
-      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\自作\\mamonoro\\LostWind\\testTemplate.mub\""
+      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\自作\\DeathSmiles\\HalloweenTown.mub\""
     }
   }
 }

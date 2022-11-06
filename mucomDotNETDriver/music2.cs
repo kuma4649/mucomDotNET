@@ -3241,7 +3241,7 @@ namespace mucomDotNET.Driver
 
             l = (l != 0) ? (7 - (l - 1)) : 0;
             r = (r != 0) ? (7 - (r - 1)) : 0;
-            v = (byte)(((work.pg.channelNumber & 0x3) << 6) | ((l & 0x7) << 3) | (r & 0x7));
+            v = (byte)((((work.pg.channelNumber>>1) & 0x3) << 6) | ((l & 0x7) << 3) | (r & 0x7));
             if (work.cd.currentPageNo == work.pg.pageNo)
                 PSGOUT(0x0f, v);
         }
