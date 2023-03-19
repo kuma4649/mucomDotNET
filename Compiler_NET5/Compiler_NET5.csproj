@@ -64,8 +64,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\mucomDotNETCompiler\lang\mucomDotNETmessage.ja-JP.txt" Link="lang\mucomDotNETmessage.ja-JP.txt" />
-    <Content Include="..\mucomDotNETCompiler\lang\mucomDotNETmessage.txt" Link="lang\mucomDotNETmessage.txt" />
+    <Content Include="..\mucomDotNETCompiler\lang\mucomDotNETmessage.ja-JP.txt" Link="lang\mucomDotNETmessage.ja-JP.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\mucomDotNETCompiler\lang\mucomDotNETmessage.txt" Link="lang\mucomDotNETmessage.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

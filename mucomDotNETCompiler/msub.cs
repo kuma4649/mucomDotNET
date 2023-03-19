@@ -223,7 +223,7 @@ namespace mucomDotNET.Compiler
         {
             try
             {
-                string trgDE = strDE.Substring(0, strDE.IndexOf("\0"));
+                string trgDE = strDE.Substring(0, strDE.IndexOf('\0'));
                 if (trgDE.Length < 1) return false;
 
                 byte[] bHL = new byte[trgDE.Length];
@@ -269,6 +269,24 @@ namespace mucomDotNET.Compiler
                 throw new MucException(
                     msg.get("E0200")
                     , mucInfo.row, mucInfo.col);
+            }
+
+            muc88.DispHex4(work.MDATA, 36);
+        }
+
+        public void MWRITE(MmlDatum cmdNo,params MmlDatum[] cmdDats)
+        {
+            mucInfo.bufDst.Set(work.MDATA++, cmdNo);
+
+            foreach (MmlDatum d in cmdDats)
+            {
+                mucInfo.bufDst.Set(work.MDATA++, d);
+                if (work.MDATA - work.bufStartPtr > 0xffff)
+                {
+                    throw new MucException(
+                        msg.get("E0200")
+                        , mucInfo.row, mucInfo.col);
+                }
             }
 
             muc88.DispHex4(work.MDATA, 36);

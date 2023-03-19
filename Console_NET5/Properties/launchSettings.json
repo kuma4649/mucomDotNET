@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Console_NET5": {
+      "commandName": "Project",
+      "commandLineArgs": "D:\\bootcamp\\FM音源\\data\\自作\\test\\grad.muc",
+      "nativeDebugging": true
+    }
+  }
+}

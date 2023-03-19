@@ -280,7 +280,7 @@ namespace mucomDotNET.Driver
                 ,PORTAON       // 0xFF 0xF9 - ポルタメント n1,n2,n3  (st ed totalclock)
                 ,ENVPSTex      // 0xFF 0xFA - ソフトエンベロープ 'E' n1,n2,n3,n4,n5,n6
                 ,FMVolMode     // 0xFF 0xFB - FMボリュームモード切替
-                ,NTMEAN        // 0xFF 0xFC
+                ,OTOPSTG       // 0xFF 0xFC - FM音色グラデーション
                 ,NTMEAN        // 0xFF 0xFD
                 ,NTMEAN        // 0xFF 0xFE
                 ,NOP           // 0xFF 0xFF
@@ -1102,6 +1102,7 @@ namespace mucomDotNET.Driver
             if (work.soundWork.PCMFLG != 0)
                 deltn = work.soundWork.DELT_N[work.soundWork.currentChip];
 
+            prcInstrumentGradation();
             prcLFO();
             prcPortament();
 
@@ -2266,6 +2267,11 @@ namespace mucomDotNET.Driver
             if (work.soundWork.READY == 0) return;
             if (work.cd.keyOnCh != -1) return;//KUMA:既に他のページが発音中の場合は処理しない
 
+            if (work.pg.instrumentGradationSwitch)
+            {
+                InstrumentGradationReset();
+            }
+
             byte a = 0x04;
             if (work.soundWork.FMPORT == 0)
             {
@@ -2438,6 +2444,7 @@ namespace mucomDotNET.Driver
             }
 
             work.pg.instrumentNumber = work.pg.mData[work.hl++].dat;
+            work.pg.instrumentGradationSwitch = false;
 
             //KUMA:カレントページの場合、または効果音モード有効時のみ音色を変更する
             if (!CheckCh3SpecialMode() && work.cd.currentPageNo != work.pg.pageNo) return;
@@ -2539,72 +2546,8 @@ namespace mucomDotNET.Driver
                 } while (b != 0);
             }
 
-            // ﾜｰｸ ｶﾗ ｵﾝｼｮｸ ﾅﾝﾊﾞｰ ｦ ｴﾙ
-            //STENV0:
-            int hl = work.pg.instrumentNumber * 25;// HL=*25
-            //hl += work.mData[work.soundWork.OTODAT].dat + work.mData[work.soundWork.OTODAT + 1].dat * 0x100 + 1;// HL ﾊ ｵﾝｼｮｸﾃﾞｰﾀ ｶｸﾉｳ ｱﾄﾞﾚｽ
-            //hl += work.soundWork.MUSNUM;
-            hl++;//音色数を格納している為いっこずらす
+            int hl=STENV2();
 
-
-
-            //KUMA:tlの保存
-            //if (work.isDotNET && work.header.CarrierCorrection)
-            {
-                work.pg.v_tl[0] = work.fmVoiceAtMusData[hl + 4 + 0];
-                work.pg.v_tl[1] = work.fmVoiceAtMusData[hl + 4 + 1];
-                work.pg.v_tl[2] = work.fmVoiceAtMusData[hl + 4 + 2];
-                work.pg.v_tl[3] = work.fmVoiceAtMusData[hl + 4 + 3];
-            }
-
-
-            //STENV1:
-            byte d = 0x30;// START=PORT 30H
-            d += (byte)work.pg.channelNumber;// PLUS CHANNEL No.
-                                             //STENV2:
-            byte c = 6;// 6 PARAMATER(Det/Mul, Total, KS/AR, DR, SR, SL/RR)
-            do
-            {
-                if (CheckCh3SpecialMode())
-                {
-                    if ((work.pg.useSlot & 1) != 0) PSGOUT(d, work.fmVoiceAtMusData[hl]);
-                    hl++;
-                    d += 4;// SKIP BLANK PORT
-                    if ((work.pg.useSlot & 4) != 0) PSGOUT(d, work.fmVoiceAtMusData[hl]);
-                    hl++;
-                    d += 4;// SKIP BLANK PORT
-                    if ((work.pg.useSlot & 2) != 0) PSGOUT(d, work.fmVoiceAtMusData[hl]);
-                    hl++;
-                    d += 4;// SKIP BLANK PORT
-                    if ((work.pg.useSlot & 8) != 0) PSGOUT(d, work.fmVoiceAtMusData[hl]);
-                    hl++;
-                    d += 4;// SKIP BLANK PORT
-                }
-                else
-                {
-                    b = 4;// 4 OPERATER
-                          //STENV3:
-                    do
-                    {
-                        // GET DATA
-                        //PSGOUT(d, work.mData[hl++].dat);
-                        PSGOUT(d, work.fmVoiceAtMusData[hl++]);
-                        d += 4;// SKIP BLANK PORT
-                        b--;
-                    } while (b != 0);
-                }
-
-                c--;
-
-            } while (c != 0);
-
-            //e = work.mData[hl].dat;// GET FEEDBACK/ALGORIZM
-            e = work.fmVoiceAtMusData[hl];// GET FEEDBACK/ALGORIZM
-            // GET ALGORIZM
-            work.pg.algo = e & 0x07;// STORE ALGORIZM
-            // GET ALGO SET ADDRES
-            d = (byte)(0xb0 + work.pg.channelNumber);// CH PLUS
-            PSGOUT(d, e);
         }
 
         private bool CheckCh3SpecialMode()
@@ -2629,52 +2572,7 @@ namespace mucomDotNET.Driver
                 b--;
             } while (b != 0);
 
-            // ﾜｰｸ ｶﾗ ｵﾝｼｮｸ ﾅﾝﾊﾞｰ ｦ ｴﾙ
-            //STENV0:
-            int hl = work.pg.instrumentNumber * 25;// HL=*25
-            hl++;//音色数を格納している為いっこずらす
-
-
-
-            //KUMA:tlの保存
-            //if (work.header.CarrierCorrection)
-            {
-                work.pg.v_tl[0] = work.fmVoiceAtMusData[hl + 4 + 0];
-                work.pg.v_tl[1] = work.fmVoiceAtMusData[hl + 4 + 1];
-                work.pg.v_tl[2] = work.fmVoiceAtMusData[hl + 4 + 2];
-                work.pg.v_tl[3] = work.fmVoiceAtMusData[hl + 4 + 3];
-            }
-
-
-            //STENV1:
-            byte d = 0x40;// START =Adr:40H
-            d += (byte)work.pg.channelNumber;// PLUS CHANNEL No.
-                                             //STENV2:
-            byte c = 6;// 6 PARAMATER(Det/Mul, Total, KS/AR, DR, SR, SL/RR)
-            do
-            {
-                b = 4;// 4 OPERATER
-                do
-                {
-                    // GET DATA
-                    PSGOUT(d, work.fmVoiceAtMusData[hl++]);
-                    d += 8;// SKIP BLANK PORT
-                    b--;
-                } while (b != 0);
-                c--;
-            } while (c != 0);
-
-            e = work.fmVoiceAtMusData[hl];// GET FEEDBACK/ALGORIZM
-            a = (byte)(((work.pg.panValue & 1) << 1) 
-                | ((work.pg.panValue & 2) >> 1));//bit並び入れ替え
-            e |= (byte)(a << 6);// pan
-
-            // GET ALGORIZM
-            work.pg.algo = e & 0x07;// STORE ALGORIZM
-            work.pg.feedback = (e & 0x38) >> 3;
-            // GET ALGO SET ADDRES
-            d = (byte)(0x20 + work.pg.channelNumber);// CH PLUS
-            PSGOUT(d, e);
+            STENV2opm();
         }
 
         // **	ﾎﾞﾘｭｰﾑ ｾｯﾄ	**
@@ -5619,6 +5517,344 @@ namespace mucomDotNET.Driver
             }
         }
 
+        public void OTOPSTG()
+        {
+            if (work.soundWork.PCMFLG != 0) return;
+            if (work.soundWork.DRMF1 != 0) return;
+
+            //work.pg.instrumentNumber = work.pg.mData[work.hl++].dat;
+            for(int i = 0;i < 2;i++)
+            {
+                work.pg.instrumentGradations[i] = work.pg.mData[work.hl++].dat;
+            }
+            int wait = work.pg.mData[work.hl++].dat;
+
+            //KUMA:カレントページの場合、または効果音モード有効時のみ音色を変更する
+            if (!CheckCh3SpecialMode() && work.cd.currentPageNo != work.pg.pageNo) return;
+
+            work.pg.instrumentGradationSwitch = true;
+            work.pg.instrumentGradationWait = wait;
+            InstrumentGradationGetParamsFromVoice(ref work.pg.instrumentGradationSt ,work.pg.instrumentGradations[0]);
+            InstrumentGradationGetParamsFromVoice(ref work.pg.instrumentGradationEd ,work.pg.instrumentGradations[1]);
+
+            InstrumentGradationReset();
+        }
+
+
+        private void InstrumentGradationReset()
+        {
+            work.pg.instrumentNumber = work.pg.instrumentGradations[0];
+            work.pg.instrumentGradationWaitCounter = work.pg.instrumentGradationWait;
+            work.pg.instrumentGradationPointer = 0;
+            for (int i = 0; i < 40; i++) work.pg.instrumentGradationWk[i] = work.pg.instrumentGradationSt[i];
+
+            STENV();//通常の音色セット
+            STVOL();
+        }
+
+        private void prcInstrumentGradation()
+        {
+            if (!CheckCh3SpecialMode() && work.pg.pageNo != work.cd.currentPageNo) return;
+
+            if (!work.pg.instrumentGradationSwitch) return;
+
+            work.pg.instrumentGradationWaitCounter--;
+            if (work.pg.instrumentGradationWaitCounter != 0) return;
+            work.pg.instrumentGradationWaitCounter = work.pg.instrumentGradationWait;
+
+            InstrumentGradationUpdate();
+            
+            //work.pg.instrumentNumber = work.pg.instrumentGradations[work.pg.instrumentGradationPointer];
+            STENVGradation();//KEYオフ、リリースカット無しの音色セット
+
+            STVOL();
+        }
+
+        private void InstrumentGradationUpdate()
+        {
+            for (int i = 0; i < 40; i++)
+            {
+                if (work.pg.instrumentGradationWk[i] == work.pg.instrumentGradationEd[i])
+                {
+                    work.pg.instrumentGradationFlg[i] = false;
+                    continue;
+                }
+
+                work.pg.instrumentGradationFlg[i] = true;
+                if (work.pg.instrumentGradationWk[i] < work.pg.instrumentGradationEd[i])
+                    work.pg.instrumentGradationWk[i]++;
+                else
+                    work.pg.instrumentGradationWk[i]--;
+            }
+        }
+
+        private void InstrumentGradationGetParamsFromVoice(ref int[] param, int v)
+        {
+            int hl = v * 25;// HL=*25
+            hl++;//音色数を格納している為いっこずらす
+
+            param[0] = (work.fmVoiceAtMusData[hl + 0 * 4 + 0] & 0x70) >> 4;//op1 Det
+            param[1] = work.fmVoiceAtMusData[hl + 0 * 4 + 0] & 0xf;//        op1 Mul
+            param[2] = (work.fmVoiceAtMusData[hl + 0 * 4 + 1] & 0x70) >> 4;//op3 Det
+            param[3] = work.fmVoiceAtMusData[hl + 0 * 4 + 1] & 0xf;//        op3 Mul
+            param[4] = (work.fmVoiceAtMusData[hl + 0 * 4 + 2] & 0x70) >> 4;//op2 Det
+            param[5] = work.fmVoiceAtMusData[hl + 0 * 4 + 2] & 0xf;//        op2 Mul
+            param[6] = (work.fmVoiceAtMusData[hl + 0 * 4 + 3] & 0x70) >> 4;//op4 Det
+            param[7] = work.fmVoiceAtMusData[hl + 0 * 4 + 3] & 0xf;//        op4 Mul
+
+            param[8] = work.fmVoiceAtMusData[hl + 1 * 4 + 0] & 0x7f;// op1 TL
+            param[9] = work.fmVoiceAtMusData[hl + 1 * 4 + 1] & 0x7f;// op3 TL
+            param[10] = work.fmVoiceAtMusData[hl + 1 * 4 + 2] & 0x7f;//op2 TL
+            param[11] = work.fmVoiceAtMusData[hl + 1 * 4 + 3] & 0x7f;//op4 TL
+
+            param[12] = (work.fmVoiceAtMusData[hl + 2 * 4 + 0] & 0xc0) >> 6;//op1 KS
+            param[13] = work.fmVoiceAtMusData[hl + 2 * 4 + 0] & 0x1f;//       op1 AR
+            param[14] = (work.fmVoiceAtMusData[hl + 2 * 4 + 1] & 0xc0) >> 6;//op3 KS
+            param[15] = work.fmVoiceAtMusData[hl + 2 * 4 + 1] & 0x1f;//       op3 AR
+            param[16] = (work.fmVoiceAtMusData[hl + 2 * 4 + 2] & 0xc0) >> 6;//op2 KS
+            param[17] = work.fmVoiceAtMusData[hl + 2 * 4 + 2] & 0x1f;//       op2 AR
+            param[18] = (work.fmVoiceAtMusData[hl + 2 * 4 + 3] & 0xc0) >> 6;//op4 KS
+            param[19] = work.fmVoiceAtMusData[hl + 2 * 4 + 3] & 0x1f;//       op4 AR
+
+            param[20] = work.fmVoiceAtMusData[hl + 3 * 4 + 0] & 0x1f;//op1 DR
+            param[21] = work.fmVoiceAtMusData[hl + 3 * 4 + 1] & 0x1f;//op3 DR
+            param[22] = work.fmVoiceAtMusData[hl + 3 * 4 + 2] & 0x1f;//op2 DR
+            param[23] = work.fmVoiceAtMusData[hl + 3 * 4 + 3] & 0x1f;//op4 DR
+
+            param[24] = work.fmVoiceAtMusData[hl + 4 * 4 + 0] & 0x1f;//op1 SR
+            param[25] = work.fmVoiceAtMusData[hl + 4 * 4 + 1] & 0x1f;//op3 SR
+            param[26] = work.fmVoiceAtMusData[hl + 4 * 4 + 2] & 0x1f;//op2 SR
+            param[27] = work.fmVoiceAtMusData[hl + 4 * 4 + 3] & 0x1f;//op4 SR
+
+            param[28] = (work.fmVoiceAtMusData[hl + 5 * 4 + 0] & 0xf0) >> 4;//op1 SL
+            param[29] = work.fmVoiceAtMusData[hl + 5 * 4 + 0] & 0x0f;//op1 RR
+            param[30] = (work.fmVoiceAtMusData[hl + 5 * 4 + 1] & 0xf0) >> 4;//op3 SL
+            param[31] = work.fmVoiceAtMusData[hl + 5 * 4 + 1] & 0x0f;//op3 RR
+            param[32] = (work.fmVoiceAtMusData[hl + 5 * 4 + 2] & 0xf0) >> 4;//op2 SL
+            param[33] = work.fmVoiceAtMusData[hl + 5 * 4 + 2] & 0x0f;//op2 RR
+            param[34] = (work.fmVoiceAtMusData[hl + 5 * 4 + 3] & 0xf0) >> 4;//op4 SL
+            param[35] = work.fmVoiceAtMusData[hl + 5 * 4 + 3] & 0x0f;//op4 RR
+
+            param[36] = (work.fmVoiceAtMusData[hl + 4 * 4 + 0] & 0xc0) >> 6;//op1 DT2
+            param[37] = (work.fmVoiceAtMusData[hl + 4 * 4 + 1] & 0xc0) >> 6;//op3 DT2
+            param[38] = (work.fmVoiceAtMusData[hl + 4 * 4 + 2] & 0xc0) >> 6;//op2 DT2
+            param[39] = (work.fmVoiceAtMusData[hl + 4 * 4 + 3] & 0xc0) >> 6;//op4 DT2
+
+        }
+
+        private static byte[] GraSlot = new byte[4] { 1, 4, 2, 8 };
+        private void STENVGradation()
+        {
+            byte d = 0x30;// START=PORT 30H
+            d += (byte)work.pg.channelNumber;// PLUS CHANNEL No.
+            bool CH3 = CheckCh3SpecialMode();
+            byte dd = 4;
+
+            if (work.soundWork.currentChip == 4)
+            {
+                d = 0x40;
+                CH3 = false;
+                dd = 8;
+            }
+
+            // 6 PARAMATER(Det/Mul, Total, KS/AR, DR, SR, SL/RR)
+
+            //Det/Mul
+            for (int o = 0; o < 4; o++)
+            {
+                if (CH3 && (work.pg.useSlot & GraSlot[o]) == 0) continue;
+                if (work.pg.instrumentGradationFlg[o * 2] || work.pg.instrumentGradationFlg[o * 2 + 1])
+                    PSGOUT(d, (byte)((work.pg.instrumentGradationWk[o * 2] << 4) | work.pg.instrumentGradationWk[o * 2 + 1]));
+                d += dd;
+            }
+
+            //TL
+            byte c = work.soundWork.CRYDAT[work.pg.algo];
+            for (int o = 0; o < 4; o++)
+            {
+                if (CH3 && (work.pg.useSlot & GraSlot[o]) == 0) continue;
+                if (work.pg.instrumentGradationFlg[8 + o])//TL
+                {
+                    if ((c & (1 << o)) == 0)
+                        PSGOUT(d, (byte)work.pg.instrumentGradationWk[8 + o]);
+                    work.pg.v_tl[o] = (byte)work.pg.instrumentGradationWk[8 + o];
+                }
+                d += dd;
+            }
+
+            //KS/AR
+            for (int o = 0; o < 4; o++)
+            {
+                if (CH3 && (work.pg.useSlot & GraSlot[o]) == 0) continue;
+                if (work.pg.instrumentGradationFlg[12 + o * 2] || work.pg.instrumentGradationFlg[12 + o * 2 + 1])
+                    PSGOUT(d, (byte)((work.pg.instrumentGradationWk[12 + o * 2] << 6) | work.pg.instrumentGradationWk[12 + o * 2 + 1]));
+                d += dd;
+            }
+
+            //AM/DR
+            for (int o = 0; o < 4; o++)
+            {
+                if (CH3 && (work.pg.useSlot & GraSlot[o]) == 0) continue;
+                if (work.pg.instrumentGradationFlg[20 + o])
+                    PSGOUT(d, (byte)(0x80 | work.pg.instrumentGradationWk[20 + o]));
+                d += dd;
+            }
+
+            //Dt2/SR
+            for (int o = 0; o < 4; o++)
+            {
+                if (CH3 && (work.pg.useSlot & GraSlot[o]) == 0) continue;
+                if (dd == 4)
+                {
+                    //OPN
+                    if (work.pg.instrumentGradationFlg[24 + o])
+                        PSGOUT(d, (byte)work.pg.instrumentGradationWk[24 + o]);
+                }
+                else
+                {
+                    //OPM
+                    if (work.pg.instrumentGradationFlg[32 + o] || work.pg.instrumentGradationFlg[24 + o])
+                        PSGOUT(d, (byte)((work.pg.instrumentGradationWk[32 + o] << 5) | work.pg.instrumentGradationWk[24 + o]));
+                }
+                d += dd;
+            }
+
+
+            //SL/RR
+            for (int o = 0; o < 4; o++)
+            {
+                if (CH3 && (work.pg.useSlot & GraSlot[o]) == 0) continue;
+                if (work.pg.instrumentGradationFlg[28 + o * 2] || work.pg.instrumentGradationFlg[28 + o * 2 + 1])
+                    PSGOUT(d, (byte)((work.pg.instrumentGradationWk[28 + o * 2] << 4) | work.pg.instrumentGradationWk[28 + o * 2 + 1]));
+                d += dd;
+            }
+
+        }
+
+
+        private int STENV2()
+        {
+            if (work.soundWork.currentChip == 4)
+            {
+                STENV2opm();
+                return 0;
+            }
+
+            // ﾜｰｸ ｶﾗ ｵﾝｼｮｸ ﾅﾝﾊﾞｰ ｦ ｴﾙ
+            //STENV0:
+            int hl = work.pg.instrumentNumber * 25;// HL=*25
+            hl++;//音色数を格納している為いっこずらす
+
+            //KUMA:tlの保存
+            //if (work.isDotNET && work.header.CarrierCorrection)
+            {
+                work.pg.v_tl[0] = work.fmVoiceAtMusData[hl + 4 + 0];
+                work.pg.v_tl[1] = work.fmVoiceAtMusData[hl + 4 + 1];
+                work.pg.v_tl[2] = work.fmVoiceAtMusData[hl + 4 + 2];
+                work.pg.v_tl[3] = work.fmVoiceAtMusData[hl + 4 + 3];
+            }
+
+
+            //STENV1:
+            byte d = 0x30;// START=PORT 30H
+            d += (byte)work.pg.channelNumber;// PLUS CHANNEL No.
+                                             //STENV2:
+            byte c = 6;// 6 PARAMATER(Det/Mul, Total, KS/AR, DR, SR, SL/RR)
+            do
+            {
+                if (CheckCh3SpecialMode())
+                {
+                    if ((work.pg.useSlot & 1) != 0) PSGOUT(d, work.fmVoiceAtMusData[hl]);
+                    hl++;
+                    d += 4;// SKIP BLANK PORT
+                    if ((work.pg.useSlot & 4) != 0) PSGOUT(d, work.fmVoiceAtMusData[hl]);
+                    hl++;
+                    d += 4;// SKIP BLANK PORT
+                    if ((work.pg.useSlot & 2) != 0) PSGOUT(d, work.fmVoiceAtMusData[hl]);
+                    hl++;
+                    d += 4;// SKIP BLANK PORT
+                    if ((work.pg.useSlot & 8) != 0) PSGOUT(d, work.fmVoiceAtMusData[hl]);
+                    hl++;
+                    d += 4;// SKIP BLANK PORT
+                }
+                else
+                {
+                    byte b = 4;// 4 OPERATER
+                          //STENV3:
+                    do
+                    {
+                        // GET DATA
+                        //PSGOUT(d, work.mData[hl++].dat);
+                        PSGOUT(d, work.fmVoiceAtMusData[hl++]);
+                        d += 4;// SKIP BLANK PORT
+                        b--;
+                    } while (b != 0);
+                }
+
+                c--;
+
+            } while (c != 0);
+
+            //e = work.mData[hl].dat;// GET FEEDBACK/ALGORIZM
+            byte e = work.fmVoiceAtMusData[hl];// GET FEEDBACK/ALGORIZM
+            // GET ALGORIZM
+            work.pg.algo = e & 0x07;// STORE ALGORIZM
+            // GET ALGO SET ADDRES
+            d = (byte)(0xb0 + work.pg.channelNumber);// CH PLUS
+            PSGOUT(d, e);
+
+            return hl;
+
+        }
+
+        private void STENV2opm()
+        {
+
+            // ﾜｰｸ ｶﾗ ｵﾝｼｮｸ ﾅﾝﾊﾞｰ ｦ ｴﾙ
+            //STENV0:
+            int hl = work.pg.instrumentNumber * 25;// HL=*25
+            hl++;//音色数を格納している為いっこずらす
+
+            //KUMA:tlの保存
+            //if (work.header.CarrierCorrection)
+            {
+                work.pg.v_tl[0] = work.fmVoiceAtMusData[hl + 4 + 0];
+                work.pg.v_tl[1] = work.fmVoiceAtMusData[hl + 4 + 1];
+                work.pg.v_tl[2] = work.fmVoiceAtMusData[hl + 4 + 2];
+                work.pg.v_tl[3] = work.fmVoiceAtMusData[hl + 4 + 3];
+            }
+
+
+            //STENV1:
+            byte d = 0x40;// START =Adr:40H
+            d += (byte)work.pg.channelNumber;// PLUS CHANNEL No.
+                                             //STENV2:
+            byte c = 6;// 6 PARAMATER(Det/Mul, Total, KS/AR, DR, SR, SL/RR)
+            do
+            {
+                byte b = 4;// 4 OPERATER
+                do
+                {
+                    // GET DATA
+                    PSGOUT(d, work.fmVoiceAtMusData[hl++]);
+                    d += 8;// SKIP BLANK PORT
+                    b--;
+                } while (b != 0);
+                c--;
+            } while (c != 0);
+
+            byte e = work.fmVoiceAtMusData[hl];// GET FEEDBACK/ALGORIZM
+            byte a = (byte)(((work.pg.panValue & 1) << 1)
+                | ((work.pg.panValue & 2) >> 1));//bit並び入れ替え
+            e |= (byte)(a << 6);// pan
+
+            // GET ALGORIZM
+            work.pg.algo = e & 0x07;// STORE ALGORIZM
+            work.pg.feedback = (e & 0x38) >> 3;
+            // GET ALGO SET ADDRES
+            d = (byte)(0x20 + work.pg.channelNumber);// CH PLUS
+            PSGOUT(d, e);
+        }
 
     }
 }

@@ -3667,13 +3667,45 @@ namespace mucomDotNET.Compiler
             }
             if (tp == ChannelType.FM)
             {
+                //音色グラデーション機能解析
+                skipSpaceAndTab();
+                c = getMoji();
+                if (c == ',')// && mucInfo.DriverType == MUCInfo.enmDriverType.DotNet)
+                {
+                    //@n1,n2,n3
+                    int n1, n2, n3;
+                    n1 = n;
+                    n3 = 1;//初期値1
+                    ptr = mucInfo.srcCPtr;
+
+                    //第2引数
+                    n2 = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0488"));
+                    if (mucInfo.ErrSign) throw new MucException(msg.get("E0489"), mucInfo.row, mucInfo.col);
+                    mucInfo.srcCPtr = ptr;
+                    skipSpaceAndTab();
+
+                    c = getMoji();
+                    if (c == ',')//第３引数は省略可
+                    {
+                        //第3引数
+                        ptr = mucInfo.srcCPtr;
+                        n3 = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0488"));
+                        if (mucInfo.ErrSign) throw new MucException(msg.get("E0489"), mucInfo.row, mucInfo.col);
+                        mucInfo.srcCPtr = ptr;
+                        skipSpaceAndTab();
+                    }
+
+                    n1 = Math.Min(Math.Max(n1, 0), 255);//モーフ元音色番号
+                    n2 = Math.Min(Math.Max(n2, 0), 255);//モーフ先音色番号
+                    n3 = Math.Min(Math.Max(n3, 1), 255);//wait Tick
+                    STCL2G(n1,n2,n3);//FM
+                    return EnmFCOMPNextRtn.fcomp1;
+                }
+
                 //音色番号チェック
                 if (mucInfo.DriverType != MUCInfo.enmDriverType.DotNet)
                 {
-                    if (n == 0 || n == 1)
-                    {
-                        WriteWarning(msg.get("W0410"), mucInfo.row, mucInfo.col);
-                    }
+                    if (n == 0 || n == 1) WriteWarning(msg.get("W0410"), mucInfo.row, mucInfo.col);
                 }
 
                 STCL2(n);//FM
@@ -3814,6 +3846,58 @@ namespace mucomDotNET.Compiler
             throw new MucException(
                 msg.get("E0492")
                 , mucInfo.row, mucInfo.col);
+        }
+
+        public void STCL2G(int n1, int n2, int n3)      // FM
+        {
+            n1++;
+            n2++;
+
+            List<object> args = new List<object>();
+            args.Add(0);//dummy
+            args.Add(n1 - 1);//src
+            args.Add(n2 - 1);//trg
+            args.Add(n3);//tick
+
+            LinePos lp = new LinePos(
+                mucInfo.document,
+                mucInfo.fnSrcOnlyFile
+                , mucInfo.row, mucInfo.col
+                , mucInfo.srcCPtr - mucInfo.col + 1
+                , work.currentPartType
+                , work.currentChipName
+                , 0, work.ChipIndex % 2, work.CHIP_CH * work.MAXPG + work.pageNow);
+
+            //n1からn2までチェック
+            List<int> lstVoiceIndex = new List<int>();//voiceIndexが並んで定義されている保証がない為、それを記録する必要がある
+
+            int voiceIndex1 = CCVC(n1, mucInfo.bufDefVoice);// --	VOICE ｶﾞ ﾄｳﾛｸｽﾞﾐｶ?	--
+            if (voiceIndex1 == -1)
+            {
+                voiceIndex1 = CWVC(n1, mucInfo.bufDefVoice);// --	WORK ﾆ ｱｷ ｶﾞ ｱﾙｶ?	--
+                if (voiceIndex1 == -1) throw new MucException(msg.get("E0492"), mucInfo.row, mucInfo.col);
+            }
+            lstVoiceIndex.Add(voiceIndex1);
+
+            int voiceIndex2 = CCVC(n2, mucInfo.bufDefVoice);// --	VOICE ｶﾞ ﾄｳﾛｸｽﾞﾐｶ?	--
+            if (voiceIndex2 == -1)
+            {
+                voiceIndex2 = CWVC(n2, mucInfo.bufDefVoice);// --	WORK ﾆ ｱｷ ｶﾞ ｱﾙｶ?	--
+                if (voiceIndex2 == -1) throw new MucException(msg.get("E0492"), mucInfo.row, mucInfo.col);
+            }
+            lstVoiceIndex.Add(voiceIndex2);
+
+            //msub.MWRITE(
+            //    new MmlDatum(enmMMLType.Instrument, args, lp, 0xf0)
+            //    , new MmlDatum((byte)(voiceIndex1 - 1))
+            //    );
+            msub.MWRITE(
+                new MmlDatum(enmMMLType.Instrument, args, lp, 0xff)
+                //new MmlDatum(0xff)
+                , new MmlDatum(0xfc)
+                );
+            foreach (int vi in lstVoiceIndex) msub.MWRITE(new MmlDatum((byte)(vi - 1)));
+            msub.MWRITE(new MmlDatum((byte)n3));
         }
 
         public EnmFCOMPNextRtn STCL5(int num,char wav)

@@ -515,5 +515,16 @@ namespace mucomDotNET.Driver
         public int portaTotalClock = 0;
         public double portaBeforeFNum = 0;
         public bool enblKeyOff = true;
+
+        //音色グラデーション
+        public bool instrumentGradationSwitch = false;
+        public int instrumentGradationWait = 0;
+        public int instrumentGradationWaitCounter=0;
+        public int[] instrumentGradations = new int[2];
+        public int instrumentGradationPointer = 0;
+        public int[] instrumentGradationSt = new int[40];
+        public int[] instrumentGradationEd = new int[40];
+        public int[] instrumentGradationWk = new int[40];
+        public bool[] instrumentGradationFlg = new bool[40];
     }
 }
