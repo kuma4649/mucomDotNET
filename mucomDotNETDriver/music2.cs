@@ -2315,6 +2315,11 @@ namespace mucomDotNET.Driver
             if (work.soundWork.READY == 0) return;
             //if (work.cd.keyOnCh != -1) return;//KUMA:既に他のページが発音中の場合は処理しない
 
+            if (work.pg.keyoffflg && work.pg.instrumentGradationSwitch && work.pg.instrumentGradationReset)
+            {
+                InstrumentGradationReset();
+            }
+
             byte a = 0x02;
             //if (work.soundWork.FMPORT == 0)
             //{
@@ -2357,6 +2362,11 @@ namespace mucomDotNET.Driver
         {
             if (work.soundWork.READY == 0) return;
             if (work.cd.keyOnCh != -1) return;//KUMA:既に他のページが発音中の場合は処理しない
+
+            if (work.pg.keyoffflg && work.pg.instrumentGradationSwitch && work.pg.instrumentGradationReset)
+            {
+                InstrumentGradationReset();
+            }
 
             byte a = 0x00;
             if (!work.pg.KeyOnDelayFlag)
