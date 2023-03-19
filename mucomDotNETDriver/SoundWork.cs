@@ -526,5 +526,6 @@ namespace mucomDotNET.Driver
         public int[] instrumentGradationEd = new int[40];
         public int[] instrumentGradationWk = new int[40];
         public bool[] instrumentGradationFlg = new bool[40];
+        public bool instrumentGradationReset = true;
     }
 }

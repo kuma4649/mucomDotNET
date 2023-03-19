@@ -2267,7 +2267,7 @@ namespace mucomDotNET.Driver
             if (work.soundWork.READY == 0) return;
             if (work.cd.keyOnCh != -1) return;//KUMA:既に他のページが発音中の場合は処理しない
 
-            if (work.pg.instrumentGradationSwitch)
+            if (work.pg.keyoffflg && work.pg.instrumentGradationSwitch && work.pg.instrumentGradationReset)
             {
                 InstrumentGradationReset();
             }
@@ -5528,6 +5528,7 @@ namespace mucomDotNET.Driver
                 work.pg.instrumentGradations[i] = work.pg.mData[work.hl++].dat;
             }
             int wait = work.pg.mData[work.hl++].dat;
+            int rst = work.pg.mData[work.hl++].dat;
 
             //KUMA:カレントページの場合、または効果音モード有効時のみ音色を変更する
             if (!CheckCh3SpecialMode() && work.cd.currentPageNo != work.pg.pageNo) return;
@@ -5536,6 +5537,7 @@ namespace mucomDotNET.Driver
             work.pg.instrumentGradationWait = wait;
             InstrumentGradationGetParamsFromVoice(ref work.pg.instrumentGradationSt ,work.pg.instrumentGradations[0]);
             InstrumentGradationGetParamsFromVoice(ref work.pg.instrumentGradationEd ,work.pg.instrumentGradations[1]);
+            work.pg.instrumentGradationReset = rst==1;
 
             InstrumentGradationReset();
         }

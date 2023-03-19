@@ -3673,9 +3673,10 @@ namespace mucomDotNET.Compiler
                 if (c == ',')// && mucInfo.DriverType == MUCInfo.enmDriverType.DotNet)
                 {
                     //@n1,n2,n3
-                    int n1, n2, n3;
+                    int n1, n2, n3,n4;
                     n1 = n;
                     n3 = 1;//初期値1
+                    n4 = 1;//初期値1(リセットする)
                     ptr = mucInfo.srcCPtr;
 
                     //第2引数
@@ -3693,12 +3694,24 @@ namespace mucomDotNET.Compiler
                         if (mucInfo.ErrSign) throw new MucException(msg.get("E0489"), mucInfo.row, mucInfo.col);
                         mucInfo.srcCPtr = ptr;
                         skipSpaceAndTab();
+
+                        c = getMoji();
+                        if (c == ',')//第4引数は省略可
+                        {
+                            //第4引数
+                            ptr = mucInfo.srcCPtr;
+                            n4 = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0488"));
+                            if (mucInfo.ErrSign) throw new MucException(msg.get("E0489"), mucInfo.row, mucInfo.col);
+                            mucInfo.srcCPtr = ptr;
+                            skipSpaceAndTab();
+                        }
                     }
 
                     n1 = Math.Min(Math.Max(n1, 0), 255);//モーフ元音色番号
                     n2 = Math.Min(Math.Max(n2, 0), 255);//モーフ先音色番号
                     n3 = Math.Min(Math.Max(n3, 1), 255);//wait Tick
-                    STCL2G(n1,n2,n3);//FM
+                    n4 = Math.Min(Math.Max(n4, 0), 1);//リセット
+                    STCL2G(n1,n2,n3,n4);//FM
                     return EnmFCOMPNextRtn.fcomp1;
                 }
 
@@ -3848,7 +3861,7 @@ namespace mucomDotNET.Compiler
                 , mucInfo.row, mucInfo.col);
         }
 
-        public void STCL2G(int n1, int n2, int n3)      // FM
+        public void STCL2G(int n1, int n2, int n3,int n4)      // FM
         {
             n1++;
             n2++;
@@ -3858,6 +3871,7 @@ namespace mucomDotNET.Compiler
             args.Add(n1 - 1);//src
             args.Add(n2 - 1);//trg
             args.Add(n3);//tick
+            args.Add(n4);//reset
 
             LinePos lp = new LinePos(
                 mucInfo.document,
@@ -3898,6 +3912,7 @@ namespace mucomDotNET.Compiler
                 );
             foreach (int vi in lstVoiceIndex) msub.MWRITE(new MmlDatum((byte)(vi - 1)));
             msub.MWRITE(new MmlDatum((byte)n3));
+            msub.MWRITE(new MmlDatum((byte)n4));
         }
 
         public EnmFCOMPNextRtn STCL5(int num,char wav)
