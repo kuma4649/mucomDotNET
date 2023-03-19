@@ -1,4 +1,8 @@
 更新履歴
+TAG196 2023/03/19 3rd
+  Compiler&Driver
+    音色モーフィング機能　alg/fbも対象に追加(詳細はMML.txtを参照)
+
 TAG195 2023/03/19 2nd
   Compiler&Driver
     音色モーフィング機能　早速機能追加(詳細はMML.txtを参照)

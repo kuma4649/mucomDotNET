@@ -5543,12 +5543,14 @@ namespace mucomDotNET.Driver
         }
 
 
+        private static int instrumentGradParam = 42;
+
         private void InstrumentGradationReset()
         {
             work.pg.instrumentNumber = work.pg.instrumentGradations[0];
             work.pg.instrumentGradationWaitCounter = work.pg.instrumentGradationWait;
             work.pg.instrumentGradationPointer = 0;
-            for (int i = 0; i < 40; i++) work.pg.instrumentGradationWk[i] = work.pg.instrumentGradationSt[i];
+            for (int i = 0; i < instrumentGradParam; i++) work.pg.instrumentGradationWk[i] = work.pg.instrumentGradationSt[i];
 
             STENV();//通常の音色セット
             STVOL();
@@ -5574,7 +5576,7 @@ namespace mucomDotNET.Driver
 
         private void InstrumentGradationUpdate()
         {
-            for (int i = 0; i < 40; i++)
+            for (int i = 0; i < instrumentGradParam; i++)
             {
                 if (work.pg.instrumentGradationWk[i] == work.pg.instrumentGradationEd[i])
                 {
@@ -5642,6 +5644,9 @@ namespace mucomDotNET.Driver
             param[38] = (work.fmVoiceAtMusData[hl + 4 * 4 + 2] & 0xc0) >> 6;//op2 DT2
             param[39] = (work.fmVoiceAtMusData[hl + 4 * 4 + 3] & 0xc0) >> 6;//op4 DT2
 
+            param[40] = (work.fmVoiceAtMusData[hl + 24] & 0x38) >> 3;//FB
+            param[41] = work.fmVoiceAtMusData[hl + 24] & 0x07;//ALG
+
         }
 
         private static byte[] GraSlot = new byte[4] { 1, 4, 2, 8 };
@@ -5657,6 +5662,23 @@ namespace mucomDotNET.Driver
                 d = 0x40;
                 CH3 = false;
                 dd = 8;
+            }
+
+            if (work.pg.instrumentGradationFlg[40] || work.pg.instrumentGradationFlg[41])
+            {
+                work.pg.feedback = work.pg.instrumentGradationWk[40];
+                work.pg.algo = work.pg.instrumentGradationWk[41];
+
+                if (dd != 8)//OPN
+                {
+                    PSGOUT((byte)(0xb0 + work.pg.channelNumber), (byte)((work.pg.feedback << 3) | work.pg.algo));
+                }
+                else//OPM
+                {
+                    byte a = (byte)(((work.pg.panValue & 1) << 1) | ((work.pg.panValue & 2) >> 1));
+                    byte val = (byte)((a << 6) | (work.pg.feedback << 3) | work.pg.algo);
+                    PSGOUT((byte)(0x20 + work.pg.channelNumber), val);
+                }
             }
 
             // 6 PARAMATER(Det/Mul, Total, KS/AR, DR, SR, SL/RR)
@@ -5715,8 +5737,8 @@ namespace mucomDotNET.Driver
                 else
                 {
                     //OPM
-                    if (work.pg.instrumentGradationFlg[32 + o] || work.pg.instrumentGradationFlg[24 + o])
-                        PSGOUT(d, (byte)((work.pg.instrumentGradationWk[32 + o] << 5) | work.pg.instrumentGradationWk[24 + o]));
+                    if (work.pg.instrumentGradationFlg[36 + o] || work.pg.instrumentGradationFlg[24 + o])
+                        PSGOUT(d, (byte)((work.pg.instrumentGradationWk[36 + o] << 6) | work.pg.instrumentGradationWk[24 + o]));
                 }
                 d += dd;
             }
