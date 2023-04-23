@@ -515,6 +515,7 @@ namespace mucomDotNET.Driver
         public int portaTotalClock = 0;
         public double portaBeforeFNum = 0;
         public bool enblKeyOff = true;
+        public bool useKeyOn = false;
 
         //音色グラデーション
         public bool instrumentGradationSwitch = false;

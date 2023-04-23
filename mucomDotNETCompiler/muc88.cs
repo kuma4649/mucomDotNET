@@ -1503,7 +1503,7 @@ namespace mucomDotNET.Compiler
             mucInfo.srcCPtr = ptr;
 
             //簡易チェック
-            if (n < 1 || n > 4321)
+            if (n < 0 || n > 4321)
             {
                 //error
                 throw new MucException(string.Format(msg.get("E0535"), n)
@@ -1512,17 +1512,24 @@ namespace mucomDotNET.Compiler
 
             string s = n.ToString();
             int sw = 0;
-            //重複指定できるけどまあ良しｗ
-            foreach (char c in s)
+            if (n == 0)
             {
-                if (c < '1' || c > '4')
+                sw = 0;
+            }
+            else
+            {
+                //重複指定できるけどまあ良しｗ
+                foreach (char c in s)
                 {
-                    //error
-                    throw new MucException(string.Format(msg.get("E0536"), c)
-                        , mucInfo.row, mucInfo.col);
+                    if (c < '1' || c > '4')
+                    {
+                        //error
+                        throw new MucException(string.Format(msg.get("E0536"), c)
+                            , mucInfo.row, mucInfo.col);
+                    }
+                    int d = int.Parse(c.ToString());
+                    sw |= (1 << (d - 1));
                 }
-                int d = int.Parse(c.ToString());
-                sw |= (1 << (d - 1));
             }
 
             //EXコマンドの発行

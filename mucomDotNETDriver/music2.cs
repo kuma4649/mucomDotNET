@@ -1483,10 +1483,13 @@ namespace mucomDotNET.Driver
 
             if (CheckCh3SpecialMode())
             {
-                work.cd.ch3KeyOn &= (byte)~(work.pg.useSlot << 4);
-                byte a = (byte)(work.cd.ch3KeyOn | 0x2);
-                PSGOUT(0x28, a);//KEY-OFF
-                //Console.WriteLine("KEYOFF : {0:x02}", a);
+                if (work.pg.useKeyOn)
+                {
+                    work.cd.ch3KeyOn &= (byte)~(work.pg.useSlot << 4);
+                    byte a = (byte)(work.cd.ch3KeyOn | 0x2);
+                    PSGOUT(0x28, a);//KEY-OFF
+                                    //Console.WriteLine("KEYOFF : {0:x02}", a);
+                }
             }
             else
             {
@@ -2303,6 +2306,7 @@ namespace mucomDotNET.Driver
             //KEYON2:
             a += (byte)work.pg.channelNumber;
             PSGOUT(0x28, a);//KEY-ON
+            work.pg.useKeyOn = true;
 
             if (work.pg.reverbFlg)
             {
@@ -2351,6 +2355,7 @@ namespace mucomDotNET.Driver
             work.cd.ch3KeyOn |= (byte)(work.pg.useSlot << 4);
             a &= (byte)(work.cd.ch3KeyOn | 0xf);
             PSGOUT(0x28, a);//KEY-ON
+            work.pg.useKeyOn = true;
 
             if (work.pg.reverbFlg)
             {
@@ -2394,6 +2399,7 @@ namespace mucomDotNET.Driver
             //KEYON2:
             a += (byte)work.pg.channelNumber;
             PSGOUT(0x08, a);//KEY-ON
+            work.pg.useKeyOn = true;
 
             if (work.pg.reverbFlg)
             {
@@ -5487,6 +5493,7 @@ namespace mucomDotNET.Driver
             //KEYON2:
             a += (byte)work.pg.channelNumber;
             PSGOUT(0x28, a);//KEY-ON
+            work.pg.useKeyOn = true;
 
             if (work.pg.reverbFlg)
             {
