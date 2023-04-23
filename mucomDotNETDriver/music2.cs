@@ -2603,7 +2603,7 @@ namespace mucomDotNET.Driver
             }
 
             work.pg.volume = work.pg.mData[work.hl++].dat;
-            if (work.cd.currentPageNo == work.pg.pageNo)
+            if (CheckCh3SpecialMode() || work.cd.currentPageNo == work.pg.pageNo)
                 STVOL();
         }
 
