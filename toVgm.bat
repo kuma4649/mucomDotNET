@@ -1,1 +1,1 @@
-"%~dp0\toVgm\mucomDotNET2vgm.exe" -L=2 "%1"
+"%~dp0\NET6\mucomDotNET2vgm.exe" -L=2 "%1"

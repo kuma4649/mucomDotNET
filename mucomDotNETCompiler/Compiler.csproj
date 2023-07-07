@@ -2,7 +2,7 @@
   <PropertyGroup>
     <RootNamespace>mucomDotNET.Compiler</RootNamespace>
     <AssemblyName>mucomDotNETCompiler</AssemblyName>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyTitle>mucomDotNET</AssemblyTitle>
     <Product>mucomDotNET</Product>
     <Copyright>Copyright ©  2019</Copyright>

@@ -2,7 +2,7 @@
   <PropertyGroup>
     <RootNamespace>mucomDotNET.Driver</RootNamespace>
     <AssemblyName>mucomDotNETDriver</AssemblyName>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyTitle>Driver</AssemblyTitle>
     <Product>Driver</Product>
     <Copyright>Copyright ©  2019</Copyright>

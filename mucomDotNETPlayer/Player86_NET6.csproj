@@ -3,7 +3,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>mucomDotNET.Player</RootNamespace>
     <AssemblyName>mucomDotNETPlayer</AssemblyName>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -39,7 +39,7 @@
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject />
+    <StartupObject>mucomDotNET.Player.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <NoWin32Manifest>true</NoWin32Manifest>

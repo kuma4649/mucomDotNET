@@ -1,1 +1,1 @@
-"%~dp0\playerx64\mucomDotNETPlayer.exe" -D=SCCI "%1"
+"%~dp0\NET6\mucomDotNETPlayer.exe" -D=SCCI "%1"

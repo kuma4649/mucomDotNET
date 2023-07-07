@@ -137,8 +137,31 @@ namespace mucomDotNET.Compiler
         public EnmFCOMPNextRtn SETMAC()
         {
             mucInfo.srcCPtr++;
-            int ptr = mucInfo.srcCPtr;
-            int n = msub.REDATA(mucInfo.lin, ref ptr);
+
+            int ptr, n;
+
+            //macro shiftか調べる
+            char ch = mucInfo.lin.Item2.Length > mucInfo.srcCPtr ? mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
+            if (ch == '*')
+            {
+                mucInfo.srcCPtr++;
+                ptr = mucInfo.srcCPtr;
+                n = msub.REDATA(mucInfo.lin, ref ptr);
+                if (mucInfo.DriverType != MUCInfo.enmDriverType.DotNet)
+                {
+                    if (n > 0xff || n < 0)
+                    {
+                        WriteWarning(msg.get("W0400"), mucInfo.row, mucInfo.col);
+                    }
+                    n &= 0xff;
+                }
+                mucInfo.srcCPtr = ptr;
+                work.MacroShift = n;
+                return EnmFCOMPNextRtn.fcomp1;
+            }
+
+            ptr = mucInfo.srcCPtr;
+            n = msub.REDATA(mucInfo.lin, ref ptr) + work.MacroShift;
             if (mucInfo.DriverType != MUCInfo.enmDriverType.DotNet)
             {
                 if (n > 0xff || n < 0)
@@ -4267,6 +4290,8 @@ namespace mucomDotNET.Compiler
         {
             Log.WriteLine(LogLevel.TRACE, msg.get("I0400"));
             work.MACFG = 0xff;
+            work.MacroShift = 0;
+
             COMPST();//KUMA:先ずマクロの解析
 
             if (!mucInfo.isExtendFormat)
@@ -4292,6 +4317,7 @@ namespace mucomDotNET.Compiler
                 if (mucInfo.isExtendFormat) work.MDATA = 0;
 
                 work.bufStartPtr = work.MDATA;
+                work.MacroShift = 0;
 
                 COMPST();
                 if (mucInfo.ErrSign) return;
@@ -5213,6 +5239,9 @@ namespace mucomDotNET.Compiler
             return EnmFMCOMPrtn.normal;
         }
 
+        /// <summary>
+        /// FCOMP1(パート解析ごとに必要なworkの初期化)
+        /// </summary>
         public EnmFCOMPNextRtn FCOMP1()
         {
             work.BEFRST = 0;

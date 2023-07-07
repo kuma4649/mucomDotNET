@@ -1,8 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <AssemblyName>mucomDotNETCommon</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>PCMTool</AssemblyName>
+    <RootNamespace>PCMTool</RootNamespace>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <Configurations>Debug;Release;Debug64</Configurations>
     <Platforms>AnyCPU;x64;x86</Platforms>
@@ -48,20 +50,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\mucomDotNETCommon\AutoExtendList.cs" Link="AutoExtendList.cs" />
-    <Compile Include="..\mucomDotNETCommon\Common.cs" Link="Common.cs" />
-    <Compile Include="..\mucomDotNETCommon\iEncoding.cs" Link="iEncoding.cs" />
-    <Compile Include="..\mucomDotNETCommon\message.cs" Link="message.cs" />
-    <Compile Include="..\mucomDotNETCommon\MubException.cs" Link="MubException.cs" />
-    <Compile Include="..\mucomDotNETCommon\MucException.cs" Link="MucException.cs" />
-    <Compile Include="..\mucomDotNETCommon\MUCInfo.cs" Link="MUCInfo.cs" />
-    <Compile Include="..\mucomDotNETCommon\mucomChipAction.cs" Link="mucomChipAction.cs" />
-    <Compile Include="..\mucomDotNETCommon\myEncoding.cs" Link="myEncoding.cs" />
+    <Compile Include="..\PCMTool\Program.cs" Link="Program.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Compiler_NET5\Compiler_NET6.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="musicDriverInterface">
-      <HintPath>musicDriverInterface.dll</HintPath>
+      <HintPath>..\Common_NET5\musicDriverInterface.dll</HintPath>
     </Reference>
   </ItemGroup>
 

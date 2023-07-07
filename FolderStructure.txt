@@ -1,0 +1,40 @@
+
+
+*Žå—vdll
+Common
+ Platform Framework       OS      Release build path
+ -------------------------------------------------------------------------
+ AnyCPU   .NETStandard2.1 Any     .\mucomDotNETCommon\bin\Release\netstandard2.1
+ AnyCPU   .NET6           Any     .\Common_NET5\bin\Release\net6.0
+
+Compiler
+ AnyCPU   .NETStandard2.1 Any     .\mucomDotNETCompiler\bin\Release\netstandard2.1
+ AnyCPU   .NET6           Any     .\Compiler_NET5\bin\Release\net6.0
+
+Driver
+ AnyCPU   .NETStandard2.1 Any     .\mucomDotNETDriver\bin\Release\netstandard2.1
+ AnyCPU   .NET6           Any     .\Driver_NET5\bin\Release\net6.0
+
+
+*Žü•ÓƒAƒvƒŠ
+Console
+ AnyCPU   .NETCoreApp3.1  Any     .\mucomDotNETConsole\bin\Release\netcoreapp3.1
+ AnyCPU   .NET6           Any     .\Console_NET5\bin\Release\net6.0
+
+PCMTool
+ AnyCPU   .NETCoreApp3.1  Any     .\PCMTool\bin\Release\netcoreapp3.1
+ AnyCPU   .NET6           Any     .\PCMTool_NET5\bin\Release\net6.0
+
+Player
+ x86      .NET6           Windows .\mucomDotNETPlayer\bin\Release\net6.0-windows
+ x64      .NET6           Windows .\Player64\bin\Release\net6.0-windows
+
+Vgm
+ AnyCPU   .NETCoreApp3.1  Any     .\Vgm\bin\Release\netcoreapp3.1
+ AnyCPU   .NET6           Any     .\Vgm_NET5\bin\Release\net6.0
+
+Wav
+ AnyCPU   .NETCoreApp3.1  Any     .\Wav\bin\Release\netcoreapp3.1
+ AnyCPU   .NET6           Any     .\Wav_NET5\bin\Release\net6.0
+
+

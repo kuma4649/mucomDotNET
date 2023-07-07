@@ -1,0 +1,70 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>mucomDotNETPlayer</RootNamespace>
+    <AssemblyName>mucomDotNETPlayer</AssemblyName>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AssemblyTitle>Player64</AssemblyTitle>
+    <Product>Player64</Product>
+    <Copyright>Copyright ©  2021</Copyright>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <StartupObject>mucomDotNET.Player.Program</StartupObject>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <OutputPath>bin\x64\Debug\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="MDSound, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\MDSound.dll</HintPath>
+    </Reference>
+    <Reference Include="musicDriverInterface">
+      <HintPath>..\lib\musicDriverInterface.dll</HintPath>
+    </Reference>
+    <Reference Include="RealChipCtlWrap">
+      <HintPath>lib\RealChipCtlWrap.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\mucomDotNETPlayer\Program.cs">
+      <Link>Program.cs</Link>
+    </Compile>
+    <Compile Include="..\mucomDotNETPlayer\RSoundChip.cs">
+      <Link>RSoundChip.cs</Link>
+    </Compile>
+    <Compile Include="..\mucomDotNETPlayer\SChipType.cs">
+      <Link>SChipType.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="lib\c86ctl.dll" />
+    <Content Include="lib\fmgenmodule.dll" />
+    <Content Include="lib\MDSound.dll" />
+    <Content Include="lib\RealChipCtlWrap.dll" />
+    <Content Include="lib\RealChipCtlWrap.pdb" />
+    <Content Include="lib\scci.dll" />
+    <Content Include="lib\scciconfig.exe" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\mucomDotNETCommon\Common.csproj" />
+    <ProjectReference Include="..\mucomDotNETDriver\Driver.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="NAudio" Version="2.0.1" />
+    <PackageReference Include="NAudio.Asio" Version="2.0.0" />
+    <PackageReference Include="NAudio.Core" Version="2.0.0" />
+    <PackageReference Include="NAudio.Midi" Version="2.0.1" />
+    <PackageReference Include="NAudio.Wasapi" Version="2.0.0" />
+    <PackageReference Include="NAudio.WinForms" Version="2.0.1" />
+    <PackageReference Include="NAudio.WinMM" Version="2.0.1" />
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+    <PackageReference Include="System.Security.AccessControl" Version="6.0.0" />
+  </ItemGroup>
+</Project>

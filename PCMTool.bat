@@ -1,2 +1,2 @@
-"%~dp0\PCMTool\PCMTool.exe" "%1"
+"%~dp0\NET6\PCMTool.exe" "%1"
 pause

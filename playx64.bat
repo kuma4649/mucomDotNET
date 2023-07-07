@@ -1,1 +1,1 @@
-"%~dp0\playerx64\mucomDotNETPlayer.exe" -D=EMU "%1"
+"%~dp0\NET6\mucomDotNETPlayer.exe" -D=EMU "%1"

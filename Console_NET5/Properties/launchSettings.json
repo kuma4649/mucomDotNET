@@ -2,7 +2,7 @@
   "profiles": {
     "Console_NET5": {
       "commandName": "Project",
-      "commandLineArgs": "D:\\bootcamp\\FM音源\\data\\自作\\test\\grad.muc",
+      "commandLineArgs": "D:\\bootcamp\\FM音源\\data\\自作\\test\\macroShift.muc",
       "nativeDebugging": true
     }
   }

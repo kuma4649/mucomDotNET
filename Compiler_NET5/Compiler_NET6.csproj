@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>mucomDotNETCompiler</AssemblyName>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <Configurations>Debug;Release;Debug64</Configurations>
@@ -78,7 +78,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Common_NET5\Common_NET5.csproj" />
+    <ProjectReference Include="..\Common_NET5\Common_NET6.csproj" />
   </ItemGroup>
 
   <ItemGroup>
