@@ -191,10 +191,11 @@ namespace mucomDotNET.Driver
             lock (work.SystemInterrupt)
             {
                 //work.SystemInterrupt = true;
-                for (int c = 0; c < 4; c++)
+                for (int c = 0; c < 5; c++)
                 {
                     for (int i = 0; i < work.soundWork.CHDAT[c].Count; i++)
                     {
+                        if (work.soundWork.CHDAT[c][i] == null) continue;
                         for (int j = 0; j < work.soundWork.CHDAT[c][i].PGDAT.Count; j++)
                             work.soundWork.CHDAT[c][i].PGDAT[j].muteFlg = true;
                     }
@@ -206,11 +207,14 @@ namespace mucomDotNET.Driver
                     count--;
                 }
 
-                for (int c = 0; c < 4; c++)
+                for (int c = 0; c < 5; c++)
                 {
                     for (int i = 0; i < work.soundWork.CHDAT[c].Count; i++)
+                    {
+                        if (work.soundWork.CHDAT[c][i] == null) continue;
                         for (int j = 0; j < work.soundWork.CHDAT[c][i].PGDAT.Count; j++)
                             work.soundWork.CHDAT[c][i].PGDAT[j].muteFlg = false;
+                    }
                 }
             }
         }
@@ -5850,7 +5854,6 @@ namespace mucomDotNET.Driver
 
         private void STENV2opm()
         {
-
             // ﾜｰｸ ｶﾗ ｵﾝｼｮｸ ﾅﾝﾊﾞｰ ｦ ｴﾙ
             //STENV0:
             int hl = work.pg.instrumentNumber * 25;// HL=*25

@@ -56,9 +56,10 @@ namespace mucomDotNET.Compiler.PCMTool
         private short YM2610_ADPCM_A_Decode(byte code)
         {
             acc += jedi_table[decstep + code];
-            if ((acc & ~0x7ff) != 0) // acc is > 2047
-                acc |= ~0xfff;
-            else acc &= 0xfff;
+            //if ((acc & ~0x7ff) != 0) // acc is > 2047
+            //    acc |= ~0xfff;
+            //else acc &= 0xfff;
+            acc = Math.Max(Math.Min(acc, 2047), -2048);
             decstep += step_adj[code & 7] * 16;
             if (decstep < 0) decstep = 0;
             if (decstep > 48 * 16) decstep = 48 * 16;

@@ -2,7 +2,7 @@
   "profiles": {
     "Console_NET5": {
       "commandName": "Project",
-      "commandLineArgs": "D:\\bootcamp\\FM音源\\data\\自作\\test\\macroShift.muc",
+      "commandLineArgs": "\"C:\\Users\\kuma\\Desktop\\SDI (OPNB+OPM版)\\testSDI - Ending - We Are Desirous of Peace (OPNB+OPM版).muc\"",
       "nativeDebugging": true
     }
   }

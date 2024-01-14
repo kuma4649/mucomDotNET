@@ -1,4 +1,10 @@
 更新履歴
+TAG201 2024/01/14
+  Compiler
+    ADPCMA Decode処理の若干の調整。
+  Player
+    MDSound差し替え
+
 TAG200 2023/07/07
   All
   プロジェクトの整理

@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "Common_NET6": {
+      "commandName": "Project"
+    }
+  }
+}
