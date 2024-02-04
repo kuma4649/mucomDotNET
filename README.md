@@ -23,8 +23,7 @@
  ・気合と根性  
   
 [著作権・免責]  
-mucom.NETはクリエイティブコモンズで規定されたCC BY-NC-SA 4.0ライセンスとします。  
-https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ja  
+mucom.NETはGPLv3ライセンスとします。  
 著作権は作者が保有しています。  
 このソフトは無保証であり、このソフトを使用した事による  
 いかなる損害も作者は一切の責任を負いません。  
@@ -43,7 +42,7 @@ https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ja
   
  ・mucom88/mucom88win   -> CC BY-NC-SA 4.0 -> コード改変  
  ・AMD98                -> ?               -> コード改変  
- ・MDSound              -> LGPL            -> dll動的リンクで使用  
+ ・MDSound              -> GPLv3           -> dll動的リンクで使用  
  ・musicDriverInterface -> MIT             -> dll動的リンクで使用  
  ・RealChipCtlWrap      -> MIT             -> dll動的リンクで使用  
  ・NAudio               -> MS-PL           -> dll動的リンクで使用  

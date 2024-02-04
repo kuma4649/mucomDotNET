@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "document", "document", "{A1
 		compile.bat = compile.bat
 		ExtendFormat.txt = ExtendFormat.txt
 		FolderStructure.txt = FolderStructure.txt
+		LICENSE.txt = LICENSE.txt
 		makeZip.bat = makeZip.bat
 		MML.txt = MML.txt
 		PCMTool.bat = PCMTool.bat
