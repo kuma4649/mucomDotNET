@@ -1898,10 +1898,19 @@ namespace mucomDotNET.Compiler
 
         private EnmFCOMPNextRtn SETLPE()
         {
-            int ptr;
+            int ptr = mucInfo.srcCPtr;
+            ptr++;
+            int rep = msub.REDATA(mucInfo.lin, ref ptr);
+            if (mucInfo.Carry)//数値読み取れなかった
+            {
+                if (mucInfo.DriverType == MUCInfo.enmDriverType.DotNet)
+                    rep = 2;
+                else
+                    throw new MucException(
+                        string.Format(msg.get("E0201"), msg.get("E0436"))
+                        , mucInfo.row, mucInfo.col);
+            }
 
-            ptr = mucInfo.srcCPtr;
-            int rep = msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0436"));
             mucInfo.srcCPtr = ptr;
             if (rep < 0 || rep > 255)
             {
