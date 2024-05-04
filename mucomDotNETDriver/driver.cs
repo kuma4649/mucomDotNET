@@ -683,30 +683,35 @@ namespace mucomDotNET.Driver
             if (tags == null) return;
             foreach (Tuple<string, string> tag in tags)
             {
+                //タグ名は小文字化されています
                 switch (tag.Item1)
                 {
                     case "voice":
                         fnVoicedat[0] = tag.Item2;
                         break;
                     case "pcm":
+                    case "pcm_1st":
+                    case "pcmopna_p":
                         fnPcm[0] = tag.Item2;
                         break;
-                    case "pcmOPNA_P":
-                        fnPcm[0] = tag.Item2;
-                        break;
-                    case "pcmOPNA_S":
+                    case "pcm_2nd":
+                    case "pcmopna_s":
                         fnPcm[1] = tag.Item2;
                         break;
-                    case "pcmOPNB_B_P":
+                    case "pcm_3rd":
+                    case "pcmopnb_b_p":
                         fnPcm[2] = tag.Item2;
                         break;
-                    case "pcmOPNB_B_S":
+                    case "pcm_4th":
+                    case "pcmopnb_b_s":
                         fnPcm[3] = tag.Item2;
                         break;
-                    case "pcmOPNB_A_P":
+                    case "pcm_5th":
+                    case "pcmopnb_a_p":
                         fnPcm[4] = tag.Item2;
                         break;
-                    case "pcmOPNB_A_S":
+                    case "pcm_6th":
+                    case "pcmopnb_a_s":
                         fnPcm[5] = tag.Item2;
                         break;
                 }

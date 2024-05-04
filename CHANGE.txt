@@ -1,4 +1,40 @@
 更新履歴
+TAG203 2024/05/04
+  Driver
+    タグが認識できなくなっていたバグを修正。
+    また、pcmタグ関連の別名を追加。
+    以下の通り。
+       既存名
+         "#pcm"
+    　 別名
+         "#pcm_1st"
+         "#pcmopna_p"
+
+       既存名
+         "#pcmopna_s"
+    　 別名
+         "pcm_2nd"
+
+       既存名
+         "pcmopnb_b_p"
+    　 別名
+         "pcm_3rd"
+
+       既存名
+         "pcmopnb_b_s"
+    　 別名
+         "pcm_4th"
+
+       既存名
+         "pcmopnb_a_p"
+    　 別名
+         "pcm_5th"
+
+       既存名
+         "pcmopnb_a_s"
+    　 別名
+         "pcm_6th"
+
 TAG202 2024/03/20
   Compiler
     ]コマンドで数値を省略出来るように機能追加。(2が指定した時と同じになる)

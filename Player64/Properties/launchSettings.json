@@ -2,7 +2,7 @@
   "profiles": {
     "Player64": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\Users\\kuma\\Downloads\\zパート問題\\The Scheme G3MIX (OPNB+OPM版)\\bugTEST_DATA.mub\""
+      "commandLineArgs": "\"c:\\ks\\Dotnet_test.mub\""
     }
   }
 }
