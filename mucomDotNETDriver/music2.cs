@@ -983,10 +983,11 @@ namespace mucomDotNET.Driver
         {
             int n = 0;
 
+            int nowLoopCounter = int.MaxValue;
             for (int c = 0; c < 5; c++)
             {
                 work.soundWork.currentChip = c;
-                int nowLoopCounter = int.MaxValue;
+                //int nowLoopCounter = int.MaxValue;
                 Tuple<string, int, int, int, int, Action>[] aryDrv = (c != 4 ? aryDRIVE : aryMDRIVE);
 
                 for (int i = 0; i < aryDrv.Length; i++)

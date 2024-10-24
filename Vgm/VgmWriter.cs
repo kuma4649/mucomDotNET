@@ -56,6 +56,39 @@ namespace Vgm
         {
         }
 
+        private void AddWaitCounterCommand()
+        {
+            if (waitCounter <= 882 * 3)
+            {
+                while (waitCounter > 882)
+                {
+                    dest.WriteByte(0x63);
+                    waitCounter -= 882;
+                }
+                while (waitCounter > 735)
+                {
+                    dest.WriteByte(0x62);
+                    waitCounter -= 735;
+                }
+            }
+
+            while (waitCounter > 0)
+            {
+                while (waitCounter > 0xffff)
+                {
+                    dest.WriteByte(0x61);
+                    dest.WriteByte((byte)0xff);
+                    dest.WriteByte((byte)0xff);
+                    waitCounter -= 0xffff;
+                }
+
+                dest.WriteByte(0x61);
+                dest.WriteByte((byte)waitCounter);
+                dest.WriteByte((byte)(waitCounter >> 8));
+                waitCounter -= (waitCounter & 0xffff);
+            }
+        }
+
         public void WriteYM2608(int v, byte port, byte address, byte data)
         {
             if (dest == null) return;
@@ -70,28 +103,7 @@ namespace Vgm
                     , string.Format("wait:{0}", waitCounter)
                     );
 
-                if (waitCounter <= 882 * 3)
-                {
-                    while (waitCounter > 882)
-                    {
-                        dest.WriteByte(0x63);
-                        waitCounter -= 882;
-                    }
-                    while (waitCounter > 735)
-                    {
-                        dest.WriteByte(0x62);
-                        waitCounter -= 735;
-                    }
-                }
-
-                while (waitCounter > 0)
-                {
-                    dest.WriteByte(0x61);
-                    dest.WriteByte((byte)waitCounter);
-                    dest.WriteByte((byte)(waitCounter >> 8));
-                    waitCounter -= (waitCounter & 0xffff);
-                }
-
+                AddWaitCounterCommand();
                 waitCounter = 0;
             }
 
@@ -120,28 +132,7 @@ namespace Vgm
                     , string.Format("wait:{0}", waitCounter)
                     );
 
-                if (waitCounter <= 882 * 3)
-                {
-                    while (waitCounter > 882)
-                    {
-                        dest.WriteByte(0x63);
-                        waitCounter -= 882;
-                    }
-                    while (waitCounter > 735)
-                    {
-                        dest.WriteByte(0x62);
-                        waitCounter -= 735;
-                    }
-                }
-
-                while (waitCounter > 0)
-                {
-                    dest.WriteByte(0x61);
-                    dest.WriteByte((byte)waitCounter);
-                    dest.WriteByte((byte)(waitCounter >> 8));
-                    waitCounter -= (waitCounter & 0xffff);
-                }
-
+                AddWaitCounterCommand();
                 waitCounter = 0;
             }
 
@@ -169,28 +160,7 @@ namespace Vgm
                     , string.Format("wait:{0}", waitCounter)
                     );
 
-                if (waitCounter <= 882 * 3)
-                {
-                    while (waitCounter > 882)
-                    {
-                        dest.WriteByte(0x63);
-                        waitCounter -= 882;
-                    }
-                    while (waitCounter > 735)
-                    {
-                        dest.WriteByte(0x62);
-                        waitCounter -= 735;
-                    }
-                }
-
-                while (waitCounter > 0)
-                {
-                    dest.WriteByte(0x61);
-                    dest.WriteByte((byte)waitCounter);
-                    dest.WriteByte((byte)(waitCounter >> 8));
-                    waitCounter -= (waitCounter & 0xffff);
-                }
-
+                AddWaitCounterCommand();
                 waitCounter = 0;
             }
 

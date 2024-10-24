@@ -74,6 +74,7 @@ namespace mucomDotNET.Compiler
             , SETPTM
             , SETFLG
             , SETPinPOR
+            //, SETRTIE
             };
         }
 

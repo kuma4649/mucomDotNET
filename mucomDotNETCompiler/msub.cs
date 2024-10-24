@@ -65,6 +65,7 @@ namespace mucomDotNET.Compiler
         ,0x7b //,'{'	ﾎﾟﾙﾀﾒﾝﾄｽﾀｰﾄ
         ,0x23 //,'#'	FLAG SET
         ,0x5f //,'_'	局地的ポルタメント
+        //,(byte)'~' //   逆TIE
         ,0
         };
 
