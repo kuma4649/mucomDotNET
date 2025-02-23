@@ -1905,7 +1905,10 @@ namespace mucomDotNET.Compiler
             if (mucInfo.Carry)//数値読み取れなかった
             {
                 if (mucInfo.DriverType == MUCInfo.enmDriverType.DotNet)
+                {
                     rep = 2;
+                    ptr--;
+                }
                 else
                     throw new MucException(
                         string.Format(msg.get("E0201"), msg.get("E0436"))

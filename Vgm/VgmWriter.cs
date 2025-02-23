@@ -121,7 +121,7 @@ namespace Vgm
         {
             if (dest == null) return;
 
-            if (useChips[2 + v]==0) return;
+            if (useChips[2 + v] == 0) return;
 
             if (waitCounter != 0)
             {
@@ -450,9 +450,9 @@ namespace Vgm
                     for (int k = 0; k < pageCount[i][j]; k++)
                     {
                         pageLength[i][j][k] = (uint)(
-                            buf[ptr] 
-                            + buf[ptr + 1] * 0x100 
-                            + buf[ptr + 2] * 0x10000 
+                            buf[ptr]
+                            + buf[ptr + 1] * 0x100
+                            + buf[ptr + 2] * 0x10000
                             + buf[ptr + 3] * 0x1000000);
                         ptr += 8;
                     }

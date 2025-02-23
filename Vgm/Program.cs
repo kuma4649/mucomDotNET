@@ -165,10 +165,10 @@ namespace Vgm
             int i = 0;
             loop = 2;
 
-            while (args != null 
-                && args.Length > 0 
-                && args[i].Length > 0 
-                && args[i] != null 
+            while (args != null
+                && args.Length > 0
+                && args[i].Length > 0
+                && args[i] != null
                 && args[i][0] == '-')
             {
                 string op = args[i].Substring(1).ToUpper();

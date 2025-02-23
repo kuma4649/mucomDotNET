@@ -94,7 +94,7 @@ namespace PCMTool
                 for (int i = 0; i < 6; i++)
                 {
                     if (pcmdata[i] == null) continue;
-                    string dstFn = Path.Combine(Path.GetDirectoryName(fn), Path.GetFileNameWithoutExtension(fn) + addName[i] );
+                    string dstFn = Path.Combine(Path.GetDirectoryName(fn), Path.GetFileNameWithoutExtension(fn) + addName[i]);
                     File.WriteAllBytes(dstFn, pcmdata[i]);
                     Log.WriteLine(LogLevel.INFO, string.Format("Write:{0} size:{1}", dstFn, pcmdata[i].Length));
                 }
@@ -111,12 +111,12 @@ namespace PCMTool
 
         private static List<string>[] divider(string[] src)
         {
-            List<string>[] ret = new List<string>[6] { 
+            List<string>[] ret = new List<string>[6] {
                 new List<string>(), new List<string>(), new List<string>(),
-                new List<string>(), new List<string>(), new List<string>() 
+                new List<string>(), new List<string>(), new List<string>()
             };
 
-            foreach(string lin in src)
+            foreach (string lin in src)
             {
                 if (string.IsNullOrEmpty(lin)) continue;
                 if (lin.Length < 3) continue;
@@ -125,7 +125,7 @@ namespace PCMTool
 
                 string li = lin.Substring(2).ToLower();
                 //文字列の長いものから比較
-                     if (li.IndexOf("pcm_3rd_b") == 0) { ret[2].Add(lin.Substring(2 + 9)); }
+                if (li.IndexOf("pcm_3rd_b") == 0) { ret[2].Add(lin.Substring(2 + 9)); }
                 else if (li.IndexOf("pcm_4th_b") == 0) { ret[3].Add(lin.Substring(2 + 9)); }
                 else if (li.IndexOf("pcm_3rd_a") == 0) { ret[4].Add(lin.Substring(2 + 9)); }
                 else if (li.IndexOf("pcm_4th_a") == 0) { ret[5].Add(lin.Substring(2 + 9)); }

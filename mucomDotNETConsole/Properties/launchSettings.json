@@ -2,7 +2,7 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
-      "commandLineArgs": "-LOGLEVEL=TRACE \"C:\\Users\\kuma\\Downloads\\test2608_01\\test2608_Ch3SpecialMode_OK.muc\""
+      "commandLineArgs": "-LOGLEVEL=TRACE \"D:\\bootcamp\\FM音源\\data\\自作\\Natsuki\\test_20250223.muc\""
     }
   }
 }
