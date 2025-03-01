@@ -15,6 +15,7 @@ namespace mucomDotNET.Compiler.PCMTool
         public byte[] raw { get; private set; } = null;
         public byte[] encData { get; private set; } = null;
         private bool is16bit;
+        public bool rev { get; set; } = false;
 
         public PCMFileInfo(List<string> itemList, Func<string, Stream> appendFileReaderCallback = null)
         {
@@ -48,6 +49,7 @@ namespace mucomDotNET.Compiler.PCMTool
             if (itemList.Count > 1) name = itemList[1];
             if (itemList.Count > 2) fileName = itemList[2];
             if (itemList.Count > 3 && int.TryParse(itemList[3], out n)) volume = n;
+            if (itemList.Count > 4) rev=(itemList[4].ToUpper()=="R");
 
             byte[] buf;
             using (Stream pd = appendFileReaderCallback?.Invoke(fileName))
@@ -61,7 +63,7 @@ namespace mucomDotNET.Compiler.PCMTool
                 {
                     bool isRaw;
                     int samplerate;
-                    raw = GetPCMDataFromFile("", fileName, volume, out isRaw, out is16bit, out samplerate);
+                    raw = GetPCMDataFromFile("", fileName, volume, rev, out isRaw, out is16bit, out samplerate);
                     if (raw != null) length = (ushort)raw.Length;
                     else
                         throw new mucomDotNET.Common.MucException(string.Format("Fail get pcm data from file[{0}].", fileName));
@@ -75,7 +77,7 @@ namespace mucomDotNET.Compiler.PCMTool
             {
                 bool isRaw;
                 int samplerate;
-                raw = GetPCMDataFromFile(buf, volume, out isRaw, out is16bit, out samplerate);
+                raw = GetPCMDataFromFile(buf, volume,rev, out isRaw, out is16bit, out samplerate);
                 if (raw != null) length = (ushort)raw.Length;
                 else
                     throw new mucomDotNET.Common.MucException(string.Format("Fail get pcm data from file[{0}].", fileName));
@@ -126,7 +128,7 @@ namespace mucomDotNET.Compiler.PCMTool
             length = encData.Length;
         }
 
-        public static byte[] GetPCMDataFromFile(string path, string fileName, int vol, out bool isRaw, out bool is16bit, out int samplerate)
+        public static byte[] GetPCMDataFromFile(string path, string fileName, int vol,bool rev, out bool isRaw, out bool is16bit, out int samplerate)
         {
             string fnPcm = Path.Combine(path, fileName).Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
 
@@ -149,10 +151,10 @@ namespace mucomDotNET.Compiler.PCMTool
                 return buf;
             }
 
-            return GetPCMDataFromFile(buf, vol, out isRaw, out is16bit, out samplerate);
+            return GetPCMDataFromFile(buf, vol,rev, out isRaw, out is16bit, out samplerate);
         }
 
-        public static byte[] GetPCMDataFromFile(byte[] buf, int vol, out bool isRaw, out bool is16bit, out int samplerate)
+        public static byte[] GetPCMDataFromFile(byte[] buf, int vol,bool rev, out bool isRaw, out bool is16bit, out int samplerate)
         {
             isRaw = false;
             is16bit = false;
@@ -276,6 +278,18 @@ namespace mucomDotNET.Compiler.PCMTool
                         des[i] = (byte)(b & 0xff);
                         des[i + 1] = (byte)((b & 0xff00) >> 8);
                     }
+                    if (rev)
+                    {
+                        for (int i = 0; i < des.Length / 2; i += 2)
+                        {
+                            byte l = des[i];
+                            byte m = des[i + 1];
+                            des[i] = des[des.Length - 1 - i - 1];
+                            des[i + 1] = des[des.Length - 1 - i - 0];
+                            des[des.Length - 1 - i - 1] = l;
+                            des[des.Length - 1 - i - 0] = m;
+                        }
+                    }
                 }
                 else
                 {
@@ -293,6 +307,15 @@ namespace mucomDotNET.Compiler.PCMTool
                         d += 0x80;
 
                         des[i] = (byte)d;
+                    }
+                    if (rev)
+                    {
+                        for (int i = 0; i < des.Length / 2; i ++)
+                        {
+                            byte l = des[i];
+                            des[i] = des[des.Length - 1 - i];
+                            des[des.Length - 1 - i] = l;
+                        }
                     }
                 }
 

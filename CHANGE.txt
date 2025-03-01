@@ -1,4 +1,7 @@
 更新履歴
+TAG206 2025/03/01
+  Compiler
+    PCM読み込み時に逆再生のデータを作成するスイッチを指定できる機能追加
 TAG205 2025/02/23
   Compiler
     ループ回数が未指定の場合に次の文字をスキップしてしまうバグを修正
@@ -20,27 +23,27 @@ TAG203 2024/05/04
        既存名
          "#pcmopna_s"
     　 別名
-         "pcm_2nd"
+         "#pcm_2nd"
 
        既存名
-         "pcmopnb_b_p"
+         "#pcmopnb_b_p"
     　 別名
-         "pcm_3rd"
+         "#pcm_3rd"
 
        既存名
-         "pcmopnb_b_s"
+         "#pcmopnb_b_s"
     　 別名
-         "pcm_4th"
+         "#pcm_4th"
 
        既存名
-         "pcmopnb_a_p"
+         "#pcmopnb_a_p"
     　 別名
-         "pcm_5th"
+         "#pcm_5th"
 
        既存名
-         "pcmopnb_a_s"
+         "#pcmopnb_a_s"
     　 別名
-         "pcm_6th"
+         "#pcm_6th"
 
 TAG202 2024/03/20
   Compiler
