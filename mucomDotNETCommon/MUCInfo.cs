@@ -14,6 +14,7 @@ namespace mucomDotNET.Common
         public string mucom88 { get; set; }
         public string date { get; set; }
         public string voice { get; set; }
+        public string artwork { get; set; }
         public string[] pcm { get; set; } = new string[6];
         public List<string>[] pcmAt { get; set; } = new List<string>[6] {
             new List<string>(),
@@ -166,6 +167,7 @@ namespace mucomDotNET.Common
             mucom88 = "";
             date = "";
             voice = "";
+            artwork = "";
             for (int i = 0; i < 6; i++)
             {
                 pcm[i] = "";

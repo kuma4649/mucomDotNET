@@ -109,6 +109,19 @@ namespace mucomDotNET.Compiler
                 mucInfo.srcLinPtr = -1;
                 //work.compilerInfo.jumpRow = -1;
                 //work.compilerInfo.jumpCol = -1;
+                if(!string.IsNullOrEmpty(mucInfo.artwork))
+                {
+                    string fn = mucInfo.artwork;
+                    if (fn[0]=='"' && fn[fn.Length - 1] == '"')
+                    {
+                        fn = fn.Substring(1, fn.Length - 2);
+                    }
+                    using (Stream pd = appendFileReaderCallback?.Invoke(fn))
+                    {
+                        byte[] pic = ReadAllBytes(pd);
+                        mucInfo.artwork= Convert.ToBase64String(pic);
+                    }
+                }
 
                 //MUCOM88 初期化
                 int ret = muc88.COMPIL();//vector 0xeea8
@@ -232,6 +245,9 @@ namespace mucomDotNET.Compiler
                         break;
                     case "voice":
                         mucInfo.voice = tag.Item2;
+                        break;
+                    case "artwork":
+                        mucInfo.artwork = tag.Item2;
                         break;
                     case "pcm":
                         mucInfo.pcm[0] = tag.Item2;
@@ -1166,7 +1182,15 @@ namespace mucomDotNET.Compiler
                 foreach (Tuple<string, string> tag in tags)
                 {
                     if (tag.Item1 != null && tag.Item1.Length > 0 && tag.Item1[0] == '*') continue;
-                    byte[] b = enc.GetSjisArrayFromString(string.Format("#{0} {1}\r\n", tag.Item1, tag.Item2));
+                    byte[] b;
+                    if (tag.Item1 == "artwork")
+                    {
+                        b = enc.GetSjisArrayFromString(string.Format("#{0} {1}\r\n", tag.Item1, mucInfo.artwork));
+                    }
+                    else
+                    {
+                        b = enc.GetSjisArrayFromString(string.Format("#{0} {1}\r\n", tag.Item1, tag.Item2));
+                    }
                     tagsize += b.Length;
                     foreach (byte bd in b) dat.Add(new MmlDatum(bd));
                 }

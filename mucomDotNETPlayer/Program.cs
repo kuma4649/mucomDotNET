@@ -221,6 +221,7 @@ namespace mucomDotNET.Player
                     foreach (Tuple<string, string> tag in tags)
                     {
                         if (tag.Item1 == "") continue;
+                        if (tag.Item1 == "artwork") continue;
                         Log.WriteLine(LogLevel.INFO, string.Format("{0,-16} : {1}", tag.Item1, tag.Item2));
                     }
                 }

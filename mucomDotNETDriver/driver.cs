@@ -843,6 +843,9 @@ namespace mucomDotNET.Driver
                     case "driver":
                         addItemAry(gt, enmTag.DriverName, tag.Item2);
                         break;
+                    case "artwork":
+                        addItemAry(gt, enmTag.Artwork, tag.Item2);
+                        break;
                 }
             }
 
