@@ -1,4 +1,7 @@
 更新履歴
+TAG208 2025/07/24
+  Driver
+    リズム音量パラメータ表示用の値を$3fでandするように修正
 TAG207 2025/07/12
   Compiler/Driver
     Artworkタグの追加。mubファイルに画像を追加します。

@@ -3650,7 +3650,7 @@ namespace mucomDotNET.Driver
                 work.pg.volume += (sbyte)n;
                 //パラメータ表示向け
                 args = new List<object>();
-                args.Add(work.pg.volume);
+                args.Add(work.pg.volume&0x3f);
                 DummyOUT(enmMMLType.Volume, args);
 
                 DVOLSET();
