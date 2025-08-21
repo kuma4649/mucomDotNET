@@ -2,7 +2,7 @@
   "profiles": {
     "Console": {
       "commandName": "Project",
-      "commandLineArgs": "-LOGLEVEL=TRACE \"D:\\bootcamp\\FM音源\\data\\自作\\花～Sakuyo～\\flower-sakuyo-.muc\""
+      "commandLineArgs": "-LOGLEVEL=TRACE \"D:\\bootcamp\\FM音源\\data\\自作\\aeronaut\\mucom88em_porTest.muc\""
     }
   }
 }

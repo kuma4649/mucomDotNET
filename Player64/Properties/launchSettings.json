@@ -2,7 +2,7 @@
   "profiles": {
     "Player64": {
       "commandName": "Project",
-      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\自作\\懐かしき東方の血\\GTest.mub\""
+      "commandLineArgs": "\"D:\\bootcamp\\FM音源\\data\\自作\\aeronaut\\mucom88em_porTest.mub\""
     }
   }
 }

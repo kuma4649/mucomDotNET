@@ -155,7 +155,7 @@ namespace mucomDotNET.Driver
             if (pcm[4] != null && pcmType[4] == "") { TransformOPNAPCMtoOPNBPCM(4); pcmStartPos[4] = 0; }
             if (pcm[5] != null && pcmType[5] == "") { TransformOPNAPCMtoOPNBPCM(5); pcmStartPos[5] = 0; }
 
-            work.isDotNET = IsDotNETFromTAG();
+            work.isDotNET = IsExtendMucomFromTAG();
             work.SSGExtend = SSGExtendFromTAG();
 
             WriteOPNAP = lstChipWrite[0];
@@ -272,17 +272,20 @@ namespace mucomDotNET.Driver
             pcm[v] = dest.ToArray();
         }
 
-        private bool IsDotNETFromTAG()
+        private bool IsExtendMucomFromTAG()
         {
             if (tags == null) return false;
+
             foreach (Tuple<string, string> tag in tags)
             {
-                if (tag.Item1== "driver")
+                if (tag.Item1 != "driver") continue;
+
+                string drv = tag.Item2.ToLower().Trim();
+                if (drv == "mucomdotnet"
+                    || drv == "mucom88em"
+                    || drv == "mucom88e")
                 {
-                    if(tag.Item2.ToLower()== "mucomdotnet")
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
