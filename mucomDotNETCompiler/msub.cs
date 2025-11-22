@@ -333,6 +333,8 @@ namespace mucomDotNET.Compiler
             return 0;
         }
 
+        private int oldNote = 0;
+
         public byte STTONE()
         {
             char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length
@@ -348,6 +350,12 @@ namespace mucomDotNET.Compiler
                     mucInfo.Carry = false;
                     return TONEXT((byte)i);
                 }
+            }
+
+            if (c == 'x')
+            {
+                mucInfo.Carry = false;
+                return TONEXT2();
             }
 
             mucInfo.Carry = true;
@@ -394,6 +402,18 @@ namespace mucomDotNET.Compiler
             {
                 mucInfo.srcCPtr--;
             }
+
+            oldNote = n;
+
+            KEYSIFT(ref o, ref n);
+            mucInfo.Carry = false;
+            return (byte)(((o & 0xf) << 4) | (n & 0xf));
+        }
+
+        private byte TONEXT2()
+        {
+            byte n = (byte)oldNote;
+            int o = work.OCTAVE;
 
             KEYSIFT(ref o, ref n);
             mucInfo.Carry = false;
