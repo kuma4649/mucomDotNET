@@ -1458,6 +1458,10 @@ namespace mucomDotNET.Compiler
             {
                 return SETPOR();
             }
+            else if (ch == 'C')
+            {
+                return SETCOLOR();
+            }
 
             return SETMIX();
         }
@@ -1703,6 +1707,23 @@ namespace mucomDotNET.Compiler
                 mucInfo.srcCPtr++;
                 work.porPin = 2;
             }
+
+            return EnmFCOMPNextRtn.fcomp1;
+        }
+
+        private EnmFCOMPNextRtn SETCOLOR()
+        {
+            mucInfo.srcCPtr++;
+
+            int ptr = mucInfo.srcCPtr;
+            byte n = (byte)msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0531"));
+            mucInfo.srcCPtr = ptr;
+            work.color = n;
+
+            msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xfd));// IDE向け
+            msub.MWRIT2(new MmlDatum(2));// 2: Length(byte)
+            msub.MWRIT2(new MmlDatum(0));// 0: PartColor
+            msub.MWRIT2(new MmlDatum((byte)n));// SET DATA ONLY
 
             return EnmFCOMPNextRtn.fcomp1;
         }
@@ -5016,6 +5037,8 @@ namespace mucomDotNET.Compiler
             work.porDelta = 0;
             work.porOldNote = -1;
             work.porTime = 0;
+
+            work.color = -1;
 
             work.FMVolMode = 0;
             work.CompEndCmdFlag = false;

@@ -115,6 +115,9 @@ namespace mucomDotNET.Compiler
         public int porOldNote = -1;
         public byte porPin = 0;
         public int MacroShift { get; set; } = 0;
+
+        public int color = -1;
+
         /// <summary>
         /// 各チップのindex
         /// </summary>

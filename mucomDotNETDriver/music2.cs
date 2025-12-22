@@ -285,10 +285,30 @@ namespace mucomDotNET.Driver
                 ,ENVPSTex      // 0xFF 0xFA - ソフトエンベロープ 'E' n1,n2,n3,n4,n5,n6
                 ,FMVolMode     // 0xFF 0xFB - FMボリュームモード切替
                 ,OTOPSTG       // 0xFF 0xFC - FM音色グラデーション
-                ,NTMEAN        // 0xFF 0xFD
+                ,IDECMD        // 0xFF 0xFD - IDE向けコマンド
                 ,NTMEAN        // 0xFF 0xFE
                 ,NOP           // 0xFF 0xFF
             };
+        }
+
+        private void IDECMD()
+        {
+            byte len = (byte)work.pg.mData[work.hl++].dat;
+            byte[] cmd=new byte[len];
+            for (int i = 0; i < len; i++)
+            {
+                cmd[i] = (byte)work.pg.mData[work.hl++].dat;
+            }
+
+            //IDE専用コマンド
+            switch (cmd[0])
+            {
+                case 0x00://PartColor
+                    {
+                        DummyOUT(enmMMLType.PartColor, new List<object>() { (object)cmd });
+                    }
+                    break;
+            }
         }
 
         private void NOP()
@@ -344,7 +364,7 @@ namespace mucomDotNET.Driver
                 ,ENVPSTex       // 0xFF 0xFA - ソフトエンベロープ 'E' n1,n2,n3,n4,n5,n6
                 ,PANex          // 0xFF 0xFB - 拡張パン n(L*9+R)
                 ,NTMEAN         // 0xFF 0xFC
-                ,NTMEAN         // 0xFF 0xFD
+                ,IDECMD         // 0xFF 0xFD - IDE向けコマンド
                 ,NTMEAN         // 0xFF 0xFE
                 ,NOP            // 0xFF 0xFF
             };
@@ -1397,18 +1417,21 @@ namespace mucomDotNET.Driver
 
             ChipDatum dat = new ChipDatum(port, d, e, 0, work.crntMmlDatum);
             WriteRegister(work.soundWork.currentChip, dat);
+            work.crntMmlDatum=null;
         }
 
         public void PSGOUT(byte c,byte p,byte d, byte e)
         {
             ChipDatum dat = new ChipDatum(p, d, e, 0, work.crntMmlDatum);
             WriteRegister(c, dat);
+            work.crntMmlDatum = null;
         }
 
         public void DummyOUT()
         {
             ChipDatum dat = new ChipDatum(-1,-1,-1, 0, work.crntMmlDatum);
             WriteRegister(work.soundWork.currentChip, dat);
+            work.crntMmlDatum = null;
         }
 
         public void DummyOUT(enmMMLType type, List<object> args)
@@ -1547,11 +1570,13 @@ namespace mucomDotNET.Driver
         {
             ChipDatum dat = new ChipDatum(1, d, e, 0, work.crntMmlDatum);
             WriteRegister(work.soundWork.currentChip, dat);
+            work.crntMmlDatum = null;
         }
         public void PCMOUT(byte p,byte d, byte e)
         {
             ChipDatum dat = new ChipDatum(p, d, e, 0, work.crntMmlDatum);
             WriteRegister(work.soundWork.currentChip, dat);
+            work.crntMmlDatum = null;
         }
 
         // **	SET NEW SOUND**
