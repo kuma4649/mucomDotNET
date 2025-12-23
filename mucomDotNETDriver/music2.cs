@@ -293,7 +293,16 @@ namespace mucomDotNET.Driver
 
         private void IDECMD()
         {
-            byte len = (byte)work.pg.mData[work.hl++].dat;
+            int len = 0;
+            int cnt = 0;
+            byte d;
+            do
+            {
+                d = (byte)work.pg.mData[work.hl++].dat;
+                len += (d & 0x7f) << (7 * cnt);
+                cnt++;
+            } while ((d & 0x80) != 0);
+
             byte[] cmd=new byte[len];
             for (int i = 0; i < len; i++)
             {
@@ -306,6 +315,11 @@ namespace mucomDotNET.Driver
                 case 0x00://PartColor
                     {
                         DummyOUT(enmMMLType.PartColor, new List<object>() { (object)cmd });
+                    }
+                    break;
+                case 0x01://Memo
+                    {
+                        DummyOUT(enmMMLType.Lyric, new List<object>() { (object)cmd });
                     }
                     break;
             }

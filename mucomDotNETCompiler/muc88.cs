@@ -75,6 +75,7 @@ namespace mucomDotNET.Compiler
             , SETFLG
             , SETPinPOR
             //, SETRTIE
+            , SETMEMO
             };
         }
 
@@ -1716,7 +1717,7 @@ namespace mucomDotNET.Compiler
             mucInfo.srcCPtr++;
 
             int ptr = mucInfo.srcCPtr;
-            byte n = (byte)msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0531"));
+            byte n = (byte)msub.ERRT(mucInfo.lin, ref ptr, msg.get("E0538"));
             mucInfo.srcCPtr = ptr;
             work.color = n;
 
@@ -1724,6 +1725,47 @@ namespace mucomDotNET.Compiler
             msub.MWRIT2(new MmlDatum(2));// 2: Length(byte)
             msub.MWRIT2(new MmlDatum(0));// 0: PartColor
             msub.MWRIT2(new MmlDatum((byte)n));// SET DATA ONLY
+
+            return EnmFCOMPNextRtn.fcomp1;
+        }
+
+        private EnmFCOMPNextRtn SETMEMO()
+        {
+            mucInfo.srcCPtr++;
+
+            int ptr = mucInfo.srcCPtr;
+            List<byte> buf = new List<byte>();
+            char ch;
+            do
+            {
+                ch = mucInfo.lin.Item2.Length > ptr ? mucInfo.lin.Item2[ptr++] : (char)0;
+                byte[] b = enc.GetSjisArrayFromString(ch.ToString());
+                if (ch == '\'' || ch == 0) break;
+                buf.AddRange(b);
+            } while (true);
+
+            if (buf.Count < 1) {
+                throw new MucException(
+                    msg.get("E0539")
+                    , mucInfo.row, mucInfo.col);
+            }
+            mucInfo.srcCPtr = ptr;
+
+            int len = buf.Count + 1;
+            List<byte> lbuf = new List<byte>();
+            int n = 0;
+            for(int i = 0; i < 3; i++)
+            {
+                n += 0x7f << (i * 7);
+                lbuf.Add((byte)(((len & (0x7f << (i * 7))) >> (i * 7)) 
+                    | (len > n ? 0x80 : 0x00)));
+                if (len <= n) break;
+            }
+
+            msub.MWRITE(new MmlDatum(0xff), new MmlDatum(0xfd));// IDE向け
+            foreach (byte b in lbuf) msub.MWRIT2(new MmlDatum(b));//Length
+            msub.MWRIT2(new MmlDatum(1));// 1: Memo
+            foreach (byte b in buf) msub.MWRIT2(new MmlDatum(b));//メモデータ
 
             return EnmFCOMPNextRtn.fcomp1;
         }
