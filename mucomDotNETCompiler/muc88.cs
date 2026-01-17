@@ -2051,7 +2051,7 @@ namespace mucomDotNET.Compiler
 
             char c = mucInfo.srcCPtr < mucInfo.lin.Item2.Length ?
                      mucInfo.lin.Item2[mucInfo.srcCPtr] : (char)0;
-            if (c == '|')// 0x2c
+            if (c == '|' && mucInfo.DriverType == MUCInfo.enmDriverType.DotNet)// 0x2c
             {
                 return SetPartReplaceStart();
             }
@@ -5742,7 +5742,7 @@ namespace mucomDotNET.Compiler
                 }
                 if (c == ']')
                 {
-                    mucInfo.srcCPtr++;
+                    //mucInfo.srcCPtr++;
                     work.partReplaceSw = false;
                     break;
                 }
